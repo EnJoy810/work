@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Table, Button, Input, Space, Modal, Form, Select, Pagination } from 'antd'
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons'
 // import request from '../utils/request' // 暂时注释，实际项目中需要使用
-import { formatDate } from '../utils/tools'
+import { formatDate } from '../../utils/tools'
 
 const { Option } = Select
 const { TextArea } = Input

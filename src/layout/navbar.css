@@ -1,0 +1,38 @@
+.nav-bar-header .menu-item {
+  height: 32px;
+  line-height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  background-color: transparent;
+  color: #030213;
+  font-weight: bold;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.nav-bar-header .menu-item:hover {
+  background-color: #e9ebef;
+}
+
+.nav-bar-header .menu-item-label {
+  margin-left: 10px;
+}
+
+.nav-bar-header .user-drop {
+  margin-right: 30px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 10px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  color: #030213;
+}
+
+.nav-bar-header .user-drop:hover {
+  background-color: #e9ebef;
+}

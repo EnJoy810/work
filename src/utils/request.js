@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { store } from '../store'
 
 // 创建axios实例
 const request = axios.create({
@@ -12,8 +13,9 @@ const request = axios.create({
 // 请求拦截器
 request.interceptors.request.use(
   config => {
-    // 可以在这里添加token等认证信息
-    const token = localStorage.getItem('token')
+    // 从Redux store中获取token
+    const state = store.getState()
+    const token = state.user.token
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
