@@ -267,7 +267,7 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess }) => {
       submitData.linesPerLine = blanksPerLine; // 复用相同的设置
       submitData.showSubQuestionScore = showSubQuestionScore;
     }
-    console.log("submitData", submitData);
+    // console.log("submitData", submitData);
 
     // 调用成功回调，传递添加的题目信息
     if (onSuccess) {

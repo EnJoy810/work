@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Button, Typography, Form, Input, Checkbox, Empty, Space } from "antd";
 import {
   DownloadOutlined,
@@ -9,6 +9,7 @@ import {
 import { useMessageService } from "../../components/common/message";
 import ObjectiveQuestionModal from "./ObjectiveQuestionModal";
 import BlankQuestionModal from "./BlankQuestionModal";
+import AnswerSheetRenderer from "./components/AnswerSheetRenderer";
 
 const { Title } = Typography;
 
@@ -19,8 +20,13 @@ const ChinesePaperDesign = () => {
   const { showSuccess, showInfo } = useMessageService();
   const [form] = Form.useForm();
   const [modalVisible, setModalVisible] = useState(false);
-  const [blankQuestionModalVisible, setBlankQuestionModalVisible] =
+  const [blankQuestionModalVisible, setBlankQuestionModalVisible] = 
     useState(false);
+  const [questions, setQuestions] = useState([]);
+  const [formValues, setFormValues] = useState({
+    hasSealingLine: true,
+    hasNote: true
+  });
 
   // 预览并下载试卷
   const previewAndDownload = () => {
@@ -32,27 +38,15 @@ const ChinesePaperDesign = () => {
     }, 800);
   };
 
-  // 渲染答题卡预览
-  const renderAnswerSheetPreview = () => {
-    return (
-      <div className="answer-sheet-content">
-        <h2 style={{ textAlign: "center" }}>高中语文期中考试试卷</h2>
-        <div style={{ textAlign: "center", marginBottom: "20px" }}>
-          总分: 150 分 | 考试时间: 120 分钟
-        </div>
-      </div>
-    );
-  };
-
   // 显示选择题弹窗
   const showObjectiveQuestionModal = () => {
     setModalVisible(true);
   };
 
   // 处理选择题添加成功
-  const handleObjectiveQuestionSuccess = () => {
-    // 这里可以添加后续处理逻辑，比如将题目添加到列表中
-    // 目前不需要额外处理，弹窗组件内部已经显示了成功消息
+  const handleObjectiveQuestionSuccess = (newQuestion) => {
+    // 将新题目添加到题目列表
+    setQuestions([...questions, { ...newQuestion, type: "objective" }]);
   };
 
   // 关闭选择题弹窗
@@ -66,9 +60,9 @@ const ChinesePaperDesign = () => {
   };
 
   // 处理填空题添加成功
-  const handleBlankQuestionSuccess = () => {
-    // 这里可以添加后续处理逻辑，比如将题目添加到列表中
-    // 目前不需要额外处理，弹窗组件内部已经显示了成功消息
+  const handleBlankQuestionSuccess = (newQuestion) => {
+    // 将新题目添加到题目列表
+    setQuestions([...questions, { ...newQuestion, type: "blank" }]);
   };
 
   // 处理其他题目类型的添加
@@ -78,43 +72,31 @@ const ChinesePaperDesign = () => {
       setBlankQuestionModalVisible(true);
     }
   };
+  // 监听表单值变化
+  const handleValuesChange = (changedValues, allValues) => {
+    setFormValues(allValues);
+  };
 
   return (
-    <div style={{ padding: "8px", height: "calc(100vh - 16px)" }}>
+    <div>
       <div style={{ display: "flex", height: "100%", gap: "8px" }}>
         {/* 左边：答题卡渲染页面 - 可横向滚动 */}
         <div
           style={{
             flex: 1,
             display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             flexDirection: "column",
             overflow: "hidden",
+            backgroundColor: "#f7f8fa",
           }}
         >
-          <div
-            className="answer-sheet-scroll-container"
-            style={{
-              flex: 1,
-              overflowX: "auto",
-              padding: "4px",
-              backgroundColor: "#fafafa",
-              border: "1px solid #e8e8e8",
-              borderRadius: "4px",
-            }}
-          >
-            <div
-              className="answer-sheet-wrapper"
-              style={{
-                minWidth: "800px",
-                backgroundColor: "white",
-                padding: "16px",
-                boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                borderRadius: "4px",
-              }}
-            >
-              {renderAnswerSheetPreview()}
-            </div>
-          </div>
+          <AnswerSheetRenderer
+            questions={questions}
+            hasSealingLine={formValues.hasSealingLine !== false}
+            hasNote={formValues.hasNote !== false}
+          />
         </div>
 
         {/* 右边：操作台 */}
@@ -129,7 +111,7 @@ const ChinesePaperDesign = () => {
           {/* 基础信息 */}
           <div style={{ marginBottom: "12px", padding: "4px" }}>
             <Title level={5}>基础信息</Title>
-            <Form form={form} layout="vertical">
+            <Form form={form} layout="vertical" onValuesChange={handleValuesChange} initialValues={formValues}>
               <Form.Item
                 name="hasSealingLine"
                 valuePropName="checked"
