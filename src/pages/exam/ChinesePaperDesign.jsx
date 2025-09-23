@@ -44,18 +44,18 @@ const ChinesePaperDesign = () => {
     );
   };
 
-  // 显示客观题弹窗
+  // 显示选择题弹窗
   const showObjectiveQuestionModal = () => {
     setModalVisible(true);
   };
 
-  // 处理客观题添加成功
+  // 处理选择题添加成功
   const handleObjectiveQuestionSuccess = () => {
     // 这里可以添加后续处理逻辑，比如将题目添加到列表中
     // 目前不需要额外处理，弹窗组件内部已经显示了成功消息
   };
 
-  // 关闭客观题弹窗
+  // 关闭选择题弹窗
   const closeObjectiveQuestionModal = () => {
     setModalVisible(false);
   };
@@ -158,7 +158,7 @@ const ChinesePaperDesign = () => {
                 onClick={showObjectiveQuestionModal}
                 block
               >
-                客观题
+                选择题
               </Button>
               <Button
                 type="primary"
@@ -198,7 +198,7 @@ const ChinesePaperDesign = () => {
         </div>
       </div>
 
-      {/* 客观题弹窗 - 使用自包含组件 */}
+      {/* 选择题弹窗 - 使用自包含组件 */}
       {modalVisible ? (
         <ObjectiveQuestionModal
           visible={modalVisible}

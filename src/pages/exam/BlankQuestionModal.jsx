@@ -1,6 +1,22 @@
-import { Modal, Input, InputNumber, Button, Table } from "antd";
 import { useState, useEffect } from "react";
+import {
+  Modal,
+  Form,
+  Input,
+  Tabs,
+  Collapse,
+  InputNumber,
+  Button,
+  Select,
+  Checkbox,
+} from "antd";
+import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useMessageService } from "../../components/common/message";
+import ShortFillQuestionSection from "./components/ShortFillQuestionSection";
+import LongFillQuestionSection from "./components/LongFillQuestionSection";
+
+const { TextArea } = Input;
+const { Panel } = Collapse;
 
 /**
  * 填空题添加弹窗组件 - 支持批量添加和分段管理
@@ -18,18 +34,50 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess }) => {
   const [questionNumber, setQuestionNumber] = useState("一");
   const [questionContent, setQuestionContent] = useState("填空题");
 
-  // 分段配置列表，每段包含起始题、结束题、分数
-  const [segments, setSegments] = useState([
+  // 选择的填空类型：短填空或长填空
+  const [fillType, setFillType] = useState("short");
+
+  // 每行显示的空数
+  const [blanksPerLine, setBlanksPerLine] = useState(4);
+
+  // 是否显示小题分数
+  const [showSubQuestionScore, setShowSubQuestionScore] = useState(false);
+
+  // 短填空配置
+  const [shortFillConfig, setShortFillConfig] = useState([
     {
       id: 1,
       startQuestion: "1",
       endQuestion: "",
-      score: "2",
+      pointsPerBlank: "2",
+      blanksPerQuestion: "1",
     },
   ]);
 
   // 生成的题目列表
   const [questions, setQuestions] = useState([]);
+
+  // 小题配置列表
+  const [subQuestions, setSubQuestions] = useState([]);
+  const [blankScores, setBlankScores] = useState({}); // 存储每空分数的状态
+
+  // 长填空配置
+  const [longFillConfig, setLongFillConfig] = useState([
+    {
+      id: 1,
+      startQuestion: "1",
+      endQuestion: "",
+      pointsPerLine: "2",
+      linesPerQuestion: "1",
+    },
+  ]);
+  
+  // 长填空生成的题目列表
+  const [longQuestions, setLongQuestions] = useState([]);
+  
+  // 长填空小题配置列表
+  const [longSubQuestions, setLongSubQuestions] = useState([]);
+  const [longLineScores, setLongLineScores] = useState({}); // 存储每行分数的状态
 
   // 生成大写的一到二十选项
   const numberToChinese = (num) => {
@@ -62,77 +110,56 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess }) => {
     setQuestionContent(e.target.value);
   };
 
-  // 处理分段输入变更
-  const handleSegmentChange = (id, field, value) => {
-    setSegments(
-      segments.map((segment) =>
-        segment.id === id ? { ...segment, [field]: value } : segment
-      )
+  // 处理短填空配置变化
+  const handleShortFillConfigChange = (id, field, value) => {
+    const newConfig = shortFillConfig.map((config) =>
+      config.id === id ? { ...config, [field]: value } : config
     );
+    setShortFillConfig(newConfig);
   };
 
-  // 添加新的分段
-  const addSegment = () => {
-    const newId = Math.max(...segments.map((s) => s.id), 0) + 1;
-    const newQuestion = 
-      Math.max(
-        ...segments.map((s) => s.startQuestion),
-        ...segments.map((s) => s.endQuestion),
-        0
-      ) + 1;
-    setSegments([
-      ...segments,
-      {
-        id: newId,
-        startQuestion: newQuestion.toString(),
-        endQuestion: "",
-        score: "2",
-      },
-    ]);
-  };
-
-  // 移除分段
-  const removeSegment = (id) => {
-    if (segments.length <= 1) {
-      showInfo("至少保留一个分段");
-      return;
-    }
-    
-    // 找到要删除的分段
-    const segmentToRemove = segments.find(segment => segment.id === id);
-    
-    // 如果找到了该分段，同时删除与之关联的题目
-    if (segmentToRemove) {
-      // 删除分段
-      setSegments(segments.filter((segment) => segment.id !== id));
-      
-      // 删除该分段对应的所有题目
-      setQuestions(questions.filter(question => {
-        // 题目ID格式为"分段ID-题号"，所以我们可以通过检查ID前缀来判断是否属于该分段
-        return !question.id.startsWith(`${id}-`);
-      }));
-    }
+  // 添加新的长填空配置
+  const addLongFillConfig = () => {
+    const maxId = longFillConfig.length > 0 ? Math.max(...longFillConfig.map(config => config.id)) : 0;
+    const newConfig = {
+      id: maxId + 1,
+      startQuestion: '',
+      endQuestion: '',
+      pointsPerLine: '2',
+      linesPerQuestion: '1'
+    };
+    setLongFillConfig([...longFillConfig, newConfig]);
   };
 
   // 批量生成题目
-  const generateQuestions = (segment) => {
-    const { startQuestion, endQuestion, score } = segment;
+  const generateQuestions = (config) => {
+    const { startQuestion, endQuestion, pointsPerBlank, blanksPerQuestion } =
+      config;
 
     // 验证输入是否完整
-    if (!startQuestion || !endQuestion || !score) {
+    if (
+      !startQuestion ||
+      !endQuestion ||
+      !pointsPerBlank ||
+      !blanksPerQuestion
+    ) {
       return [];
     }
 
     const start = parseInt(startQuestion);
     const end = parseInt(endQuestion);
-    const scoreNum = parseInt(score);
+    const points = parseInt(pointsPerBlank);
+    const blanks = parseInt(blanksPerQuestion);
 
     // 验证输入是否有效
     if (
       isNaN(start) ||
       isNaN(end) ||
-      isNaN(scoreNum) ||
-      start > end
+      isNaN(points) ||
+      isNaN(blanks) ||
+      start > end ||
+      points < 0 ||
+      blanks < 1
     ) {
       return [];
     }
@@ -141,122 +168,110 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess }) => {
     const newQuestions = [];
     for (let i = start; i <= end; i++) {
       newQuestions.push({
-        id: `${segment.id}-${i}`,
+        id: `question-${i}`,
         questionNumber: i,
         displayNumber: numberToChinese(i),
-        score: scoreNum,
+        pointsPerBlank: points,
+        blanksPerQuestion: blanks,
+        totalScore: points * blanks,
+        isAddSubQuestionClicked: false, // 标记是否点击了添加小题按钮
       });
     }
 
     return newQuestions;
   };
 
-  // 当分段数据变化时，根据segments中的题号范围批量修改questions中对应题号的值
+  // 当短填空配置变化时，根据配置生成或更新题目
   useEffect(() => {
-    // 如果questions数组为空，直接使用生成的数据初始化
-    if (questions.length === 0) {
-      let allQuestions = [];
-      segments.forEach((segment) => {
-        const newQuestions = generateQuestions(segment);
-        allQuestions = [...allQuestions, ...newQuestions];
-      });
-      allQuestions.sort((a, b) => a.questionNumber - b.questionNumber);
-      setQuestions(allQuestions);
-    } else {
-      // 始终处理更新，无论是修改了分数还是题号范围
-      const updatedQuestions = [...questions];
+    // 清空现有的题目和小题
+    setQuestions([]);
+    setSubQuestions([]);
 
-      segments.forEach((segment) => {
-        const { startQuestion, endQuestion, score } = segment;
+    // 生成新的题目
+    let allQuestions = [];
+    shortFillConfig.forEach((config) => {
+      const newQuestions = generateQuestions(config);
+      allQuestions = [...allQuestions, ...newQuestions];
+    });
 
-        // 验证输入是否完整和有效
-        if (!startQuestion || !endQuestion) {
-          return;
-        }
-
-        const start = parseInt(startQuestion);
-        const end = parseInt(endQuestion);
-
-        if (isNaN(start) || isNaN(end) || start > end) {
-          return;
-        }
-
-        // 更新分数
-        for (let i = 0; i < updatedQuestions.length; i++) {
-          const question = updatedQuestions[i];
-          if (
-            question.questionNumber >= start &&
-            question.questionNumber <= end
-          ) {
-            if (score) {
-              updatedQuestions[i] = {
-                ...question,
-                score: parseInt(score),
-              };
-            }
-          }
-        }
-      });
-
-      // 处理可能新增的题目（当修改了题号范围时）
-      let allQuestionsMap = new Map();
-      segments.forEach((segment) => {
-        const newQuestions = generateQuestions(segment);
-        newQuestions.forEach((question) => {
-          allQuestionsMap.set(question.id, question);
-        });
-      });
-
-      // 检查是否有新添加的题目需要插入
-      const existingIds = new Set(updatedQuestions.map((q) => q.id));
-      const newQuestionsToAdd = [];
-      allQuestionsMap.forEach((question, id) => {
-        if (!existingIds.has(id)) {
-          newQuestionsToAdd.push(question);
-        }
-      });
-
-      // 合并并排序
-      const finalQuestions = [...updatedQuestions, ...newQuestionsToAdd];
-      finalQuestions.sort((a, b) => a.questionNumber - b.questionNumber);
-
-      setQuestions(finalQuestions);
-    }
-  }, [segments]);
+    allQuestions.sort((a, b) => a.questionNumber - b.questionNumber);
+    setQuestions(allQuestions);
+  }, [shortFillConfig]);
 
   // 重置表单
   const resetForm = () => {
     setQuestionNumber("一");
     setQuestionContent("填空题");
-    setSegments([
+    setShortFillConfig([
       {
         id: 1,
         startQuestion: "1",
         endQuestion: "",
-        score: "2",
+        pointsPerBlank: "2",
+        blanksPerQuestion: "1",
       },
     ]);
     setQuestions([]);
+    setSubQuestions([]);
   };
 
   // 确认添加题目
   const handleSubmit = () => {
-    if (questions.length === 0) {
+    if (questions.length === 0 && longQuestions.length === 0) {
       showInfo("请先填写完整的分段信息以生成题目");
       return;
     }
 
     // 显示成功消息
-    showSuccess(`已成功添加${questions.length}道填空题`);
+    const totalCount = fillType === 'short' ? questions.length : longQuestions.length;
+    showSuccess(`已成功添加${totalCount}道填空题`);
+
+    // 构建提交数据
+    const submitData = {
+      type: "blank", // 表示填空题
+      fillType: fillType, // 填空类型：short或long
+      content: questionContent, // 题目内容
+      questionNumber: questionNumber,
+      totalCount: totalCount,
+    };
+
+    // 根据填空类型添加对应的数据
+    if (fillType === 'short') {
+      // 短填空数据
+      submitData.questionNumbers = questions.map((q) => q.questionNumber);
+      submitData.startQuestion = questions.length > 0 ? questions[0].questionNumber : null;
+      submitData.endQuestion = questions.length > 0 ? questions[questions.length - 1].questionNumber : null;
+      submitData.shortFillConfig = shortFillConfig.map((config) => ({
+        startQuestion: config.startQuestion,
+        endQuestion: config.endQuestion,
+        pointsPerBlank: config.pointsPerBlank,
+        blanksPerQuestion: config.blanksPerQuestion,
+      }));
+      submitData.subQuestions = subQuestions;
+      submitData.blankScores = blankScores;
+      submitData.blanksPerLine = blanksPerLine;
+      submitData.showSubQuestionScore = showSubQuestionScore;
+    } else {
+      // 长填空数据
+      submitData.questionNumbers = longQuestions.map((q) => q.questionNumber);
+      submitData.startQuestion = longQuestions.length > 0 ? longQuestions[0].questionNumber : null;
+      submitData.endQuestion = longQuestions.length > 0 ? longQuestions[longQuestions.length - 1].questionNumber : null;
+      submitData.longFillConfig = longFillConfig.map((config) => ({
+        startQuestion: config.startQuestion,
+        endQuestion: config.endQuestion,
+        pointsPerLine: config.pointsPerLine,
+        linesPerQuestion: config.linesPerQuestion,
+      }));
+      submitData.subQuestions = longSubQuestions;
+      submitData.lineScores = longLineScores;
+      submitData.linesPerLine = blanksPerLine; // 复用相同的设置
+      submitData.showSubQuestionScore = showSubQuestionScore;
+    }
+    console.log("submitData", submitData);
 
     // 调用成功回调，传递添加的题目信息
     if (onSuccess) {
-      onSuccess({
-        questions: questions,
-        totalCount: questions.length,
-        questionNumber: questionNumber,
-        questionContent: questionContent,
-      });
+      onSuccess(submitData);
     }
 
     // 重置状态
@@ -268,19 +283,7 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess }) => {
     }
   };
 
-  // 表格列定义
-  const columns = [
-    {
-      title: "题号",
-      dataIndex: "displayNumber",
-      key: "displayNumber",
-    },
-    {
-      title: "分数",
-      dataIndex: "score",
-      key: "score",
-    },
-  ];
+  // 表格列定义已移除，改用折叠面板展示题目信息
 
   return (
     <Modal
@@ -302,19 +305,42 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess }) => {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <label style={{ minWidth: "80px" }}>大题题号</label>
               <select
-                value={questionNumber}
-                onChange={(e) => handleNumberChange(e.target.value)}
-                style={{
-                  flex: 1,
-                  padding: "4px 8px",
-                  border: "1px solid #d9d9d9",
-                  borderRadius: "4px",
-                }}
-              >
-                {["一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十"].map((num) => (
-                  <option key={num} value={num}>{num}</option>
-                ))}
-              </select>
+                    value={questionNumber}
+                    onChange={(e) => handleNumberChange(e.target.value)}
+                    style={{
+                      flex: 1,
+                      padding: "4px 8px",
+                      border: "1px solid #d9d9d9",
+                      borderRadius: "4px",
+                    }}
+                  >
+                    {[
+                      "一",
+                      "二",
+                      "三",
+                      "四",
+                      "五",
+                      "六",
+                      "七",
+                      "八",
+                      "九",
+                      "十",
+                      "十一",
+                      "十二",
+                      "十三",
+                      "十四",
+                      "十五",
+                      "十六",
+                      "十七",
+                      "十八",
+                      "十九",
+                      "二十"
+                    ].map((num) => (
+                      <option key={num} value={num}>
+                        {num}
+                      </option>
+                    ))}
+                  </select>
             </div>
           </div>
           <div style={{ flex: 3 }}>
@@ -331,76 +357,55 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess }) => {
         </div>
       </div>
 
-      {/* 分段输入区域 */}
-      {segments.map((segment) => (
-        <div
-          key={segment.id}
-          style={{ marginBottom: 16, position: "relative" }}
-        >
-          {/* 移除按钮（只有分段数量大于1时显示） */}
-          {segments.length > 1 && (
-            <Button
-              type="text"
-              danger
-              size="small"
-              onClick={() => removeSegment(segment.id)}
-              style={{ position: "absolute", right: 0, top: 0 }}
-            >
-              ×
-            </Button>
-          )}
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span>从</span>
-            <InputNumber
-              value={segment.startQuestion}
-              onChange={(value) =>
-                handleSegmentChange(segment.id, "startQuestion", value)
-              }
-              min={1}
-              style={{ width: 80 }}
-              placeholder="起始题"
-            />
-            <span>题到</span>
-            <InputNumber
-              value={segment.endQuestion}
-              onChange={(value) =>
-                handleSegmentChange(segment.id, "endQuestion", value)
-              }
-              min={1}
-              style={{ width: 80 }}
-              placeholder="结束题"
-            />
-            <span>题,每题</span>
-            <InputNumber
-              value={segment.score}
-              onChange={(value) =>
-                handleSegmentChange(segment.id, "score", value)
-              }
-              min={0}
-              style={{ width: 80 }}
-              placeholder="分数"
-            />
-            <span>分</span>
-          </div>
-        </div>
-      ))}
-
-      {/* 添加分段按钮 */}
-      <Button type="link" onClick={addSegment} style={{ marginBottom: 16 }}>
-        + 分段添加小题
-      </Button>
-
-      {/* 生成的题目列表 */}
-      {questions.length > 0 && (
-        <Table
-          dataSource={questions}
-          columns={columns}
-          pagination={false}
-          rowKey="id"
-          size="small"
-          style={{ maxHeight: 400, overflow: "auto" }}
-        />
-      )}
+      <Tabs
+        activeKey={fillType}
+        onChange={(key) => setFillType(key)}
+        items={[
+          {
+            key: "short",
+            label: "短填空",
+            children: (
+              <>
+                <ShortFillQuestionSection
+                  shortFillConfig={shortFillConfig}
+                  setShortFillConfig={setShortFillConfig}
+                  questions={questions}
+                  setQuestions={setQuestions}
+                  subQuestions={subQuestions}
+                  setSubQuestions={setSubQuestions}
+                  blankScores={blankScores}
+                  setBlankScores={setBlankScores}
+                  blanksPerLine={blanksPerLine}
+                  setBlanksPerLine={setBlanksPerLine}
+                  showSubQuestionScore={showSubQuestionScore}
+                  setShowSubQuestionScore={setShowSubQuestionScore}
+                  handleShortFillConfigChange={handleShortFillConfigChange}
+                />
+              </>
+            ),
+          },
+          {
+            key: "long",
+            label: "长填空",
+            children: (
+              <LongFillQuestionSection
+                longFillConfig={longFillConfig}
+                setLongFillConfig={setLongFillConfig}
+                longQuestions={longQuestions}
+                setLongQuestions={setLongQuestions}
+                longSubQuestions={longSubQuestions}
+                setLongSubQuestions={setLongSubQuestions}
+                longLineScores={longLineScores}
+                setLongLineScores={setLongLineScores}
+                blanksPerLine={blanksPerLine}
+                setBlanksPerLine={setBlanksPerLine}
+                showSubQuestionScore={showSubQuestionScore}
+                setShowSubQuestionScore={setShowSubQuestionScore}
+              />
+            ),
+          },
+        ]}
+      />
     </Modal>
   );
 };

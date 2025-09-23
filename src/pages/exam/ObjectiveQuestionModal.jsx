@@ -12,7 +12,7 @@ import {
 import { useMessageService } from "../../components/common/message";
 
 /**
- * 客观题添加弹窗组件 - 支持批量添加和分段管理
+ * 选择题添加弹窗组件 - 支持批量添加和分段管理
  *
  * @param {Object} props
  * @param {boolean} props.visible - 控制弹窗显示/隐藏
@@ -267,7 +267,7 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
     }
 
     // 显示成功消息
-    showSuccess(`已成功添加${questions.length}道客观题`);
+    showSuccess(`已成功添加${questions.length}道选择题`);
 
     // 调用成功回调，传递添加的题目信息
     if (onSuccess) {
@@ -343,7 +343,7 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
 
   return (
     <Modal
-      title="添加客观题"
+      title="添加选择题"
       width={800}
       open={visible}
       onOk={handleSubmit}
