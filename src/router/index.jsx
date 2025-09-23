@@ -8,7 +8,7 @@ const { Home } = pages.dashboard;
 const { UserList } = pages.studentManagement;
 const { NotFound } = pages;
 const { MessageDemo } = pages.systemSettings;
-const { ExamPaperDesign } = pages.exam;
+const { ExamPaperDesign, ChinesePaperDesign, MathPaperDesign, EnglishPaperDesign } = pages.exam;
 
 // 创建路由配置
 const router = createBrowserRouter([
@@ -40,6 +40,18 @@ const router = createBrowserRouter([
       {
         path: 'exam-paper-design',
         element: <ExamPaperDesign />
+      },
+      {
+        path: 'exam-paper-design/chinese',
+        element: <ChinesePaperDesign />
+      },
+      {
+        path: 'exam-paper-design/math',
+        element: <MathPaperDesign />
+      },
+      {
+        path: 'exam-paper-design/english',
+        element: <EnglishPaperDesign />
       }
     ]
   }
