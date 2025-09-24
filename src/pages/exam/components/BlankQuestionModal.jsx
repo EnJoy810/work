@@ -11,9 +11,9 @@ import {
   Checkbox,
 } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
-import { useMessageService } from "../../components/common/message";
-import ShortFillQuestionSection from "./components/ShortFillQuestionSection";
-import LongFillQuestionSection from "./components/LongFillQuestionSection";
+import { useMessageService } from "../../../components/common/message";
+import ShortFillQuestionSection from "./ShortFillQuestionSection";
+import LongFillQuestionSection from "./LongFillQuestionSection";
 
 const { TextArea } = Input;
 const { Panel } = Collapse;

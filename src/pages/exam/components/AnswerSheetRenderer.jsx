@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import SealingLine from './SealingLine';
+import SealingLine from "./SealingLine";
 import { Button } from "antd";
 import ExamInfoModal from "./ExamInfoModal";
+import ObjectiveQuestionsRenderer from "./ObjectiveQuestionsRenderer";
+import SubjectiveQuestionsRenderer from "./SubjectiveQuestionsRenderer";
 
 /**
  * 答题卷渲染组件
@@ -56,7 +58,6 @@ const AnswerSheetRenderer = ({
 
   // 渲染考试信息
   const renderExamInfo = () => {
-
     return (
       <div
         style={{
@@ -305,8 +306,19 @@ const AnswerSheetRenderer = ({
 
   // 渲染单页内容
   const renderPageContent = (pageIndex) => {
-    // 模拟题目数据，实际应该根据传入的questions和pageIndex筛选显示的题目
+    // 获取每页显示的题目
     const pageQuestions = questions.slice(pageIndex * 5, (pageIndex + 1) * 5);
+
+    // 按题型分类题目
+    const objectiveQuestions = pageQuestions.filter(
+      (q) => q.type === "objective"
+    );
+    const subjectiveQuestions = pageQuestions.filter(
+      (q) => q.type !== "objective"
+    );
+
+    console.log("objectiveQuestions 选择题", objectiveQuestions);
+    console.log("subjectiveQuestions 非选择题", subjectiveQuestions);
 
     return (
       <div
@@ -357,73 +369,29 @@ const AnswerSheetRenderer = ({
         {/* 注意事项 */}
         {hasNote && renderNote()}
 
-        {/* 题目列表 */}
+        {/* 题目列表 - 按题型分类显示 */}
         <div style={{ marginTop: "20px" }}>
           {pageQuestions.length > 0 ? (
-            pageQuestions.map((question, idx) => (
-              <div key={question.id || idx} style={{ marginBottom: "20px" }}>
-                <div style={{ marginBottom: "10px", fontWeight: "bold" }}>
-                  {question.title || `第${pageIndex * 5 + idx + 1}题`}
-                </div>
-                <div
-                  style={{
-                    border: "1px solid #ddd",
-                    minHeight: "50px",
-                    padding: "10px",
-                  }}
-                >
-                  {/* 这里根据题目类型渲染不同的答题区域 */}
-                  {question.type === "objective" && (
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "5px",
-                      }}
-                    >
-                      {["A", "B", "C", "D"].map((option) => (
-                        <div
-                          key={option}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "10px",
-                          }}
-                        >
-                          <div
-                            style={{
-                              width: "20px",
-                              height: "20px",
-                              border: "1px solid #000",
-                              textAlign: "center",
-                            }}
-                          >
-                            {option}
-                          </div>
-                          <div>____________________</div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {question.type === "blank" && (
-                    <div style={{ minHeight: "60px" }}>
-                      {Array.from({ length: question.lines || 3 }).map(
-                        (_, lineIdx) => (
-                          <div
-                            key={lineIdx}
-                            style={{
-                              marginBottom: "8px",
-                              borderBottom: "1px solid #000",
-                            }}
-                          ></div>
-                        )
-                      )}
-                    </div>
-                  )}
-                  {!question.type && <div>答题区域</div>}
-                </div>
-              </div>
-            ))
+            <>
+              {/* 选择题部分 */}
+              {objectiveQuestions.length > 0 &&
+                objectiveQuestions.map((objectiveItem) => {
+                  return (
+                    <ObjectiveQuestionsRenderer
+                      key={objectiveItem.questionNumber}
+                      objectiveItem={objectiveItem}
+                    />
+                  );
+                })}
+
+              {/* 非选择题部分 */}
+              {subjectiveQuestions.length > 0 && (
+                <SubjectiveQuestionsRenderer
+                  questions={subjectiveQuestions}
+                  pageIndex={pageIndex}
+                />
+              )}
+            </>
           ) : (
             <div
               style={{ textAlign: "center", color: "#999", padding: "20px" }}
@@ -459,11 +427,17 @@ const AnswerSheetRenderer = ({
           if (pageIndex === 0 && hasSealingLine) {
             // 第一页添加密封线内容
             return (
-              <div key={pageIndex} style={{ position: "relative", display: "flex" }}>
+              <div
+                key={pageIndex}
+                style={{ position: "relative", display: "flex" }}
+              >
                 {/* 使用密封线组件 - 绝对定位 */}
-                <SealingLine pageHeight={pageHeight} topBottomMargin={topBottomMargin} />
+                <SealingLine
+                  pageHeight={pageHeight}
+                  topBottomMargin={topBottomMargin}
+                />
                 {/* 右侧正常页面内容 - 调整位置在密封线右侧 */}
-                <div style={{ marginLeft: '120px' }}>
+                <div style={{ marginLeft: "120px" }}>
                   {renderPageContent(pageIndex)}
                 </div>
               </div>

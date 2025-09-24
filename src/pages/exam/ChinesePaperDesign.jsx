@@ -7,8 +7,8 @@ import {
   SaveOutlined,
 } from "@ant-design/icons";
 import { useMessageService } from "../../components/common/message";
-import ObjectiveQuestionModal from "./ObjectiveQuestionModal";
-import BlankQuestionModal from "./BlankQuestionModal";
+import ObjectiveQuestionModal from "./components/ObjectiveQuestionModal";
+import BlankQuestionModal from "./components/BlankQuestionModal";
 import AnswerSheetRenderer from "./components/AnswerSheetRenderer";
 
 const { Title } = Typography;

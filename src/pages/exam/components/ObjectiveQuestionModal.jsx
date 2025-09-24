@@ -9,7 +9,7 @@ import {
   InputNumber,
   Checkbox,
 } from "antd";
-import { useMessageService } from "../../components/common/message";
+import { useMessageService } from "../../../components/common/message";
 
 /**
  * 选择题添加弹窗组件 - 支持批量添加和分段管理
@@ -274,6 +274,8 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
       onSuccess({
         questions: questions,
         totalCount: questions.length,
+        questionNumber: questionNumber,
+        questionContent: questionContent
       });
     }
 
@@ -335,6 +337,7 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
             updateQuestionField(record.id, "optionsCount", value)
           }
           min={2}
+          max={6}
           style={{ width: 60 }}
         />
       ),
