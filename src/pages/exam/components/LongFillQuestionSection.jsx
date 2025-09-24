@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { Collapse, InputNumber, Button, Select, Checkbox } from "antd";
 import { useMessageService } from "../../../components/common/message";
+import { generateQuestionId, generateBlankId } from "../../../utils/tools";
 
 const { Panel } = Collapse;
 
@@ -28,8 +29,6 @@ const LongFillQuestionSection = ({
   setLongSubQuestions: setSubQuestions, // 重命名属性以匹配组件内部使用
   longLineScores: lineScores, // 重命名属性以匹配组件内部使用
   setLongLineScores: setLineScores, // 重命名属性以匹配组件内部使用
-  linesPerLine: blanksPerLine, // 重命名属性以匹配组件内部使用
-  setLinesPerLine: setBlanksPerLine, // 重命名属性以匹配组件内部使用
   showSubQuestionScore,
   setShowSubQuestionScore,
   longFillConfig,
@@ -57,14 +56,14 @@ const LongFillQuestionSection = ({
     if (!question) return;
 
     const newSubQuestion = {
-      id: `sub-${Date.now()}`,
+      id: generateQuestionId('sub'),
       questionId: questionId,
       totalLines: question.linesPerQuestion || 1,
       pointsPerLine: question.pointsPerLine || 2,
       lines: Array.from(
         { length: question.linesPerQuestion || 1 },
         (_, index) => ({
-          id: `line-${Date.now()}-${index}`,
+          id: generateBlankId(questionId, index),
           points: question.pointsPerLine || 2,
         })
       ),
@@ -149,7 +148,7 @@ const LongFillQuestionSection = ({
                   // 添加新的行，使用当前每空分数
                   for (let i = newLines.length; i < targetLength; i++) {
                     newLines.push({
-                      id: `line-${Date.now()}-${i}`,
+                      id: generateBlankId(sq.questionId, i),
                       points: sq.pointsPerLine,
                     });
                   }
@@ -182,22 +181,7 @@ const LongFillQuestionSection = ({
     }
   };
 
-  // 更新行分数
-  const updateLinePoints = (subQuestionId, lineId, value) => {
-    setSubQuestions(
-      subQuestions.map((sq) => {
-        if (sq.id === subQuestionId) {
-          return {
-            ...sq,
-            lines: sq.lines.map((line) =>
-              line.id === lineId ? { ...line, points: value } : line
-            ),
-          };
-        }
-        return sq;
-      })
-    );
-  };
+
 
   // 批量生成题目
   const generateQuestions = (config) => {
@@ -231,7 +215,7 @@ const LongFillQuestionSection = ({
     const newQuestions = [];
     for (let i = start; i <= end; i++) {
       newQuestions.push({
-        id: `question-${i}`,
+        id: generateQuestionId(null, i),
         questionNumber: i,
         pointsPerLine: points,
         linesPerQuestion: lines,

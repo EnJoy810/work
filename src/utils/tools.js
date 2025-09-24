@@ -130,6 +130,37 @@ export const generateUUID = () => {
   })
 }
 
+// 生成唯一ID（基于时间戳和随机数）
+export const generateUniqueId = () => {
+  return Date.now() + Math.floor(Math.random() * 1000)
+}
+
+// 生成大题ID
+export const generateSectionId = () => {
+  return generateUniqueId()
+}
+
+// 生成分段ID（基于现有分段列表）
+export const generateSegmentId = (segments) => {
+  if (!segments || segments.length === 0) {
+    return 1
+  }
+  return Math.max(...segments.map((s) => s.id), 0) + 1
+}
+
+// 生成题目ID
+export const generateQuestionId = (prefix, number) => {
+  if (prefix) {
+    return `${prefix}-${number}`
+  }
+  return `question-${number}`
+}
+
+// 生成填空ID
+export const generateBlankId = (baseId, index) => {
+  return `blank-${baseId}-${index}`
+}
+
 // 下载文件
 export const downloadFile = (url, filename) => {
   const link = document.createElement('a')

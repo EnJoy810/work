@@ -10,6 +10,7 @@ import {
   Checkbox,
 } from "antd";
 import { useMessageService } from "../../../components/common/message";
+import { generateSegmentId, generateQuestionId, generateSectionId } from "../../../utils/tools";
 
 /**
  * 选择题添加/编辑弹窗组件 - 支持批量添加和分段管理
@@ -101,13 +102,12 @@ const ObjectiveQuestionModal = ({
 
   // 添加新的分段
   const addSegment = () => {
-    const newId = Math.max(...segments.map((s) => s.id), 0) + 1;
-    const newQuestion =
-      Math.max(
-        ...segments.map((s) => s.startQuestion),
-        ...segments.map((s) => s.endQuestion),
-        0
-      ) + 1;
+    const newId = generateSegmentId(segments);
+    const newQuestion = Math.max(
+      ...segments.map((s) => s.startQuestion),
+      ...segments.map((s) => s.endQuestion),
+      0
+    ) + 1;
     setSegments([
       ...segments,
       {
@@ -174,7 +174,7 @@ const ObjectiveQuestionModal = ({
     const newQuestions = [];
     for (let i = start; i <= end; i++) {
       newQuestions.push({
-        id: `${segment.id}-${i}`,
+        id: generateQuestionId(segment.id, i),
         questionNumber: i,
         displayNumber: numberToChinese(i),
         score: scoreNum,
@@ -390,7 +390,7 @@ const ObjectiveQuestionModal = ({
         successData = { ...initialData, ...successData };
       } else {
         // 为大题添加唯一ID，用于标识题目的唯一性
-        successData.sectionId = Date.now() + Math.floor(Math.random() * 1000);
+        successData.sectionId = generateSectionId();
       }
       onSuccess(successData);
     }

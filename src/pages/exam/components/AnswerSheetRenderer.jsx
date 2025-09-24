@@ -7,13 +7,14 @@ import ObjectiveQuestionsRenderer from "./ObjectiveQuestionsRenderer";
 import SubjectiveQuestionsRenderer from "./SubjectiveQuestionsRenderer";
 import ObjectiveQuestionWrapper from "./ObjectiveQuestionWrapper";
 import ObjectiveQuestionModal from "./ObjectiveQuestionModal";
+import BlankQuestionModal from "./BlankQuestionModal";
+import ExamInfoSection from "./ExamInfoSection";
 /**
  * 答题卷渲染组件
  * 负责在固定大小的页面上绘制题目，并支持多页显示
  */
 const AnswerSheetRenderer = ({
   questions: propQuestions = [],
-  hasSealingLine = true,
   hasNote = true,
   getQuestionPositions,
   onQuestionsUpdate = () => {}, // 设置为空函数作为默认值
@@ -41,6 +42,10 @@ const AnswerSheetRenderer = ({
   const [isObjectiveModalVisible, setIsObjectiveModalVisible] = useState(false);
   // 当前正在编辑的选择题数据
   const [editingObjectiveItem, setEditingObjectiveItem] = useState(null);
+  // 填空题编辑弹窗可见性状态
+  const [isBlankModalVisible, setIsBlankModalVisible] = useState(false);
+  // 当前正在编辑的填空题数据
+  const [editingBlankItem, setEditingBlankItem] = useState(null);
 
   // 存储每个页面容器的ref
   const pageRefs = useRef([]);
@@ -117,6 +122,18 @@ const AnswerSheetRenderer = ({
     setEditingObjectiveItem(null);
   };
 
+  // 打开填空题编辑弹窗
+  const openBlankModal = (question = null) => {
+    setEditingBlankItem(question);
+    setIsBlankModalVisible(true);
+  };
+
+  // 关闭填空题编辑弹窗
+  const closeBlankModal = () => {
+    setIsBlankModalVisible(false);
+    setEditingBlankItem(null);
+  };
+
   // 处理选择题编辑成功
   const handleObjectiveEditSuccess = (updatedData) => {
     console.log("updatedData 处理选择题编辑成功", updatedData);
@@ -166,6 +183,46 @@ const AnswerSheetRenderer = ({
     }
 
     closeObjectiveModal();
+  };
+
+  // 处理填空题编辑成功
+  const handleBlankEditSuccess = (updatedData) => {
+    console.log("updatedData 处理填空题编辑成功", updatedData);
+    // 获取编辑后的数据
+    const {
+      isEdit,
+      sectionId, // 大题唯一ID，用于标识题目的唯一性
+    } = updatedData;
+
+    // 确保父组件提供了更新函数
+    if (!onQuestionsUpdate || typeof onQuestionsUpdate !== "function") {
+      console.error("未提供onQuestionsUpdate函数，无法更新题目数据");
+      closeBlankModal();
+      return;
+    }
+
+    // 如果是编辑模式，更新现有的题目
+    if (isEdit && sectionId) {
+      const editQuestions = propQuestions.map((q) => {
+        if (q.sectionId === sectionId) {
+          return { ...updatedData };
+        }
+        return q;
+      });
+      // 通过父组件提供的更新函数更新原始数据
+      onQuestionsUpdate(editQuestions);
+      console.log("填空题编辑成功，已更新题目数据:", editQuestions);
+    } else {
+      // 如果是添加模式，添加新题目
+      // 直接添加整道大题
+      const newQuestions = [...propQuestions, updatedData];
+
+      // 通过父组件提供的更新函数更新原始数据
+      onQuestionsUpdate(newQuestions);
+      console.log("填空题添加成功:", newQuestions);
+    }
+
+    closeBlankModal();
   };
 
   // 删除选择题
@@ -498,39 +555,92 @@ const AnswerSheetRenderer = ({
           boxShadow: "0px 0px 3px 3px #E5E9F2",
         }}
       >
-        {/* 页面标题 */}
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="请输入答题卡标题"
+        {/* 四个黑色正方形用于定位 */}
+        {/* 左上角 */}
+        <div
           style={{
-            textAlign: "center",
-            margin: "0 0 10px 0",
-            width: "100%",
-            border: "1px dashed #ccc",
-            borderRadius: "4px",
-            padding: "8px 12px",
-            fontSize: "24px",
-            fontWeight: "bold",
-            backgroundColor: "transparent",
-            fontFamily: "inherit",
-            transition: "border-color 0.3s ease",
-          }}
-          onFocus={(e) => {
-            e.target.style.borderColor = "#1890ff";
-            e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
-          }}
-          onBlur={(e) => {
-            e.target.style.borderColor = "#ccc";
-            e.target.style.boxShadow = "none";
+            position: "absolute",
+            top: `${pageMargin}px`,
+            left: `${pageMargin}px`,
+            width: "10px",
+            height: "10px",
+            backgroundColor: "black",
           }}
         />
-        {/* 考试信息 */}
-        {renderExamInfo()}
+        {/* 右上角 */}
+        <div
+          style={{
+            position: "absolute",
+            top: `${pageMargin}px`,
+            right: `${pageMargin}px`,
+            width: "10px",
+            height: "10px",
+            backgroundColor: "black",
+          }}
+        />
+        {/* 左下角 */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: `${pageMargin}px`,
+            left: `${pageMargin}px`,
+            width: "10px",
+            height: "10px",
+            backgroundColor: "black",
+          }}
+        />
+        {/* 右下角 */}
+        <div
+          style={{
+            position: "absolute",
+            bottom: `${pageMargin}px`,
+            right: `${pageMargin}px`,
+            width: "10px",
+            height: "10px",
+            backgroundColor: "black",
+          }}
+        />
+        {/* 第一页特有内容 */}
+        {pageIndex === 0 && (
+          <>
+            {/* 页面标题 */}
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="请输入答题卡标题"
+              style={{
+                textAlign: "center",
+                margin: "0 0 10px 0",
+                width: "100%",
+                border: "1px dashed #ccc",
+                borderRadius: "4px",
+                padding: "8px 12px",
+                fontSize: "24px",
+                fontWeight: "bold",
+                backgroundColor: "transparent",
+                fontFamily: "inherit",
+                transition: "border-color 0.3s ease",
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = "#1890ff";
+                e.target.style.boxShadow = "0 0 0 2px rgba(24, 144, 255, 0.2)";
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = "#ccc";
+                e.target.style.boxShadow = "none";
+              }}
+            />
+            {/* 考试信息 */}
+            {renderExamInfo()}
 
-        {/* 注意事项 */}
-        {hasNote && renderNote()}
+            {/* 考生信息输入区域 */}
+            <ExamInfoSection />
+
+            {/* 注意事项 */}
+            {hasNote && renderNote()}
+          </>
+        )}
 
         {/* 题目列表 - 按题型分类显示 */}
         <div style={{ marginTop: "20px" }}>
@@ -562,7 +672,7 @@ const AnswerSheetRenderer = ({
 
                   return (
                     <ObjectiveQuestionWrapper
-                      key={objectiveItem.questionNumber}
+                      key={objectiveItem.sectionId}
                       objectiveItem={objectiveItem}
                       onEdit={handleEditObjectiveQuestion}
                       onDelete={handleDeleteObjectiveQuestion}
@@ -577,12 +687,22 @@ const AnswerSheetRenderer = ({
                 })}
 
               {/* 非选择题部分 */}
-              {subjectiveQuestions.length > 0 && (
-                <SubjectiveQuestionsRenderer
-                  questions={subjectiveQuestions}
-                  pageIndex={pageIndex}
-                />
-              )}
+              {subjectiveQuestions.length > 0 &&
+                subjectiveQuestions.map((subjectiveItem) => {
+                  return (
+                    <SubjectiveQuestionsRenderer
+                      key={subjectiveItem.sectionId}
+                      questions={subjectiveItem}
+                      pageIndex={pageIndex}
+                      pageRef={pageRefs.current[pageIndex]}
+                      onEdit={(question) => {
+                        if (question.type === "blank") {
+                          openBlankModal(question);
+                        }
+                      }}
+                    />
+                  );
+                })}
             </>
           ) : (
             <div
@@ -598,7 +718,9 @@ const AnswerSheetRenderer = ({
           style={{
             position: "absolute",
             bottom: pageMargin,
-            right: pageMargin,
+            left: 0,
+            right: 0,
+            textAlign: "center",
             fontSize: "12px",
             color: "#666",
           }}
@@ -616,25 +738,25 @@ const AnswerSheetRenderer = ({
     return (
       <div style={{ display: "flex", flexDirection: "column" }}>
         {Array.from({ length: pageCount }).map((_, pageIndex) => {
-          if (pageIndex === 0 && hasSealingLine) {
-            // 第一页添加密封线内容
-            return (
-              <div
-                key={pageIndex}
-                style={{ position: "relative", display: "flex" }}
-              >
-                {/* 使用密封线组件 - 绝对定位 */}
-                <SealingLine
-                  pageHeight={pageHeight}
-                  topBottomMargin={topBottomMargin}
-                />
-                {/* 右侧正常页面内容 - 调整位置在密封线右侧 */}
-                <div style={{ marginLeft: "120px" }}>
-                  {renderPageContent(pageIndex)}
-                </div>
-              </div>
-            );
-          }
+          // if (pageIndex === 0 && hasSealingLine) {
+          //   // 第一页添加密封线内容
+          //   return (
+          //     <div
+          //       key={pageIndex}
+          //       style={{ position: "relative", display: "flex" }}
+          //     >
+          //       {/* 使用密封线组件 - 绝对定位 */}
+          //       <SealingLine
+          //         pageHeight={pageHeight}
+          //         topBottomMargin={topBottomMargin}
+          //       />
+          //       {/* 右侧正常页面内容 - 调整位置在密封线右侧 */}
+          //       <div style={{ marginLeft: "120px" }}>
+          //         {renderPageContent(pageIndex)}
+          //       </div>
+          //     </div>
+          //   );
+          // }
           // 其他页保持原样
           return renderPageContent(pageIndex);
         })}
@@ -651,6 +773,11 @@ const AnswerSheetRenderer = ({
         overflow: "auto",
       }}
     >
+      {/* <div style={{ marginBottom: 20, padding: '0 20px' }}>
+        <Button type="primary" onClick={() => openObjectiveModal()}>添加选择题</Button>
+        <Button type="primary" style={{ marginLeft: '10px' }} onClick={() => openBlankModal()}>添加填空题</Button>
+        <Button type="primary" style={{ marginLeft: '10px' }} onClick={showModal}>编辑考试信息</Button>
+      </div> */}
       {renderAllPages()}
       <ExamInfoModal
         visible={isModalVisible}
@@ -673,6 +800,16 @@ const AnswerSheetRenderer = ({
           initialData={editingObjectiveItem}
         />
       ) : null}
+
+      {/* 填空题编辑弹窗 */}
+      {isBlankModalVisible && (
+        <BlankQuestionModal
+          isEditMode={!!editingBlankItem}
+          initialData={editingBlankItem}
+          onSubmit={handleBlankEditSuccess}
+          onCancel={closeBlankModal}
+        />
+      )}
     </div>
   );
 };

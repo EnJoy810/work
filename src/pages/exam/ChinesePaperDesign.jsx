@@ -186,13 +186,13 @@ const ChinesePaperDesign = () => {
           <div style={{ marginBottom: "12px", padding: "4px" }}>
             <Title level={5}>基础信息</Title>
             <Form form={form} layout="vertical" onValuesChange={handleValuesChange} initialValues={formValues}>
-              <Form.Item
+              {/* <Form.Item
                 name="hasSealingLine"
                 valuePropName="checked"
                 initialValue={true}
               >
                 <Checkbox>显示密封线</Checkbox>
-              </Form.Item>
+              </Form.Item> */}
               <Form.Item
                 name="hasNote"
                 valuePropName="checked"
