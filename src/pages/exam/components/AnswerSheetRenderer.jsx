@@ -1,18 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
+import { EditOutlined } from "@ant-design/icons";
 import SealingLine from "./SealingLine";
-import { Button } from "antd";
+import { Button, Modal } from "antd";
 import ExamInfoModal from "./ExamInfoModal";
 import ObjectiveQuestionsRenderer from "./ObjectiveQuestionsRenderer";
 import SubjectiveQuestionsRenderer from "./SubjectiveQuestionsRenderer";
-
+import ObjectiveQuestionWrapper from "./ObjectiveQuestionWrapper";
+import ObjectiveQuestionModal from "./ObjectiveQuestionModal";
 /**
  * 答题卷渲染组件
  * 负责在固定大小的页面上绘制题目，并支持多页显示
  */
 const AnswerSheetRenderer = ({
-  questions = [],
+  questions: propQuestions = [],
   hasSealingLine = true,
   hasNote = true,
+  getQuestionPositions,
+  onQuestionsUpdate = () => {}, // 设置为空函数作为默认值
 }) => {
   // console.log("hasSealingLine", hasSealingLine, hasNote);
   const pageWidth = 740; // 页面宽度，单位：px
@@ -23,6 +27,9 @@ const AnswerSheetRenderer = ({
   // 标题状态管理
   const [title, setTitle] = useState("");
 
+  // 直接使用props传递的题目列表，不再使用本地状态管理
+  // 所有修改操作通过onQuestionsUpdate回调函数通知父组件修改原始数据
+
   // 考试相关信息状态
   const [examSubject, setExamSubject] = useState("语文");
   const [applicableMajor, setApplicableMajor] = useState("25级高职高考");
@@ -30,6 +37,55 @@ const AnswerSheetRenderer = ({
 
   // 弹窗可见性状态
   const [isModalVisible, setIsModalVisible] = useState(false);
+  // 选择题编辑弹窗可见性状态
+  const [isObjectiveModalVisible, setIsObjectiveModalVisible] = useState(false);
+  // 当前正在编辑的选择题数据
+  const [editingObjectiveItem, setEditingObjectiveItem] = useState(null);
+
+  // 存储每个页面容器的ref
+  const pageRefs = useRef([]);
+
+  // 存储题目位置信息的状态
+  const [questionPositions, setQuestionPositions] = useState({});
+
+  // 使用useCallback缓存位置更新函数，避免不必要的重新渲染
+  const handleQuestionPositionUpdate = useCallback(
+    (identifier, positionInfo) => {
+      setQuestionPositions((prev) => {
+        // 只有当位置信息真正改变时才更新状态
+        const currentPosition = prev[identifier];
+        if (
+          currentPosition &&
+          JSON.stringify(currentPosition) === JSON.stringify(positionInfo)
+        ) {
+          return prev; // 位置信息没有变化，返回原对象
+        }
+        return {
+          ...prev,
+          [identifier]: positionInfo,
+        };
+      });
+    },
+    []
+  );
+
+  // 如果父组件提供了获取位置信息的回调，则调用它
+  // 但避免频繁调用导致无限循环
+  useEffect(() => {
+    if (
+      getQuestionPositions &&
+      typeof getQuestionPositions === "function" &&
+      Object.keys(questionPositions).length > 0
+    ) {
+      // 使用setTimeout添加一个小延迟，避免频繁调用
+      const timeoutId = setTimeout(() => {
+        getQuestionPositions(questionPositions);
+      }, 100);
+
+      // 清理函数
+      return () => clearTimeout(timeoutId);
+    }
+  }, [questionPositions, getQuestionPositions]);
 
   // 打开弹窗
   const showModal = () => {
@@ -49,11 +105,93 @@ const AnswerSheetRenderer = ({
     setIsModalVisible(false);
   };
 
+  // 打开选择题编辑弹窗
+  const openObjectiveModal = (question = null) => {
+    setEditingObjectiveItem(question);
+    setIsObjectiveModalVisible(true);
+  };
+
+  // 关闭选择题编辑弹窗
+  const closeObjectiveModal = () => {
+    setIsObjectiveModalVisible(false);
+    setEditingObjectiveItem(null);
+  };
+
+  // 处理选择题编辑成功
+  const handleObjectiveEditSuccess = (updatedData) => {
+    console.log("updatedData 处理选择题编辑成功", updatedData);
+    // 获取编辑后的数据
+    const {
+      questions: updatedQuestions,
+      isEdit,
+      sectionId, // 大题唯一ID，用于标识题目的唯一性
+    } = updatedData;
+
+    // 确保父组件提供了更新函数
+    if (!onQuestionsUpdate || typeof onQuestionsUpdate !== "function") {
+      console.error("未提供onQuestionsUpdate函数，无法更新题目数据");
+      closeObjectiveModal();
+      return;
+    }
+
+    // 如果是编辑模式，更新现有的题目
+    if (isEdit && sectionId) {
+      if (updatedQuestions && updatedQuestions.length > 0) {
+        const editQuestions = propQuestions.map((q) => {
+          if (q.sectionId === sectionId) {
+            return { ...updatedData };
+          }
+          return q;
+        });
+        // 通过父组件提供的更新函数更新原始数据
+        onQuestionsUpdate(editQuestions);
+        console.log("选择题编辑成功，已更新题目数据:", editQuestions);
+      }
+    } else {
+      // 如果是添加模式，添加新题目
+      if (updatedQuestions && updatedQuestions.length > 0) {
+        // 确保每个题目都包含sectionId
+        const questionsWithSectionId = updatedQuestions.map((question) => ({
+          ...question,
+          sectionId: sectionId, // 将大题ID添加到每个题目中
+        }));
+
+        // 直接使用从ObjectiveQuestionModal传来的已经带有ID的题目数据
+        const newQuestions = [...propQuestions, ...questionsWithSectionId];
+
+        // 通过父组件提供的更新函数更新原始数据
+        onQuestionsUpdate(newQuestions);
+        console.log("选择题添加成功:", newQuestions);
+      }
+    }
+
+    closeObjectiveModal();
+  };
+
+  // 删除选择题
+  const deleteObjectiveQuestion = (sectionId) => {
+    // 确保父组件提供了更新函数
+    if (!onQuestionsUpdate || typeof onQuestionsUpdate !== "function") {
+      console.error("未提供onQuestionsUpdate函数，无法更新题目数据");
+      return;
+    }
+    console.log("propQuestions", propQuestions);
+    // 过滤掉要删除的题目
+    const updatedQuestions = propQuestions.filter(
+      (q) => q.sectionId !== sectionId
+    );
+
+    // 通过父组件提供的更新函数更新原始数据
+    onQuestionsUpdate(updatedQuestions);
+
+    console.log("删除选择题后的题目列表:", updatedQuestions);
+  };
+
   // 计算页面数量
   const calculatePageCount = () => {
     // 这里是简化的计算逻辑，实际应该根据题目数量和每页可容纳的题目数来计算
     // 为了演示多页效果，当题目数量超过5时，显示第二页
-    return questions.length > 5 ? 2 : 1;
+    return propQuestions.length > 5 ? 2 : 1;
   };
 
   // 渲染考试信息
@@ -70,7 +208,7 @@ const AnswerSheetRenderer = ({
         }}
       >
         {/* 右上角编辑按钮 */}
-        <Button
+        {/* <Button
           type="primary"
           ghost
           size="small"
@@ -80,6 +218,26 @@ const AnswerSheetRenderer = ({
             right: "0",
             top: "50%",
             transform: "translateY(-50%)",
+          }}
+        >
+          编辑
+        </Button> */}
+        <Button
+          type="text"
+          size="small"
+          icon={<EditOutlined />}
+          onClick={showModal}
+          style={{
+            position: "absolute",
+            right: "0",
+            top: "50%",
+            transform: "translateY(-50%)",
+            backgroundColor: "#fff",
+            boxShadow: "0 2px 8px rgba(0, 0, 0, 0.15)",
+            border: "1px solid #d9d9d9",
+            padding: "4px 8px",
+            color: "#1890ff",
+            minWidth: "60px",
           }}
         >
           编辑
@@ -307,7 +465,10 @@ const AnswerSheetRenderer = ({
   // 渲染单页内容
   const renderPageContent = (pageIndex) => {
     // 获取每页显示的题目
-    const pageQuestions = questions.slice(pageIndex * 5, (pageIndex + 1) * 5);
+    const pageQuestions = propQuestions.slice(
+      pageIndex * 5,
+      (pageIndex + 1) * 5
+    );
 
     // 按题型分类题目
     const objectiveQuestions = pageQuestions.filter(
@@ -323,6 +484,8 @@ const AnswerSheetRenderer = ({
     return (
       <div
         key={pageIndex}
+        ref={(el) => (pageRefs.current[pageIndex] = el)}
+        className="answer-sheet-page"
         style={{
           width: pageWidth,
           height: pageHeight,
@@ -376,11 +539,40 @@ const AnswerSheetRenderer = ({
               {/* 选择题部分 */}
               {objectiveQuestions.length > 0 &&
                 objectiveQuestions.map((objectiveItem) => {
+                  // 编辑选择题
+                  const handleEditObjectiveQuestion = (question) => {
+                    console.log("编辑选择题:", question);
+                    openObjectiveModal(question);
+                  };
+
+                  // 删除选择题
+                  const handleDeleteObjectiveQuestion = (question) => {
+                    console.log("删除选择题:", question);
+                    Modal.confirm({
+                      title: "确认删除",
+                      content: `确定要删除选择题【${question.questionNumber}】吗？`,
+                      okText: "确定",
+                      cancelText: "取消",
+                      onOk() {
+                        // 执行删除操作
+                        deleteObjectiveQuestion(question.sectionId);
+                      },
+                    });
+                  };
+
                   return (
-                    <ObjectiveQuestionsRenderer
+                    <ObjectiveQuestionWrapper
                       key={objectiveItem.questionNumber}
                       objectiveItem={objectiveItem}
-                    />
+                      onEdit={handleEditObjectiveQuestion}
+                      onDelete={handleDeleteObjectiveQuestion}
+                    >
+                      <ObjectiveQuestionsRenderer
+                        objectiveItem={objectiveItem}
+                        pageRef={pageRefs.current[pageIndex]}
+                        onPositionUpdate={handleQuestionPositionUpdate}
+                      />
+                    </ObjectiveQuestionWrapper>
                   );
                 })}
 
@@ -470,6 +662,17 @@ const AnswerSheetRenderer = ({
           examTime,
         }}
       />
+
+      {/* 选择题编辑弹窗 */}
+      {isObjectiveModalVisible ? (
+        <ObjectiveQuestionModal
+          visible={isObjectiveModalVisible}
+          onCancel={closeObjectiveModal}
+          onSuccess={handleObjectiveEditSuccess}
+          // 如果有编辑的题目，则传递给弹窗进行回填
+          initialData={editingObjectiveItem}
+        />
+      ) : null}
     </div>
   );
 };

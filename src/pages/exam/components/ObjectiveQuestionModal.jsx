@@ -12,14 +12,20 @@ import {
 import { useMessageService } from "../../../components/common/message";
 
 /**
- * 选择题添加弹窗组件 - 支持批量添加和分段管理
+ * 选择题添加/编辑弹窗组件 - 支持批量添加和分段管理
  *
  * @param {Object} props
  * @param {boolean} props.visible - 控制弹窗显示/隐藏
  * @param {Function} props.onCancel - 关闭弹窗回调函数
- * @param {Function} props.onSuccess - 添加成功后的回调函数
+ * @param {Function} props.onSuccess - 添加/编辑成功后的回调函数
+ * @param {Object} props.initialData - 编辑模式下的初始数据
  */
-const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
+const ObjectiveQuestionModal = ({
+  visible,
+  onCancel,
+  onSuccess,
+  initialData,
+}) => {
   const { showSuccess, showInfo } = useMessageService();
 
   // 内部状态管理
@@ -42,6 +48,12 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
   const [questions, setQuestions] = useState([]);
   // 记录用户最后修改的字段，用于区分是更新分数还是选项数
   const [lastModifiedField, setLastModifiedField] = useState(null);
+  // 标记编辑模式下的初始数据是否已加载完成
+  const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
+
+  // 判断当前是添加模式还是编辑模式
+  // 使用!= null同时检查null和undefined
+  const isEditMode = initialData != null;
 
   // 生成大写的一到二十选项
   const numberToChinese = (num) => {
@@ -114,20 +126,22 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
       showInfo("至少保留一个分段");
       return;
     }
-    
+
     // 找到要删除的分段
-    const segmentToRemove = segments.find(segment => segment.id === id);
-    
+    const segmentToRemove = segments.find((segment) => segment.id === id);
+
     // 如果找到了该分段，同时删除与之关联的题目
     if (segmentToRemove) {
       // 删除分段
       setSegments(segments.filter((segment) => segment.id !== id));
-      
+
       // 删除该分段对应的所有题目
-      setQuestions(questions.filter(question => {
-        // 题目ID格式为"分段ID-题号"，所以我们可以通过检查ID前缀来判断是否属于该分段
-        return !question.id.startsWith(`${id}-`);
-      }));
+      setQuestions(
+        questions.filter((question) => {
+          // 题目ID格式为"分段ID-题号"，所以我们可以通过检查ID前缀来判断是否属于该分段
+          return !question.id.startsWith(`${id}-`);
+        })
+      );
     }
   };
 
@@ -180,10 +194,83 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
     );
   };
 
+  // 处理initialData，实现数据回填
+  useEffect(() => {
+    if (visible && initialData) {
+      // 回填大题题号和题目内容
+      setQuestionNumber(initialData.questionNumber || "一");
+      setQuestionContent(initialData.questionContent || "选择题");
+
+      // 如果有questions数据，则设置分段和题目
+      if (initialData.questions && initialData.questions.length > 0) {
+        // 从questions数据反向推导segments数据
+        const minQuestionNum = Math.min(
+          ...initialData.questions.map((q) => q.questionNumber)
+        );
+        const maxQuestionNum = Math.max(
+          ...initialData.questions.map((q) => q.questionNumber)
+        );
+        // 使用第一个题目的分数和选项数作为默认值
+        const firstQuestion = initialData.questions[0];
+        setSegments([
+          {
+            id: 1,
+            startQuestion: minQuestionNum.toString(),
+            endQuestion: maxQuestionNum.toString(),
+            score: firstQuestion.score.toString(),
+            optionsCount: firstQuestion.optionsCount.toString(),
+          },
+        ]);
+        // 严格按照initialData中的questions数据设置题目列表，不受segments影响
+        setTimeout(() => {
+          setQuestions(initialData.questions);
+        }, 200);
+      } else {
+        // 如果没有题目数据，使用默认值
+        setSegments([
+          {
+            id: 1,
+            startQuestion: "1",
+            endQuestion: "",
+            score: "2",
+            optionsCount: "4",
+          },
+        ]);
+        setQuestions([]);
+      }
+
+      // 标记初始数据已加载完成
+      if (isEditMode) {
+        setIsInitialDataLoaded(true);
+      }
+    } else if (visible) {
+      // 如果是添加模式，使用默认值
+      setQuestionNumber("一");
+      setQuestionContent("选择题");
+      setSegments([
+        {
+          id: 1,
+          startQuestion: "1",
+          endQuestion: "",
+          score: "2",
+          optionsCount: "4",
+        },
+      ]);
+      setQuestions([]);
+    }
+  }, [visible, initialData]);
+
   // 当分段数据变化时，根据segments中的题号范围批量修改questions中对应题号的值
   useEffect(() => {
+    // 在编辑模式且初始数据加载完成前不执行此逻辑，确保初始数据不被覆盖
+    // 初始数据加载完成后，允许用户通过修改segments来更新questions
+    if (isEditMode && !isInitialDataLoaded) {
+      return;
+    }
+    console.log("根据segments更新questions");
+
     // 如果questions数组为空，直接使用生成的数据初始化
-    if (questions.length === 0) {
+    if (questions.length === 0 && segments && segments.length > 0) {
       let allQuestions = [];
       segments.forEach((segment) => {
         const newQuestions = generateQuestions(segment);
@@ -191,7 +278,7 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
       });
       allQuestions.sort((a, b) => a.questionNumber - b.questionNumber);
       setQuestions(allQuestions);
-    } else {
+    } else if (segments && segments.length > 0) {
       // 始终处理更新，无论是修改了分数、选项数还是题号范围
       const updatedQuestions = [...questions];
 
@@ -217,13 +304,19 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
             question.questionNumber >= start &&
             question.questionNumber <= end
           ) {
-            if (!lastModifiedField || lastModifiedField === "score" && score) {
+            if (
+              !lastModifiedField ||
+              (lastModifiedField === "score" && score)
+            ) {
               updatedQuestions[i] = {
                 ...question,
                 score: parseInt(score),
               };
-            } 
-            if (!lastModifiedField || lastModifiedField === "optionsCount" && optionsCount) {
+            }
+            if (
+              !lastModifiedField ||
+              (lastModifiedField === "optionsCount" && optionsCount)
+            ) {
               updatedQuestions[i] = {
                 ...question,
                 optionsCount: parseInt(optionsCount),
@@ -257,7 +350,7 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
 
       setQuestions(finalQuestions);
     }
-  }, [segments]);
+  }, [segments, isEditMode, isInitialDataLoaded]);
 
   // 处理表单提交
   const handleSubmit = () => {
@@ -267,16 +360,39 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
     }
 
     // 显示成功消息
-    showSuccess(`已成功添加${questions.length}道选择题`);
+    showSuccess(
+      isEditMode
+        ? `已成功编辑${questions.length}道选择题`
+        : `已成功添加${questions.length}道选择题`
+    );
 
-    // 调用成功回调，传递添加的题目信息
+    // 调用成功回调，传递添加/编辑的题目信息
     if (onSuccess) {
-      onSuccess({
-        questions: questions,
-        totalCount: questions.length,
+      // 为新增题目生成唯一ID
+      let processedQuestions = questions;
+
+      // 如果是非编辑模式（新增题目），为每个题目添加唯一ID
+      // if (!isEditMode) {
+      //   processedQuestions = questions.map((q) => ({
+      //     ...q,
+      //     id: Date.now() + Math.floor(Math.random() * 1000), // 生成唯一ID
+      //   }));
+      // }
+      console.log("initialData", initialData);
+      let successData = {
+        questions: processedQuestions,
+        totalCount: processedQuestions.length,
         questionNumber: questionNumber,
-        questionContent: questionContent
-      });
+        questionContent: questionContent,
+        isEdit: isEditMode,
+      };
+      if (isEditMode) {
+        successData = { ...initialData, ...successData };
+      } else {
+        // 为大题添加唯一ID，用于标识题目的唯一性
+        successData.sectionId = Date.now() + Math.floor(Math.random() * 1000);
+      }
+      onSuccess(successData);
     }
 
     // 重置状态
@@ -346,7 +462,7 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
 
   return (
     <Modal
-      title="添加选择题"
+      title={isEditMode ? "编辑选择题" : "添加选择题"}
       width={800}
       open={visible}
       onOk={handleSubmit}
@@ -473,6 +589,7 @@ const ObjectiveQuestionModal = ({ visible, onCancel, onSuccess }) => {
                 handleSegmentChange(segment.id, "optionsCount", value)
               }
               min={2}
+              max={6}
               style={{ width: 80 }}
               placeholder="选项数"
             />

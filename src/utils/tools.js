@@ -164,3 +164,53 @@ export const formatMoney = (amount, decimals = 2) => {
     maximumFractionDigits: decimals
   })
 }
+
+// 计算元素相对于参考元素的位置信息
+export const calculateElementPosition = (element, referenceElement) => {
+  if (!element) {
+    return null;
+  }
+
+  // 获取元素的位置和尺寸信息
+  const rect = element.getBoundingClientRect();
+  
+  // 计算相对于参考元素的位置信息
+  if (referenceElement && referenceElement.getBoundingClientRect) {
+    // 获取参考元素的位置信息
+    const refRect = referenceElement.getBoundingClientRect();
+    
+    // 计算相对位置（相对于参考元素的左上角）
+    return {
+      width: rect.width,
+      height: rect.height,
+      // 相对于整个文档的绝对位置
+      absolute: {
+        left: rect.left,
+        top: rect.top,
+        right: rect.right,
+        bottom: rect.bottom,
+        x: rect.x,
+        y: rect.y
+      },
+      // 相对于参考元素的位置
+      relativeToReference: {
+        left: rect.left - refRect.left,
+        top: rect.top - refRect.top,
+        right: refRect.right - rect.right,
+        bottom: refRect.bottom - rect.bottom
+      }
+    };
+  } else {
+    // 如果没有参考元素，则只返回绝对位置
+    return {
+      width: rect.width,
+      height: rect.height,
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      x: rect.x,
+      y: rect.y
+    };
+  }
+};
