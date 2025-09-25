@@ -1,200 +1,204 @@
 // 格式化时间
-export const formatDate = (date, format = 'YYYY-MM-DD HH:mm:ss') => {
-  if (!date) return ''
-  
+export const formatDate = (date, format = "YYYY-MM-DD HH:mm:ss") => {
+  if (!date) return "";
+
   // 如果是字符串，转换为Date对象
-  if (typeof date === 'string') {
-    date = new Date(date)
+  if (typeof date === "string") {
+    date = new Date(date);
   }
-  
-  const year = date.getFullYear()
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const day = String(date.getDate()).padStart(2, '0')
-  const hours = String(date.getHours()).padStart(2, '0')
-  const minutes = String(date.getMinutes()).padStart(2, '0')
-  const seconds = String(date.getSeconds()).padStart(2, '0')
-  
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+
   return format
-    .replace('YYYY', year)
-    .replace('MM', month)
-    .replace('DD', day)
-    .replace('HH', hours)
-    .replace('mm', minutes)
-    .replace('ss', seconds)
-}
+    .replace("YYYY", year)
+    .replace("MM", month)
+    .replace("DD", day)
+    .replace("HH", hours)
+    .replace("mm", minutes)
+    .replace("ss", seconds);
+};
 
 // 获取URL参数
 export const getUrlParams = () => {
-  const params = {}
-  const search = window.location.search.substring(1)
-  const pairs = search.split('&')
-  
-  pairs.forEach(pair => {
-    const [key, value] = pair.split('=')
+  const params = {};
+  const search = window.location.search.substring(1);
+  const pairs = search.split("&");
+
+  pairs.forEach((pair) => {
+    const [key, value] = pair.split("=");
     if (key) {
-      params[decodeURIComponent(key)] = decodeURIComponent(value || '')
+      params[decodeURIComponent(key)] = decodeURIComponent(value || "");
     }
-  })
-  
-  return params
-}
+  });
+
+  return params;
+};
 
 // 深拷贝
 export const deepClone = (obj) => {
-  if (obj === null || typeof obj !== 'object') {
-    return obj
+  if (obj === null || typeof obj !== "object") {
+    return obj;
   }
-  
+
   if (obj instanceof Date) {
-    return new Date(obj.getTime())
+    return new Date(obj.getTime());
   }
-  
+
   if (obj instanceof Array) {
-    return obj.map(item => deepClone(item))
+    return obj.map((item) => deepClone(item));
   }
-  
-  if (typeof obj === 'object') {
-    const clonedObj = {}
+
+  if (typeof obj === "object") {
+    const clonedObj = {};
     for (const key in obj) {
       if (Object.prototype.hasOwnProperty.call(obj, key)) {
-        clonedObj[key] = deepClone(obj[key])
+        clonedObj[key] = deepClone(obj[key]);
       }
     }
-    return clonedObj
+    return clonedObj;
   }
-}
+};
 
 // 判断是否为空
 export const isEmpty = (value) => {
   if (value === null || value === undefined) {
-    return true
+    return true;
   }
-  
-  if (typeof value === 'string' && value.trim() === '') {
-    return true
+
+  if (typeof value === "string" && value.trim() === "") {
+    return true;
   }
-  
+
   if (Array.isArray(value) && value.length === 0) {
-    return true
+    return true;
   }
-  
-  if (typeof value === 'object' && Object.keys(value).length === 0) {
-    return true
+
+  if (typeof value === "object" && Object.keys(value).length === 0) {
+    return true;
   }
-  
-  return false
-}
+
+  return false;
+};
 
 // 防抖函数
 export const debounce = (func, wait) => {
-  let timeout
+  let timeout;
   return function executedFunction(...args) {
     const later = () => {
-      clearTimeout(timeout)
-      func(...args)
-    }
-    clearTimeout(timeout)
-    timeout = setTimeout(later, wait)
-  }
-}
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+};
 
 // 节流函数
 export const throttle = (func, limit) => {
-  let inThrottle
-  return function(...args) {
+  let inThrottle;
+  return function (...args) {
     if (!inThrottle) {
-      func.apply(this, args)
-      inThrottle = true
-      setTimeout(() => inThrottle = false, limit)
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
     }
-  }
-}
+  };
+};
 
 // 计算文件大小
 export const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes'
-  
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
-}
+  if (bytes === 0) return "0 Bytes";
+
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
+};
 
 // 生成UUID
 export const generateUUID = () => {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-    const r = Math.random() * 16 | 0
-    const v = c === 'x' ? r : (r & 0x3 | 0x8)
-    return v.toString(16)
-  })
-}
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+};
 
 // 生成唯一ID（基于时间戳和随机数）
 export const generateUniqueId = () => {
-  return Date.now() + Math.floor(Math.random() * 1000)
-}
+  return Date.now() + Math.floor(Math.random() * 1000);
+};
 
 // 生成大题ID
 export const generateSectionId = () => {
-  return generateUniqueId()
-}
+  return generateUniqueId();
+};
 
 // 生成分段ID（基于现有分段列表）
 export const generateSegmentId = (segments) => {
   if (!segments || segments.length === 0) {
-    return 1
+    return 1;
   }
-  return Math.max(...segments.map((s) => s.id), 0) + 1
-}
+  return Math.max(...segments.map((s) => s.id), 0) + 1;
+};
 
 // 生成题目ID
 export const generateQuestionId = (prefix, number) => {
   if (prefix) {
-    return `${prefix}-${number}`
+    return `${prefix}-${number}`;
   }
-  return `question-${number}`
-}
+  return `question-${number}`;
+};
 
 // 生成填空ID
 export const generateBlankId = (baseId, index) => {
-  return `blank-${baseId}-${index}`
-}
+  return `blank-${baseId}-${index}`;
+};
 
 // 下载文件
 export const downloadFile = (url, filename) => {
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename || ''
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename || "";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 // 验证邮箱
 export const isValidEmail = (email) => {
-  const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-  return re.test(email)
-}
+  const re =
+    /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  return re.test(email);
+};
 
 // 验证手机号
 export const isValidPhone = (phone) => {
-  const re = /^1[3-9]\d{9}$/
-  return re.test(phone)
-}
+  const re = /^1[3-9]\d{9}$/;
+  return re.test(phone);
+};
 
 // 金额格式化
 export const formatMoney = (amount, decimals = 2) => {
-  if (amount === null || amount === undefined) return '0.00'
-  
-  const num = parseFloat(amount)
-  if (isNaN(num)) return '0.00'
-  
-  return num.toLocaleString('zh-CN', {
+  if (amount === null || amount === undefined) return "0.00";
+
+  const num = parseFloat(amount);
+  if (isNaN(num)) return "0.00";
+
+  return num.toLocaleString("zh-CN", {
     minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  })
-}
+    maximumFractionDigits: decimals,
+  });
+};
+
+// 导入页面尺寸常量
+import { PAGE_WIDTH, PAGE_HEIGHT, PAGE_MARGIN } from "./constants";
 
 // 计算元素相对于参考元素的位置信息
 export const calculateElementPosition = (element, referenceElement) => {
@@ -202,46 +206,78 @@ export const calculateElementPosition = (element, referenceElement) => {
     return null;
   }
 
+  // 获取页面尺寸信息
+  const pageWidth = PAGE_WIDTH;
+  const pageHeight = PAGE_HEIGHT;
+  const pageMargin = PAGE_MARGIN;
+
   // 获取元素的位置和尺寸信息
-  const rect = element.getBoundingClientRect();
-  
+  const elementRect = element.getBoundingClientRect();
+
+  let referenceRect;
+
   // 计算相对于参考元素的位置信息
   if (referenceElement && referenceElement.getBoundingClientRect) {
     // 获取参考元素的位置信息
-    const refRect = referenceElement.getBoundingClientRect();
-    
-    // 计算相对位置（相对于参考元素的左上角）
-    return {
-      width: rect.width,
-      height: rect.height,
-      // 相对于整个文档的绝对位置
-      absolute: {
-        left: rect.left,
-        top: rect.top,
-        right: rect.right,
-        bottom: rect.bottom,
-        x: rect.x,
-        y: rect.y
-      },
-      // 相对于参考元素的位置
-      relativeToReference: {
-        left: rect.left - refRect.left,
-        top: rect.top - refRect.top,
-        right: refRect.right - rect.right,
-        bottom: refRect.bottom - rect.bottom
-      }
-    };
+    referenceRect = referenceElement.getBoundingClientRect();
   } else {
-    // 如果没有参考元素，则只返回绝对位置
-    return {
-      width: rect.width,
-      height: rect.height,
-      left: rect.left,
-      top: rect.top,
-      right: rect.right,
-      bottom: rect.bottom,
-      x: rect.x,
-      y: rect.y
+    // 如果没有参考元素，使用页面尺寸作为参考
+    referenceRect = {
+      left: 0,
+      top: 0,
+      width: pageWidth,
+      height: pageHeight,
+      right: pageWidth,
+      bottom: pageHeight,
     };
   }
+
+  // 计算相对位置（相对于参考元素的左上角）
+  const relativeLeft = parseFloat(
+    (elementRect.left - referenceRect.left).toFixed(2)
+  );
+  const relativeTop = parseFloat(
+    (elementRect.top - referenceRect.top).toFixed(2)
+  );
+  const relativeRight = parseFloat(
+    (referenceRect.right - elementRect.right).toFixed(2)
+  );
+  const relativeBottom = parseFloat(
+    (referenceRect.bottom - elementRect.bottom).toFixed(2)
+  );
+
+  const realWidth = pageWidth - 2 * pageMargin;
+  const realHeight = pageHeight - 2 * pageMargin;
+
+  // 计算百分比位置
+  const leftPercent = parseFloat((relativeLeft / realWidth).toFixed(4));
+  const rightPercent = parseFloat((relativeRight / realWidth).toFixed(4));
+  const topPercent = parseFloat((relativeTop / realHeight).toFixed(4));
+  const bottomPercent = parseFloat((relativeBottom / realHeight).toFixed(4));
+
+  return {
+    real: {
+      width: parseFloat(elementRect.width.toFixed(2)),
+      height: parseFloat(elementRect.height.toFixed(2)),
+      left: relativeLeft,
+      top: relativeTop,
+      right: relativeRight,
+      bottom: relativeBottom,
+      // 相对于整个文档的绝对位置
+      // absolute: {
+      //   left: elementRect.left,
+      //   top: elementRect.top,
+      //   right: elementRect.right,
+      //   bottom: elementRect.bottom,
+      //   x: elementRect.x,
+      //   y: elementRect.y
+      // }
+    },
+    percent: {
+      left: leftPercent,
+      top: topPercent,
+      right: rightPercent,
+      bottom: bottomPercent,
+    },
+  };
 };

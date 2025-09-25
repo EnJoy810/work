@@ -9,6 +9,9 @@ import QuestionWrapper from "./QuestionWrapper";
 import ObjectiveQuestionModal from "./ObjectiveQuestionModal";
 import BlankQuestionModal from "./BlankQuestionModal";
 import ExamInfoSection from "./ExamInfoSection";
+
+// 从常量文件导入页面尺寸
+import { PAGE_WIDTH, PAGE_HEIGHT, PAGE_MARGIN } from '../../../utils/constants';
 /**
  * 答题卷渲染组件
  * 负责在固定大小的页面上绘制题目，并支持多页显示
@@ -20,9 +23,10 @@ const AnswerSheetRenderer = ({
   onQuestionsUpdate = () => {}, // 设置为空函数作为默认值
 }) => {
   // console.log("hasSealingLine", hasSealingLine, hasNote);
-  const pageWidth = 740; // 页面宽度，单位：px
-  const pageHeight = 1111; // 页面高度，单位：px
-  const pageMargin = 20; // 左右页边距，单位：px
+  // 使用从常量文件导入的页面尺寸
+  const pageWidth = PAGE_WIDTH;
+  const pageHeight = PAGE_HEIGHT;
+  const pageMargin = PAGE_MARGIN;
   const topBottomMargin = 80; // 上下页边距，单位：px
 
   // 标题状态管理
