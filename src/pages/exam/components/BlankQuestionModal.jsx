@@ -131,8 +131,7 @@ const BlankQuestionModal = ({
   // 长填空生成的题目列表
   const [longQuestions, setLongQuestions] = useState([]);
 
-  // 长填空小题配置列表
-  const [longSubQuestions, setLongSubQuestions] = useState([]);
+  // 长填空行分数状态
   const [longLineScores, setLongLineScores] = useState({}); // 存储每行分数的状态
 
   // 生成大写的一到二十选项
@@ -205,9 +204,9 @@ const BlankQuestionModal = ({
       // 为每个题目生成对应的空数组
       const blanksArray = Array.from({ length: blanks }, (_, index) => ({
         id: generateBlankId(i, index),
-        points: points
+        points: points,
       }));
-      
+
       newQuestions.push({
         id: generateQuestionId(null, i),
         questionNumber: i,
@@ -216,7 +215,7 @@ const BlankQuestionModal = ({
         blanksPerQuestion: blanks,
         totalScore: points * blanks,
         isAddSubQuestionClicked: false, // 标记是否点击了添加小题按钮
-        blanks: blanksArray // 添加blanks数组，确保每空数据被正确生成
+        blanks: blanksArray, // 添加blanks数组，确保每空数据被正确生成
       });
     }
 
@@ -262,41 +261,70 @@ const BlankQuestionModal = ({
 
   // 处理initialData，实现数据回填
   useEffect(() => {
+    console.log("处理initialData，实现数据回填", initialData);
     if (visible && initialData) {
       // 回填大题题号和题目内容
       setQuestionNumber(initialData.questionNumber || "一");
       setQuestionContent(initialData.content || "填空题");
       setFillType(initialData.fillType || "short");
-
-      // 回填shortFillConfig数据
-      if (
-        initialData.shortFillConfig &&
-        Array.isArray(initialData.shortFillConfig)
-      ) {
-        // 确保shortFillConfig格式包含id字段
-        const configWithId = initialData.shortFillConfig.map(
-          (config, index) => ({
-            id: config.id || index + 1,
-            startQuestion: config.startQuestion,
-            endQuestion: config.endQuestion,
-            pointsPerBlank: config.pointsPerBlank,
-            blanksPerQuestion: config.blanksPerQuestion,
-          })
-        );
-        setShortFillConfig(configWithId);
-      }
-      // 小题数据现在从questions中获取，不再需要单独的subQuestions状态
-      setTimeout(() => {
-        // 回填questions数据
-        if (initialData.questions && Array.isArray(initialData.questions)) {
-          setQuestions(initialData.questions);
+      if (initialData.fillType === "short") {
+        // 短填空
+        // 回填shortFillConfig数据
+        if (
+          initialData.shortFillConfig &&
+          Array.isArray(initialData.shortFillConfig)
+        ) {
+          // 确保shortFillConfig格式包含id字段
+          const configWithId = initialData.shortFillConfig.map(
+            (config, index) => ({
+              id: config.id || index + 1,
+              startQuestion: config.startQuestion,
+              endQuestion: config.endQuestion,
+              pointsPerBlank: config.pointsPerBlank,
+              blanksPerQuestion: config.blanksPerQuestion,
+            })
+          );
+          setShortFillConfig(configWithId);
         }
-      }, 200);
+        // 小题数据现在从questions中获取，不再需要单独的subQuestions状态
+        setTimeout(() => {
+          // 回填questions数据
+          if (initialData.questions && Array.isArray(initialData.questions)) {
+            setQuestions(initialData.questions);
+          }
+        }, 200);
 
-      // 回填其他配置
-      if (initialData.blanksPerLine) {
-        setBlanksPerLine(initialData.blanksPerLine);
+        // 回填其他配置
+        if (initialData.blanksPerLine) {
+          setBlanksPerLine(initialData.blanksPerLine);
+        }
+      } else {
+        // 回填长填空
+        if (
+          initialData.longFillConfig &&
+          Array.isArray(initialData.longFillConfig)
+        ) {
+          // 确保longFillConfig格式包含id字段
+          const configWithId = initialData.longFillConfig.map(
+            (config, index) => ({
+              id: config.id || index + 1,
+              startQuestion: config.startQuestion,
+              endQuestion: config.endQuestion,
+              pointsPerLine: config.pointsPerLine,
+              linesPerQuestion: config.linesPerQuestion,
+            })
+          );
+          setLongFillConfig(configWithId);
+        }
+        // 小题数据现在从questions中获取，不再需要单独的subQuestions状态
+        setTimeout(() => {
+          // 回填questions数据
+          if (initialData.questions && Array.isArray(initialData.questions)) {
+            setLongQuestions(initialData.questions);
+          }
+        }, 200);
       }
+
       if (initialData.showSubQuestionScore !== undefined) {
         setShowSubQuestionScore(initialData.showSubQuestionScore);
       }
@@ -402,15 +430,15 @@ const BlankQuestionModal = ({
       //   longQuestions.length > 0
       //     ? longQuestions[longQuestions.length - 1].questionNumber
       //     : null;
+      submitData.questions = longQuestions;
       submitData.longFillConfig = longFillConfig.map((config) => ({
         startQuestion: config.startQuestion,
         endQuestion: config.endQuestion,
         pointsPerLine: config.pointsPerLine,
         linesPerQuestion: config.linesPerQuestion,
       }));
-      submitData.subQuestions = longSubQuestions;
-      submitData.lineScores = longLineScores;
-      submitData.linesPerLine = blanksPerLine; // 复用相同的设置
+      // submitData.lineScores = longLineScores;
+      // submitData.linesPerLine = blanksPerLine; // 复用相同的设置
       submitData.showSubQuestionScore = showSubQuestionScore;
 
       // 计算长填空的分页信息
@@ -419,30 +447,30 @@ const BlankQuestionModal = ({
         (sum, q) => sum + q.linesPerQuestion,
         0
       );
-      submitData.pagination.totalLines = totalLines;
+      submitData.totalLines = totalLines;
 
       // 使用从父组件传入的当前页面剩余可显示行数
-      const pageCapacity = pageRemainingLines;
-      submitData.pagination.pageCapacity = pageCapacity;
+      // const pageCapacity = pageRemainingLines;
+      // submitData.pagination.pageCapacity = pageCapacity;
 
-      // 计算当前页面和下一页的行数
-      if (totalLines <= pageCapacity) {
-        // 所有行都可以在当前页面显示
-        submitData.pagination.currentPageLines = Array.from(
-          { length: totalLines },
-          (_, i) => i
-        );
-      } else {
-        // 部分行需要在下一页显示
-        submitData.pagination.currentPageLines = Array.from(
-          { length: pageCapacity },
-          (_, i) => i
-        );
-        submitData.pagination.nextPageLines = Array.from(
-          { length: totalLines - pageCapacity },
-          (_, i) => i + pageCapacity
-        );
-      }
+      // // 计算当前页面和下一页的行数
+      // if (totalLines <= pageCapacity) {
+      //   // 所有行都可以在当前页面显示
+      //   submitData.pagination.currentPageLines = Array.from(
+      //     { length: totalLines },
+      //     (_, i) => i
+      //   );
+      // } else {
+      //   // 部分行需要在下一页显示
+      //   submitData.pagination.currentPageLines = Array.from(
+      //     { length: pageCapacity },
+      //     (_, i) => i
+      //   );
+      //   submitData.pagination.nextPageLines = Array.from(
+      //     { length: totalLines - pageCapacity },
+      //     (_, i) => i + pageCapacity
+      //   );
+      // }
     }
 
     // 如果是编辑模式，保留原有sectionId
@@ -591,12 +619,8 @@ const BlankQuestionModal = ({
                 setLongFillConfig={setLongFillConfig}
                 longQuestions={longQuestions}
                 setLongQuestions={setLongQuestions}
-                longSubQuestions={longSubQuestions}
-                setLongSubQuestions={setLongSubQuestions}
                 longLineScores={longLineScores}
                 setLongLineScores={setLongLineScores}
-                blanksPerLine={blanksPerLine}
-                setBlanksPerLine={setBlanksPerLine}
                 showSubQuestionScore={showSubQuestionScore}
                 setShowSubQuestionScore={setShowSubQuestionScore}
               />

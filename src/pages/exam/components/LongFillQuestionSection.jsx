@@ -6,17 +6,12 @@ import { generateQuestionId, generateBlankId } from "../../../utils/tools";
 const { Panel } = Collapse;
 
 /**
- * 长填空问题部分组件
- *
+ * 长填空题组件
  * @param {Object} props
- * @param {Array} props.questions - 题目列表
- * @param {Function} props.setQuestions - 设置题目列表的函数
- * @param {Array} props.subQuestions - 小题列表
- * @param {Function} props.setSubQuestions - 设置小题列表的函数
- * @param {Object} props.lineScores - 行分数状态
- * @param {Function} props.setLineScores - 设置行分数的函数
- * @param {number} props.linesPerLine - 每行显示的行数
- * @param {Function} props.setLinesPerLine - 设置每行显示行数的函数
+ * @param {Array} props.longQuestions - 题目列表（包含子题数据）
+ * @param {Function} props.setLongQuestions - 设置题目列表的函数
+ * @param {Object} props.longLineScores - 行分数状态
+ * @param {Function} props.setLongLineScores - 设置行分数的函数
  * @param {boolean} props.showSubQuestionScore - 是否显示小题分数
  * @param {Function} props.setShowSubQuestionScore - 设置是否显示小题分数的函数
  * @param {Array} props.longFillConfig - 长填空配置
@@ -25,8 +20,6 @@ const { Panel } = Collapse;
 const LongFillQuestionSection = ({
   longQuestions: questions, // 重命名属性以匹配组件内部使用
   setLongQuestions: setQuestions, // 重命名属性以匹配组件内部使用
-  longSubQuestions: subQuestions, // 重命名属性以匹配组件内部使用
-  setLongSubQuestions: setSubQuestions, // 重命名属性以匹配组件内部使用
   longLineScores: lineScores, // 重命名属性以匹配组件内部使用
   setLongLineScores: setLineScores, // 重命名属性以匹配组件内部使用
   showSubQuestionScore,
@@ -52,51 +45,57 @@ const LongFillQuestionSection = ({
 
   // 添加小题
   const addSubQuestion = (questionId) => {
-    const question = questions.find((q) => q.id === questionId);
-    if (!question) return;
-
     const newSubQuestion = {
-      id: generateQuestionId('sub'),
-      questionId: questionId,
-      totalLines: question.linesPerQuestion || 1,
-      pointsPerLine: question.pointsPerLine || 2,
-      lines: Array.from(
-        { length: question.linesPerQuestion || 1 },
-        (_, index) => ({
-          id: generateBlankId(questionId, index),
-          points: question.pointsPerLine || 2,
-        })
-      ),
+      id: generateQuestionId('sub', Date.now()),
+      totalLines: 1, // 默认1行
+      pointsPerLine: 2, // 默认2分
+      lines: [
+        {
+          id: generateBlankId(questionId, Date.now()),
+          points: 2,
+        }
+      ],
     };
 
-    setSubQuestions([...subQuestions, newSubQuestion]);
-
-    // 标记该题目已点击添加小题按钮
+    // 将新小题添加到父级question对象的subQuestions数组中
     setQuestions(
       questions.map((q) =>
-        q.id === questionId ? { ...q, isAddSubQuestionClicked: true } : q
+        q.id === questionId 
+          ? {
+              ...q, 
+              isAddSubQuestionClicked: true,
+              subQuestions: [...(q.subQuestions || []), newSubQuestion]
+            } 
+          : q
       )
     );
   };
 
   // 移除小题
-  const removeSubQuestion = (subQuestionId) => {
-    // 找到要删除的小题所属的题目ID
-    const subQuestion = subQuestions.find((sq) => sq.id === subQuestionId);
-    if (!subQuestion) return;
-
-    // 获取该题目下的所有小题
-    const questionSubQuestions = subQuestions.filter(
-      (sq) => sq.questionId === subQuestion.questionId
-    );
+  const removeSubQuestion = (questionId, subQuestionId) => {
+    // 找到对应的题目
+    const question = questions.find((q) => q.id === questionId);
+    if (!question || !question.subQuestions) return;
 
     // 检查是否只剩一条小题，如果是则不允许删除
-    if (questionSubQuestions.length <= 1) {
+    if (question.subQuestions.length <= 1) {
       showInfo("至少需要保留一条小题数据");
       return;
     }
 
-    setSubQuestions(subQuestions.filter((sq) => sq.id !== subQuestionId));
+    // 从父级question对象的subQuestions数组中删除指定小题
+    setQuestions(
+      questions.map((q) =>
+        q.id === questionId
+          ? {
+              ...q,
+              subQuestions: q.subQuestions.filter(
+                (sub) => sub.id !== subQuestionId
+              ),
+            }
+          : q
+      )
+    );
   };
 
   // 更新大题
@@ -124,57 +123,69 @@ const LongFillQuestionSection = ({
 
     // 如果更新了每空分数或空数量，同步更新相关的小题
     if (field === "pointsPerLine" || field === "linesPerQuestion") {
-      const question = questions.find((q) => q.id === questionId);
-      if (question) {
-        setSubQuestions(
-          subQuestions.map((sq) => {
-            if (sq.questionId === questionId) {
-              const updatedSq = { ...sq };
-
+      setQuestions(
+        questions.map((q) => {
+          if (q.id === questionId) {
+            // 更新题目自身属性
+            const updatedQuestion = { ...q, [field]: numValue };
+            
+            // 如果有子题，同步更新子题的相应属性
+            if (updatedQuestion.subQuestions) {
               if (field === "pointsPerLine") {
-                updatedSq.pointsPerLine = numValue;
-                updatedSq.lines = updatedSq.lines.map((line) => ({
-                  ...line,
-                  points: numValue,
+                updatedQuestion.subQuestions = updatedQuestion.subQuestions.map((subQuestion) => ({
+                  ...subQuestion,
+                  pointsPerLine: numValue,
+                  lines: subQuestion.lines.map((line) => ({
+                    ...line,
+                    points: numValue,
+                  })),
                 }));
-              }
-
-              if (field === "linesPerQuestion") {
+              } else if (field === "linesPerQuestion") {
                 // 严格按照大题设置的行数更新小题
-                const targetLength = numValue;
-                const newLines = [...sq.lines];
+                updatedQuestion.subQuestions = updatedQuestion.subQuestions.map((subQuestion) => {
+                  const targetLength = numValue;
+                  const newLines = [...subQuestion.lines];
 
-                if (targetLength > newLines.length) {
-                  // 添加新的行，使用当前每空分数
-                  for (let i = newLines.length; i < targetLength; i++) {
-                    newLines.push({
-                      id: generateBlankId(sq.questionId, i),
-                      points: sq.pointsPerLine,
-                    });
+                  if (targetLength > newLines.length) {
+                    // 添加新的行，使用当前每空分数
+                    for (let i = newLines.length; i < targetLength; i++) {
+                      newLines.push({
+                        id: `blank-${questionId}-${Date.now()}-${i}`, // 直接生成唯一ID，不再使用未定义的函数
+                        points: subQuestion.pointsPerLine,
+                      });
+                    }
+                  } else if (targetLength < newLines.length) {
+                    // 删除多余的行
+                    newLines.splice(targetLength);
                   }
-                } else if (targetLength < newLines.length) {
-                  // 删除多余的行
-                  newLines.splice(targetLength);
-                }
 
-                // 确保totalLines和linesPerQuestion保持一致
-                updatedSq.totalLines = targetLength;
-                updatedSq.lines = newLines;
+                  // 确保totalLines和linesPerQuestion保持一致
+                  return {
+                    ...subQuestion,
+                    totalLines: targetLength,
+                    lines: newLines,
+                  };
+                });
               }
-
-              return updatedSq;
             }
-            return sq;
-          })
-        );
+            
+            return updatedQuestion;
+          }
+          return q;
+        })
+      );
 
-        // 如果更新了每行分数，批量更新lineScores状态中的对应分数
-        if (field === "pointsPerLine") {
+      // 如果更新了每行分数，批量更新lineScores状态中的对应分数
+      if (field === "pointsPerLine") {
+        const question = questions.find((q) => q.id === questionId);
+        if (question) {
           const updatedLineScores = { ...lineScores };
           // 批量更新所有该题的行分数
-          for (let i = 0; i < question.linesPerQuestion; i++) {
-            updatedLineScores[`${question.id}_${i}`] = numValue;
-          }
+          question.subQuestions?.forEach((subQuestion) => {
+            subQuestion.lines?.forEach((line) => {
+              updatedLineScores[line.id] = numValue;
+            });
+          });
           setLineScores(updatedLineScores);
         }
       }
@@ -221,6 +232,7 @@ const LongFillQuestionSection = ({
         linesPerQuestion: lines,
         totalScore: points * lines,
         isAddSubQuestionClicked: false, // 标记是否点击了添加小题按钮
+        subQuestions: [], // 存储属于该题的小题数据
       });
     }
 
@@ -229,9 +241,8 @@ const LongFillQuestionSection = ({
 
   // 当长填空配置变化时，根据配置生成或更新题目
   useEffect(() => {
-    // 清空现有的题目和小题
+    // 清空现有的题目
     setQuestions([]);
-    setSubQuestions([]);
 
     // 生成新的题目
     let allQuestions = [];
@@ -242,7 +253,7 @@ const LongFillQuestionSection = ({
 
     allQuestions.sort((a, b) => a.questionNumber - b.questionNumber);
     setQuestions(allQuestions);
-  }, [longFillConfig, setQuestions, setSubQuestions]);
+  }, [longFillConfig, setQuestions]);
 
   return (
     <>
@@ -333,14 +344,11 @@ const LongFillQuestionSection = ({
                         }}
                       >
                         <span>题{question.questionNumber}</span>
-                        {subQuestions.filter(
-                          (sub) => sub.questionId === question.id
-                        ).length > 0 && (
+                        {question.subQuestions && question.subQuestions.length > 0 && (
                           <span>
-                            {" "}
+                            {' '}
                             总分
-                            {subQuestions
-                              .filter((sub) => sub.questionId === question.id)
+                            {question.subQuestions
                               .reduce((total, sub) => {
                                 return (
                                   total + sub.pointsPerLine
@@ -398,90 +406,102 @@ const LongFillQuestionSection = ({
                     </Button>
                   }
                 >
-                  {question.isAddSubQuestionClicked ? (
+                  {question.isAddSubQuestionClicked && question.subQuestions ? (
                     <div>
-                      {subQuestions
-                        .filter((sub) => sub.questionId === question.id)
-                        .map((subQuestion, index) => (
+                      {question.subQuestions.map((subQuestion, index) => (
+                        <div
+                          key={subQuestion.id}
+                          style={{
+                            marginBottom: 16,
+                            padding: 12,
+                            border: "1px solid #f0f0f0",
+                            borderRadius: 4,
+                            backgroundColor: "#fafafa",
+                          }}
+                        >
                           <div
-                            key={subQuestion.id}
                             style={{
-                              marginBottom: 16,
-                              padding: 12,
-                              border: "1px solid #f0f0f0",
-                              borderRadius: 4,
-                              backgroundColor: "#fafafa",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 12,
+                              marginBottom: 8,
                             }}
                           >
-                            <div
-                              style={{
-                                display: "flex",
-                                alignItems: "center",
-                                gap: 12,
-                                marginBottom: 8,
+                            <span style={{ fontWeight: 500 }}>
+                              第{index + 1}小题：
+                            </span>
+
+                            <span>行数：</span>
+                            <InputNumber
+                              min={1}
+                              value={subQuestion.totalLines}
+                              onChange={(value) => {
+                                setQuestions(
+                                  questions.map((q) =>
+                                    q.id === question.id
+                                      ? {
+                                          ...q,
+                                          subQuestions: q.subQuestions.map(
+                                            (sub) =>
+                                              sub.id === subQuestion.id
+                                                ? { ...sub, totalLines: value }
+                                                : sub
+                                          ),
+                                        }
+                                      : q
+                                  )
+                                );
                               }}
+                              style={{ width: 80 }}
+                            />
+
+                            <span>分值：</span>
+                            <InputNumber
+                              min={0}
+                              value={subQuestion.pointsPerLine}
+                              onChange={(value) => {
+                                setQuestions(
+                                  questions.map((q) =>
+                                    q.id === question.id
+                                      ? {
+                                          ...q,
+                                          subQuestions: q.subQuestions.map(
+                                            (sub) =>
+                                              sub.id === subQuestion.id
+                                                ? {
+                                                    ...sub,
+                                                    pointsPerLine: value,
+                                                    lines: sub.lines.map((line) => ({
+                                                      ...line,
+                                                      points: value,
+                                                    })),
+                                                  }
+                                                : sub
+                                          ),
+                                        }
+                                      : q
+                                  )
+                                );
+                              }}
+                              style={{ width: 80 }}
+                            />
+
+                            <Button
+                              danger
+                              size="small"
+                              onClick={() =>
+                                removeSubQuestion(question.id, subQuestion.id)
+                              }
+                              type="text"
+                              disabled={
+                                question.subQuestions.length <= 1
+                              }
                             >
-                              <span style={{ fontWeight: 500 }}>
-                                第{index + 1}小题：
-                              </span>
-
-                              <span>行数：</span>
-                              <InputNumber
-                                min={1}
-                                value={subQuestion.totalLines}
-                                onChange={(value) => {
-                                  setSubQuestions((prev) =>
-                                    prev.map((sq) =>
-                                      sq.id === subQuestion.id
-                                        ? { ...sq, totalLines: value }
-                                        : sq
-                                    )
-                                  );
-                                }}
-                                style={{ width: 80 }}
-                              />
-
-                              <span>分值：</span>
-                              <InputNumber
-                                min={0}
-                                value={subQuestion.pointsPerLine}
-                                onChange={(value) => {
-                                  setSubQuestions((prev) =>
-                                    prev.map((sq) =>
-                                      sq.id === subQuestion.id
-                                        ? {
-                                            ...sq,
-                                            pointsPerLine: value,
-                                            lines: sq.lines.map((line) => ({
-                                              ...line,
-                                              points: value,
-                                            })),
-                                          }
-                                        : sq
-                                    )
-                                  );
-                                }}
-                                style={{ width: 80 }}
-                              />
-
-                              <Button
-                                danger
-                                size="small"
-                                onClick={() =>
-                                  removeSubQuestion(subQuestion.id)
-                                }
-                                type="text"
-                                disabled={
-                                  subQuestions.filter(
-                                    (sq) => sq.questionId === question.id
-                                  ).length <= 1
-                                }
-                              >
-                                删除
-                              </Button>
-                            </div>
+                              删除
+                            </Button>
                           </div>
-                        ))}
+                        </div>
+                      ))}
                     </div>
                   ) : null}
                 </Panel>
