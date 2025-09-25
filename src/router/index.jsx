@@ -2,6 +2,7 @@ import { createBrowserRouter } from 'react-router-dom'
 import Layout from '../layout'
 import pages from '../pages'
 import { ProtectedRoute, LoginPage } from './ProtectedRoutes.jsx'
+import ExamPaperPreview from '../pages/exam/ExamPaperPreview.jsx'
 
 // 解构获取各个页面组件
 const { Home } = pages.dashboard;
@@ -54,7 +55,17 @@ const router = createBrowserRouter([
         element: <EnglishPaperDesign />
       }
     ]
-  }
+  },
+  // 试卷预览页面 - 不需要Layout包裹但需要登录保护
+  {
+    path: '/exam-paper-preview',
+    element: (
+      <ProtectedRoute>
+        <ExamPaperPreview />
+      </ProtectedRoute>
+    ),
+    errorElement: <NotFound />
+  } 
 ])
 
 export default router

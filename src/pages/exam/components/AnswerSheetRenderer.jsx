@@ -546,7 +546,6 @@ const AnswerSheetRenderer = ({
           backgroundColor: "white",
           padding: `${topBottomMargin}px ${pageMargin}px`,
           borderRadius: "8px",
-          marginRight: "20px",
           marginBottom: "20px",
           position: "relative",
           boxShadow: "0px 0px 3px 3px #E5E9F2",

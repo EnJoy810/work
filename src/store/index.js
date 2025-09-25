@@ -2,6 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage'; // 默认使用localStorage
 import userReducer from './slices/userSlice';
+import previewReducer from './slices/previewSlice';
 
 // 持久化配置
 const persistConfig = {
@@ -18,6 +19,7 @@ const persistedReducer = persistReducer(persistConfig, userReducer);
 export const store = configureStore({
   reducer: {
     user: persistedReducer,
+    preview: previewReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }), // 禁用serializableCheck，允许非序列化数据

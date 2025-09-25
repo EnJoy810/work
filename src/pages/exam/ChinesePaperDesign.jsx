@@ -1,14 +1,5 @@
 import { useState, useCallback } from "react";
-import {
-  Button,
-  Typography,
-  Form,
-  Input,
-  Checkbox,
-  Empty,
-  Space,
-  message,
-} from "antd";
+import { Button, Typography, Form, Input, Checkbox, Empty, Space } from "antd";
 import {
   DownloadOutlined,
   EditOutlined,
@@ -19,6 +10,9 @@ import { useMessageService } from "../../components/common/message";
 import ObjectiveQuestionModal from "./components/ObjectiveQuestionModal";
 import BlankQuestionModal from "./components/BlankQuestionModal";
 import AnswerSheetRenderer from "./components/AnswerSheetRenderer";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { setPreviewData } from "../../store/slices/previewSlice";
 
 const { Title } = Typography;
 
@@ -36,6 +30,8 @@ const ChinesePaperDesign = () => {
     hasSealingLine: false,
     hasNote: true,
   });
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   // 使用useCallback缓存getQuestionPositions函数，避免不必要的重新渲染
   const getQuestionPositions = useCallback((positions) => {
@@ -81,54 +77,78 @@ const ChinesePaperDesign = () => {
 
   // 预览并下载试卷
   const previewAndDownload = () => {
-    showInfo("正在保存并准备预览试卷...");
+    // showInfo("正在保存并准备预览试卷...");
 
-    // 模拟API请求延迟
-    setTimeout(() => {
-      showSuccess("试卷已保存并准备预览");
+    // // 模拟API请求延迟
+    // showSuccess("试卷已保存并准备预览");
 
-      // 获取完整的题目列表，包含题目信息和位置信息
-      if (questions.length > 0) {
-        // 计算包含位置信息的题目数量
-        const questionsWithPositionCount = questions.filter(
-          (q) => q.positionInfo
-        ).length;
+    // 获取完整的题目列表，包含题目信息和位置信息
+    if (questions.length > 0) {
+      // 计算包含位置信息的题目数量
+      const questionsWithPositionCount = questions.filter(
+        (q) => q.positionInfo
+      ).length;
 
-        showSuccess(
-          `成功获取${questions.length}道题目的完整信息，其中${questionsWithPositionCount}道题目包含位置数据`
-        );
+      showSuccess(
+        `成功获取${questions.length}道题目的完整信息，其中${questionsWithPositionCount}道题目包含位置数据`
+      );
 
-        // 打印完整的题目列表数据
-        console.log("完整题目列表数据（包含位置信息）：", questions);
+      // 打印完整的题目列表数据
+      console.log("完整题目列表数据（包含位置信息）：", questions);
 
-        // 单独提取位置信息以便查看
-        const questionsWithPosition = questions.filter(
-          (question) => question.positionInfo
-        );
-        if (questionsWithPosition.length > 0) {
-          console.log("包含位置信息的题目：", questionsWithPosition);
-        }
-
-        // 准备用于下载或预览的数据结构
-        const examData = {
-          basicInfo: formValues,
-          totalQuestions: questions.length,
-          questionsWithPositionCount: questionsWithPositionCount,
-          questions: questions,
-        };
-
-        console.log("试卷完整数据：", examData);
-
-        // 可以根据需要处理数据，例如导出到文件或用于预览
-        message.success(
-          `已准备${questions.length}道题目的完整数据用于预览和下载`
-        );
-
-        // 这里可以添加实际的下载逻辑，例如将数据转换为JSON或其他格式并提供下载
-      } else {
-        showInfo("当前试卷中没有题目，请先添加题目");
+      // 单独提取位置信息以便查看
+      const questionsWithPosition = questions.filter(
+        (question) => question.positionInfo
+      );
+      if (questionsWithPosition.length > 0) {
+        console.log("包含位置信息的题目：", questionsWithPosition);
       }
-    }, 800);
+
+      // 准备用于下载或预览的数据结构
+      const examData = {
+        basicInfo: formValues,
+        totalQuestions: questions.length,
+        questionsWithPositionCount: questionsWithPositionCount,
+        questions: questions,
+      };
+
+      console.log("试卷完整数据：", examData);
+
+      // 获取所有answer-sheet-page元素的内容
+      const answerSheetPages = [];
+      const pageElements = document.querySelectorAll(".answer-sheet-page");
+      console.log("pageElements", pageElements);
+      pageElements.forEach((element) => {
+        // 克隆元素以避免修改原DOM
+        const clonedElement = element.cloneNode(true);
+        // 设置A3尺寸
+        // clonedElement.style.width = "2480px";
+        // clonedElement.style.height = "3508px";
+        clonedElement.style.marginBottom = "0";
+        clonedElement.style.borderRadius = "0";
+        // 获取元素的HTML内容
+        answerSheetPages.push(clonedElement.outerHTML);
+      });
+
+      // 打印数据存储前的状态
+      console.log("即将存储到Redux的数据 - examData:", examData);
+      console.log("即将存储到Redux的数据 - answerSheetPages长度:", answerSheetPages.length);
+      
+      // 存储数据到Redux
+      dispatch(
+        setPreviewData({
+          examData,
+          answerSheetPages
+        })
+      );
+      
+      console.log("数据已存储到Redux，即将导航到预览页面");
+      
+      // 跳转到预览页面
+      navigate("/exam-paper-preview");
+    } else {
+      showInfo("当前试卷中没有题目，请先添加题目");
+    }
   };
 
   // 显示选择题弹窗
