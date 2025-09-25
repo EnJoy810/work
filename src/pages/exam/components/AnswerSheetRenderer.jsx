@@ -760,7 +760,13 @@ const AnswerSheetRenderer = ({
     const pageCount = calculatePageCount();
 
     return (
-      <div style={{ display: "flex", flexDirection: "column" }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
         {Array.from({ length: pageCount }).map((_, pageIndex) => {
           // if (pageIndex === 0 && hasSealingLine) {
           //   // 第一页添加密封线内容
