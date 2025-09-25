@@ -47,12 +47,12 @@ const ObjectiveQuestionsRenderer = ({
       if (currentPositionKey !== previousPositionInfoRef.current) {
         // 调用回调函数传递位置信息，使用sectionId作为唯一标识
         onPositionUpdate(objectiveItem.sectionId, extendedPositionInfo);
-        
+
         console.log(
           `选择题部分(sectionId: ${objectiveItem.sectionId})尺寸和位置信息已通过回调函数传递:`,
           extendedPositionInfo
         );
-        
+
         // 更新引用，存储当前位置信息
         previousPositionInfoRef.current = currentPositionKey;
       }
@@ -60,11 +60,10 @@ const ObjectiveQuestionsRenderer = ({
   }, [objectiveItem, pageRef, onPositionUpdate]); // 仅当objectiveItem、pageRef或onPositionUpdate变化时重新计算
 
   return (
-    <div ref={questionsContainerRef} style={{ marginBottom: "30px" }}>
+    <div ref={questionsContainerRef}>
       {/* 选择题标题 */}
       <div
         style={{
-          marginBottom: "10px",
           fontWeight: "bold",
           fontSize: "16px",
         }}
@@ -98,7 +97,7 @@ const ObjectiveQuestionsRenderer = ({
           {questions
             .sort(
               (a, b) =>
-                parseInt(a.questionNumber || a.id) - 
+                parseInt(a.questionNumber || a.id) -
                 parseInt(b.questionNumber || b.id)
             )
             .map((question, questionIndex) => {

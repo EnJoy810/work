@@ -5,7 +5,7 @@ import { Button, Modal } from "antd";
 import ExamInfoModal from "./ExamInfoModal";
 import ObjectiveQuestionsRenderer from "./ObjectiveQuestionsRenderer";
 import SubjectiveQuestionsRenderer from "./SubjectiveQuestionsRenderer";
-import ObjectiveQuestionWrapper from "./ObjectiveQuestionWrapper";
+import QuestionWrapper from "./QuestionWrapper";
 import ObjectiveQuestionModal from "./ObjectiveQuestionModal";
 import BlankQuestionModal from "./BlankQuestionModal";
 import ExamInfoSection from "./ExamInfoSection";
@@ -120,12 +120,6 @@ const AnswerSheetRenderer = ({
   const closeObjectiveModal = () => {
     setIsObjectiveModalVisible(false);
     setEditingObjectiveItem(null);
-  };
-
-  // 打开填空题编辑弹窗
-  const openBlankModal = (question = null) => {
-    setEditingBlankItem(question);
-    setIsBlankModalVisible(true);
   };
 
   // 关闭填空题编辑弹窗
@@ -243,6 +237,9 @@ const AnswerSheetRenderer = ({
 
     console.log("删除选择题后的题目列表:", updatedQuestions);
   };
+
+  // 删除非选择题的函数已在renderPageContent中局部定义
+  // 这里保留注释以确保代码的可读性
 
   // 计算页面数量
   const calculatePageCount = () => {
@@ -671,7 +668,7 @@ const AnswerSheetRenderer = ({
                   };
 
                   return (
-                    <ObjectiveQuestionWrapper
+                    <QuestionWrapper
                       key={objectiveItem.sectionId}
                       objectiveItem={objectiveItem}
                       onEdit={handleEditObjectiveQuestion}
@@ -682,25 +679,52 @@ const AnswerSheetRenderer = ({
                         pageRef={pageRefs.current[pageIndex]}
                         onPositionUpdate={handleQuestionPositionUpdate}
                       />
-                    </ObjectiveQuestionWrapper>
+                    </QuestionWrapper>
                   );
                 })}
 
               {/* 非选择题部分 */}
               {subjectiveQuestions.length > 0 &&
                 subjectiveQuestions.map((subjectiveItem) => {
+                  // 编辑非选择题，参照选择题编辑模式
+                  const handleEditSubjectiveQuestion = (question) => {
+                    console.log("编辑非选择题:", question);
+                    // 设置当前编辑的填空题数据，然后打开弹窗
+                    setEditingBlankItem(question);
+                    setIsBlankModalVisible(true);
+                  };
+
+                  // 删除非选择题
+                  const handleDeleteSubjectiveQuestion = (question) => {
+                    console.log("删除非选择题:", question);
+                    Modal.confirm({
+                      title: "确认删除",
+                      content: `确定要删除填空题【${
+                        question.questionNumber || "大题"
+                      }】吗？`,
+                      okText: "确定",
+                      cancelText: "取消",
+                      onOk() {
+                        // 执行删除操作
+                        deleteObjectiveQuestion(question.sectionId);
+                      },
+                    });
+                  };
+
                   return (
-                    <SubjectiveQuestionsRenderer
+                    <QuestionWrapper
                       key={subjectiveItem.sectionId}
-                      questions={subjectiveItem}
-                      pageIndex={pageIndex}
-                      pageRef={pageRefs.current[pageIndex]}
-                      onEdit={(question) => {
-                        if (question.type === "blank") {
-                          openBlankModal(question);
-                        }
-                      }}
-                    />
+                      subjectiveItem={subjectiveItem}
+                      onEdit={handleEditSubjectiveQuestion}
+                      onDelete={handleDeleteSubjectiveQuestion}
+                    >
+                      <SubjectiveQuestionsRenderer
+                        questions={subjectiveItem}
+                        pageIndex={pageIndex}
+                        onPositionUpdate={handleQuestionPositionUpdate}
+                        pageRef={pageRefs.current[pageIndex]}
+                      />
+                    </QuestionWrapper>
                   );
                 })}
             </>
@@ -773,11 +797,6 @@ const AnswerSheetRenderer = ({
         overflow: "auto",
       }}
     >
-      {/* <div style={{ marginBottom: 20, padding: '0 20px' }}>
-        <Button type="primary" onClick={() => openObjectiveModal()}>添加选择题</Button>
-        <Button type="primary" style={{ marginLeft: '10px' }} onClick={() => openBlankModal()}>添加填空题</Button>
-        <Button type="primary" style={{ marginLeft: '10px' }} onClick={showModal}>编辑考试信息</Button>
-      </div> */}
       {renderAllPages()}
       <ExamInfoModal
         visible={isModalVisible}
@@ -804,9 +823,9 @@ const AnswerSheetRenderer = ({
       {/* 填空题编辑弹窗 */}
       {isBlankModalVisible && (
         <BlankQuestionModal
-          isEditMode={!!editingBlankItem}
+          visible={isBlankModalVisible}
           initialData={editingBlankItem}
-          onSubmit={handleBlankEditSuccess}
+          onSuccess={handleBlankEditSuccess}
           onCancel={closeBlankModal}
         />
       )}

@@ -1,12 +1,13 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
 import { Button } from "antd";
 import { EditOutlined } from "@ant-design/icons";
+import { calculateElementPosition } from "../../../utils/tools";
 
 /**
  * 非选择题渲染组件
  * 负责渲染非选择题的单独布局
  */
-const SubjectiveQuestionsRenderer = ({ questions, pageIndex }) => {
+const SubjectiveQuestionsRenderer = React.forwardRef(({ questions, pageIndex, onPositionUpdate, pageRef }, ref) => {
   console.log("questions, pageIndex 非选择题", questions, pageIndex);
   const {
     questionNumber,
@@ -19,7 +20,7 @@ const SubjectiveQuestionsRenderer = ({ questions, pageIndex }) => {
   const allBlanks = [];
   subQuestions.forEach((subItem) => {
     if (subItem.blanks && Array.isArray(subItem.blanks)) {
-      console.log("subItem.blanks", subItem.blanks);
+      // console.log("subItem.blanks", subItem.blanks);
 
       if (subItem.isAddSubQuestionClicked) {
         subItem.subQuestions.forEach((subBlank, index) => {
@@ -43,12 +44,57 @@ const SubjectiveQuestionsRenderer = ({ questions, pageIndex }) => {
   });
   console.log("allBlanks", allBlanks);
 
+  // 创建ref用于获取非选择题部分的DOM元素
+  const questionsContainerRef = useRef(null);
+
+  // 用于存储上一次的位置信息，避免不必要的更新
+  const previousPositionInfoRef = useRef(null);
+
+  // 使用useEffect在组件渲染后获取尺寸和位置信息
+  useEffect(() => {
+    // 当组件挂载或依赖项变化时计算元素位置
+    if (questionsContainerRef.current && pageRef && onPositionUpdate) {
+      const positionInfo = calculateElementPosition(
+        questionsContainerRef.current,
+        pageRef
+      );
+
+      // 扩展位置信息，添加额外信息
+      const extendedPositionInfo = {
+        ...positionInfo,
+        questionType: "subjective",
+        sectionId: questions.sectionId,
+        timestamp: new Date().getTime(),
+      };
+
+      // 只有当位置信息真正变化时才调用回调函数
+      const currentPositionKey = JSON.stringify(positionInfo);
+      if (currentPositionKey !== previousPositionInfoRef.current) {
+        // 调用回调函数传递位置信息
+        onPositionUpdate(questions.sectionId, extendedPositionInfo);
+        
+        console.log(
+          `非选择题部分(sectionId: ${questions.sectionId})尺寸和位置信息已通过回调函数传递:`,
+          extendedPositionInfo
+        );
+        
+        // 更新引用，存储当前位置信息
+        previousPositionInfoRef.current = currentPositionKey;
+      }
+    }
+  }, [questions, pageRef, onPositionUpdate]); // 仅当questions、pageRef或onPositionUpdate变化时重新计算
+
   return (
-    <div>
+    <div ref={(el) => {
+      // 同时设置两个ref
+      if (ref) {
+        ref.current = el;
+      }
+      questionsContainerRef.current = el;
+    }}>
       {/* 非选择题标题 */}
       <div
         style={{
-          marginBottom: "20px",
           fontWeight: "bold",
           fontSize: "16px",
         }}
@@ -58,7 +104,7 @@ const SubjectiveQuestionsRenderer = ({ questions, pageIndex }) => {
 
       {/* 短填空题下划线区域 */}
       {allBlanks.length > 0 && (
-        <div style={{ marginTop: "20px" }}>
+        <div style={{ marginTop: "10px" }}>
           {/* 计算需要渲染的行数 */}
           {Array.from({
             length: Math.ceil(allBlanks.length / blanksPerLine),
@@ -130,6 +176,6 @@ const SubjectiveQuestionsRenderer = ({ questions, pageIndex }) => {
       )}
     </div>
   );
-};
+});
 
 export default SubjectiveQuestionsRenderer;

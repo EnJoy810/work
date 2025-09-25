@@ -16,6 +16,16 @@ import ShortFillQuestionSection from "./ShortFillQuestionSection";
 import LongFillQuestionSection from "./LongFillQuestionSection";
 import { generateQuestionId, generateSectionId } from "../../../utils/tools";
 
+/**
+ * 生成空的唯一ID
+ * @param {number} questionNumber - 题目编号
+ * @param {number} blankIndex - 空的索引
+ * @returns {string} 唯一的空ID
+ */
+const generateBlankId = (questionNumber, blankIndex) => {
+  return `blank-${questionNumber}-${blankIndex}-${Date.now()}`;
+};
+
 const { TextArea } = Input;
 const { Panel } = Collapse;
 
@@ -38,6 +48,12 @@ const BlankQuestionModal = ({
 }) => {
   // 每行填空题的高度为40px
   const LINE_HEIGHT = 40;
+
+  // 判断当前是添加模式还是编辑模式
+  // 使用!= null同时检查null和undefined
+  const isEditMode = initialData != null;
+  // 标记编辑模式下的初始数据是否已加载完成
+  const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
   // 动态计算页面剩余行数
   const getPageRemainingLines = () => {
@@ -78,10 +94,6 @@ const BlankQuestionModal = ({
   const [questionNumber, setQuestionNumber] = useState("一");
   const [questionContent, setQuestionContent] = useState("填空题");
 
-  // 判断当前是添加模式还是编辑模式
-  // 使用!= null同时检查null和undefined
-  const isEditMode = initialData != null;
-
   // 选择的填空类型：短填空或长填空
   const [fillType, setFillType] = useState("short");
 
@@ -104,10 +116,6 @@ const BlankQuestionModal = ({
 
   // 生成的题目列表
   const [questions, setQuestions] = useState([]);
-
-  // 小题配置列表
-  const [subQuestions, setSubQuestions] = useState([]);
-  const [blankScores, setBlankScores] = useState({}); // 存储每空分数的状态
 
   // 长填空配置
   const [longFillConfig, setLongFillConfig] = useState([
@@ -194,6 +202,12 @@ const BlankQuestionModal = ({
     // 生成题目
     const newQuestions = [];
     for (let i = start; i <= end; i++) {
+      // 为每个题目生成对应的空数组
+      const blanksArray = Array.from({ length: blanks }, (_, index) => ({
+        id: generateBlankId(i, index),
+        points: points
+      }));
+      
       newQuestions.push({
         id: generateQuestionId(null, i),
         questionNumber: i,
@@ -202,6 +216,7 @@ const BlankQuestionModal = ({
         blanksPerQuestion: blanks,
         totalScore: points * blanks,
         isAddSubQuestionClicked: false, // 标记是否点击了添加小题按钮
+        blanks: blanksArray // 添加blanks数组，确保每空数据被正确生成
       });
     }
 
@@ -210,9 +225,13 @@ const BlankQuestionModal = ({
 
   // 当短填空配置变化时，根据配置生成或更新题目
   useEffect(() => {
+    // 在编辑模式且初始数据加载完成前不执行此逻辑，确保初始数据不被覆盖
+    // 初始数据加载完成后，允许用户通过修改segments来更新questions
+    if (isEditMode && !isInitialDataLoaded) {
+      return;
+    }
     // 清空现有的题目和小题
     setQuestions([]);
-    setSubQuestions([]);
 
     // 生成新的题目
     let allQuestions = [];
@@ -223,7 +242,7 @@ const BlankQuestionModal = ({
 
     allQuestions.sort((a, b) => a.questionNumber - b.questionNumber);
     setQuestions(allQuestions);
-  }, [shortFillConfig]);
+  }, [shortFillConfig, isEditMode, isInitialDataLoaded]);
 
   // 重置表单
   const resetForm = () => {
@@ -239,7 +258,6 @@ const BlankQuestionModal = ({
       },
     ]);
     setQuestions([]);
-    setSubQuestions([]);
   };
 
   // 处理initialData，实现数据回填
@@ -249,6 +267,43 @@ const BlankQuestionModal = ({
       setQuestionNumber(initialData.questionNumber || "一");
       setQuestionContent(initialData.content || "填空题");
       setFillType(initialData.fillType || "short");
+
+      // 回填shortFillConfig数据
+      if (
+        initialData.shortFillConfig &&
+        Array.isArray(initialData.shortFillConfig)
+      ) {
+        // 确保shortFillConfig格式包含id字段
+        const configWithId = initialData.shortFillConfig.map(
+          (config, index) => ({
+            id: config.id || index + 1,
+            startQuestion: config.startQuestion,
+            endQuestion: config.endQuestion,
+            pointsPerBlank: config.pointsPerBlank,
+            blanksPerQuestion: config.blanksPerQuestion,
+          })
+        );
+        setShortFillConfig(configWithId);
+      }
+      // 小题数据现在从questions中获取，不再需要单独的subQuestions状态
+      setTimeout(() => {
+        // 回填questions数据
+        if (initialData.questions && Array.isArray(initialData.questions)) {
+          setQuestions(initialData.questions);
+        }
+      }, 200);
+
+      // 回填其他配置
+      if (initialData.blanksPerLine) {
+        setBlanksPerLine(initialData.blanksPerLine);
+      }
+      if (initialData.showSubQuestionScore !== undefined) {
+        setShowSubQuestionScore(initialData.showSubQuestionScore);
+      }
+      // 标记初始数据已加载完成
+      if (isEditMode) {
+        setIsInitialDataLoaded(true);
+      }
     } else if (visible) {
       // 如果是添加模式，使用默认值
       setQuestionNumber("一");
@@ -295,13 +350,6 @@ const BlankQuestionModal = ({
     // 根据填空类型添加对应的数据
     if (fillType === "short") {
       // 短填空数据
-      // submitData.questionNumbers = questions.map((q) => q.questionNumber);
-      // submitData.startQuestion =
-      //   questions.length > 0 ? questions[0].questionNumber : null;
-      // submitData.endQuestion =
-      //   questions.length > 0
-      //     ? questions[questions.length - 1].questionNumber
-      //     : null;
       submitData.questions = questions;
       submitData.shortFillConfig = shortFillConfig.map((config) => ({
         startQuestion: config.startQuestion,
@@ -309,8 +357,7 @@ const BlankQuestionModal = ({
         pointsPerBlank: config.pointsPerBlank,
         blanksPerQuestion: config.blanksPerQuestion,
       }));
-      submitData.subQuestions = subQuestions;
-      // submitData.blankScores = blankScores;
+      // 小题数据现在从questions中获取，不再需要单独的subQuestions状态
       submitData.blanksPerLine = blanksPerLine;
       submitData.showSubQuestionScore = showSubQuestionScore;
 
@@ -505,14 +552,9 @@ const BlankQuestionModal = ({
               <>
                 <ShortFillQuestionSection
                   shortFillConfig={shortFillConfig}
-                  onQuestionsChange={({
-                    questions: updatedQuestions,
-                    subQuestions: updatedSubQuestions,
-                    blankScores: updatedBlankScores,
-                  }) => {
+                  questions={questions}
+                  onQuestionsChange={({ questions: updatedQuestions }) => {
                     setQuestions(updatedQuestions);
-                    setSubQuestions(updatedSubQuestions);
-                    setBlankScores(updatedBlankScores);
                   }}
                   onConfigChange={(type, data) => {
                     if (type === "update") {

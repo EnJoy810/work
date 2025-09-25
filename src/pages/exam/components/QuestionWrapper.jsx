@@ -1,13 +1,13 @@
 import { useState } from 'react';
-
-import { Button, Dropdown, Space } from 'antd';
+import { Button, Space } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 
 /**
- * 选择题包装组件
- * 为选择题添加鼠标悬停效果，显示编辑和删除按钮
+ * 通用题目包装组件
+ * 为题目添加鼠标悬停效果，显示编辑和删除按钮
+ * 同时支持选择题和非选择题
  */
-const ObjectiveQuestionWrapper = ({ children, objectiveItem, onEdit, onDelete }) => {
+const QuestionWrapper = ({ children, objectiveItem, subjectiveItem, onEdit, onDelete }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseEnter = () => {
@@ -21,14 +21,16 @@ const ObjectiveQuestionWrapper = ({ children, objectiveItem, onEdit, onDelete })
   const handleEdit = (e) => {
     e.stopPropagation();
     if (onEdit) {
-      onEdit(objectiveItem);
+      // 根据提供的prop类型传递相应的题目数据
+      onEdit(objectiveItem || subjectiveItem);
     }
   };
 
   const handleDelete = (e) => {
     e.stopPropagation();
     if (onDelete) {
-      onDelete(objectiveItem);
+      // 根据提供的prop类型传递相应的题目数据
+      onDelete(objectiveItem || subjectiveItem);
     }
   };
 
@@ -36,7 +38,6 @@ const ObjectiveQuestionWrapper = ({ children, objectiveItem, onEdit, onDelete })
     <div
       style={{
         position: 'relative',
-        marginBottom: '30px',
         border: isHovered ? '2px solid #1890ff' : '2px solid transparent',
         borderRadius: '4px',
         padding: '10px',
@@ -94,10 +95,10 @@ const ObjectiveQuestionWrapper = ({ children, objectiveItem, onEdit, onDelete })
         </div>
       )}
       
-      {/* 包裹的选择题内容 */}
+      {/* 包裹的题目内容 */}
       {children}
     </div>
   );
 };
 
-export default ObjectiveQuestionWrapper;
+export default QuestionWrapper;
