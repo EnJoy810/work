@@ -26,48 +26,52 @@ const ShortFillQuestionSection = ({
 }) => {
   // 组件内部状态管理
   const [questions, setQuestions] = useState([]);
-  const [subQuestions, setSubQuestions] = useState([]);
 
   // 添加小题
   const addSubQuestion = (questionId) => {
-    console.log("addSubQuestion 添加小题", questionId, questions);
-    console.log("subQuestions 添加小题", subQuestions);
-    const question = questions.find((q) => q.id === questionId);
-    if (!question) return;
-
     const newSubQuestion = {
       id: generateQuestionId("sub", Date.now()),
       questionId: questionId,
-      totalBlanks: question.blanksPerQuestion || 1,
-      pointsPerBlank: question.pointsPerBlank || 2,
-      blanks: Array.from(
-        { length: question.blanksPerQuestion || 1 },
-        (_, index) => ({
-          id: generateBlankId(questionId, index),
-          points: question.pointsPerBlank || 2,
-        })
-      ),
+      totalBlanks: 1,
+      pointsPerBlank: 2,
+      blanks: [{
+        id: generateBlankId(questionId, 0),
+        points: 2,
+      }],
     };
 
-    setSubQuestions([...subQuestions, newSubQuestion]);
-
-    // 标记该题目已点击添加小题按钮
+    // 将小题添加到对应题目中
     setQuestions(
       questions.map((q) =>
-        q.id === questionId ? { ...q, isAddSubQuestionClicked: true } : q
+        q.id === questionId 
+          ? { 
+              ...q, 
+              isAddSubQuestionClicked: true, 
+              subQuestions: [...(q.subQuestions || []), newSubQuestion] 
+            } 
+          : q
       )
     );
   };
 
   // 移除小题
-  const removeSubQuestion = (subQuestionId) => {
-    setSubQuestions(subQuestions.filter((sq) => sq.id !== subQuestionId));
+  const removeSubQuestion = (questionId, subQuestionId) => {
+    setQuestions(
+      questions.map((q) =>
+        q.id === questionId 
+          ? { 
+              ...q, 
+              subQuestions: (q.subQuestions || []).filter((sq) => sq.id !== subQuestionId) 
+            } 
+          : q
+      )
+    );
   };
 
   // 更新大题
   const updateQuestion = (questionId, field, value) => {
     // 确保值是数字类型
-    const numValue =
+    const numValue = 
       field === "pointsPerBlank" || field === "blanksPerQuestion"
         ? parseInt(value)
         : value;
@@ -75,10 +79,11 @@ const ShortFillQuestionSection = ({
     setQuestions(
       questions.map((q) => {
         if (q.id === questionId) {
+          // 先更新题目本身的属性
           const updatedQuestion = { ...q, [field]: numValue };
 
           // 同步更新总分
-          updatedQuestion.totalScore =
+          updatedQuestion.totalScore = 
             updatedQuestion.pointsPerBlank * updatedQuestion.blanksPerQuestion;
 
           // 根据更新的字段调整blanks数组
@@ -115,19 +120,11 @@ const ShortFillQuestionSection = ({
             updatedQuestion.blanks = newBlanks;
           }
 
-          return updatedQuestion;
-        }
-        return q;
-      })
-    );
-
-    // 如果更新了每空分数或空数量，同步更新相关的小题
-    if (field === "pointsPerBlank" || field === "blanksPerQuestion") {
-      const question = questions.find((q) => q.id === questionId);
-      if (question) {
-        setSubQuestions(
-          subQuestions.map((sq) => {
-            if (sq.questionId === questionId) {
+          // 然后同步更新相关的小题（如果有）
+          if ((field === "pointsPerBlank" || field === "blanksPerQuestion") && 
+              updatedQuestion.subQuestions && updatedQuestion.subQuestions.length > 0) {
+            // 更新该题的所有小题
+            const updatedSubQuestions = updatedQuestion.subQuestions.map((sq) => {
               const updatedSq = { ...sq };
 
               if (field === "pointsPerBlank") {
@@ -162,30 +159,43 @@ const ShortFillQuestionSection = ({
               }
 
               return updatedSq;
-            }
-            return sq;
-          })
-        );
-      }
-    }
-  };
+            });
+            
+            // 应用更新后的小题
+            updatedQuestion.subQuestions = updatedSubQuestions;
+          }
 
-  // 更新空分数
-  const updateBlankPoints = (subQuestionId, blankId, value) => {
-    setSubQuestions(
-      subQuestions.map((sq) => {
-        if (sq.id === subQuestionId) {
-          return {
-            ...sq,
-            blanks: sq.blanks.map((blank) =>
-              blank.id === blankId ? { ...blank, points: value } : blank
-            ),
-          };
+          return updatedQuestion;
         }
-        return sq;
+        return q;
       })
     );
   };
+
+  // 更新空分数
+  const updateBlankPoints = (questionId, subQuestionId, blankId, value) => {
+    setQuestions(
+      questions.map((q) => {
+        if (q.id === questionId && q.subQuestions) {
+          return {
+            ...q,
+            subQuestions: q.subQuestions.map((sq) => {
+              if (sq.id === subQuestionId) {
+                return {
+                  ...sq,
+                  blanks: sq.blanks.map((blank) =>
+                    blank.id === blankId ? { ...blank, points: value } : blank
+                  ),
+                };
+              }
+              return sq;
+            }),
+          };
+        }
+        return q;
+      })
+    );
+  }
 
   // 批量生成题目
   const generateQuestions = (config) => {
@@ -238,9 +248,8 @@ const ShortFillQuestionSection = ({
 
   // 当短填空配置变化时，根据配置生成或更新题目
   useEffect(() => {
-    // 清空现有的题目和小题
-    setQuestions([]);
-    setSubQuestions([]);
+    // 清空现有的题目
+      setQuestions([]);
 
     // 生成新的题目
     let allQuestions = [];
@@ -258,10 +267,9 @@ const ShortFillQuestionSection = ({
     if (onQuestionsChange) {
       onQuestionsChange({
         questions,
-        subQuestions,
       });
     }
-  }, [questions, subQuestions, onQuestionsChange]);
+  }, [questions, onQuestionsChange]);
 
   // 检查是否有至少一个配置项是完全填完整的
   const hasCompletedConfig = shortFillConfig.some(
@@ -395,14 +403,11 @@ const ShortFillQuestionSection = ({
                         }}
                       >
                         <span>题{question.questionNumber}</span>
-                        {subQuestions.filter(
-                          (sub) => sub.questionId === question.id
-                        ).length > 0 && (
+                        {(question.subQuestions && question.subQuestions.length > 0) && (
                           <span>
-                            {" "}
+                            {' '}
                             总分
-                            {subQuestions
-                              .filter((sub) => sub.questionId === question.id)
+                            {question.subQuestions
                               .reduce((total, sub) => {
                                 return (
                                   total + sub.pointsPerBlank * sub.totalBlanks
@@ -503,8 +508,7 @@ const ShortFillQuestionSection = ({
                         ))}
                     </div>
                   ) : (
-                    subQuestions
-                      .filter((sub) => sub.questionId === question.id)
+                    (question.subQuestions || [])
                       .map((subQuestion, index) => (
                         <div
                           key={subQuestion.id}
@@ -538,43 +542,51 @@ const ShortFillQuestionSection = ({
                                       value={subQuestion.totalBlanks}
                                       onChange={(value) => {
                                         // 更新小题的空数量
-                                        setSubQuestions(
-                                          subQuestions.map((sq) => {
-                                            if (sq.id === subQuestion.id) {
-                                              const updatedSq = {
-                                                ...sq,
+                                        setQuestions(
+                                          questions.map((q) => {
+                                            if (q.id === question.id && q.subQuestions) {
+                                              return {
+                                                ...q,
+                                                subQuestions: q.subQuestions.map((sq) => {
+                                                  if (sq.id === subQuestion.id) {
+                                                    const updatedSq = {
+                                                      ...sq,
+                                                    };
+                                                    const targetLength = value;
+                                                    const newBlanks = [...sq.blanks];
+
+                                                    if (
+                                                      targetLength > newBlanks.length
+                                                    ) {
+                                                      // 添加新的空，使用当前每空分数
+                                                      for (
+                                                        let i = newBlanks.length;
+                                                        i < targetLength;
+                                                        i++
+                                                      ) {
+                                                        newBlanks.push({
+                                                          id: `blank-${Date.now()}-${i}`,
+                                                          points: sq.pointsPerBlank,
+                                                        });
+                                                      }
+                                                    } else if (
+                                                      targetLength < newBlanks.length
+                                                    ) {
+                                                      // 删除多余的空
+                                                      newBlanks.splice(targetLength);
+                                                    }
+
+                                                    // 确保totalBlanks一致
+                                                    updatedSq.totalBlanks =
+                                                      targetLength;
+                                                    updatedSq.blanks = newBlanks;
+                                                    return updatedSq;
+                                                  }
+                                                  return sq;
+                                                })
                                               };
-                                              const targetLength = value;
-                                              const newBlanks = [...sq.blanks];
-
-                                              if (
-                                                targetLength > newBlanks.length
-                                              ) {
-                                                // 添加新的空，使用当前每空分数
-                                                for (
-                                                  let i = newBlanks.length;
-                                                  i < targetLength;
-                                                  i++
-                                                ) {
-                                                  newBlanks.push({
-                                                    id: `blank-${Date.now()}-${i}`,
-                                                    points: sq.pointsPerBlank,
-                                                  });
-                                                }
-                                              } else if (
-                                                targetLength < newBlanks.length
-                                              ) {
-                                                // 删除多余的空
-                                                newBlanks.splice(targetLength);
-                                              }
-
-                                              // 确保totalBlanks一致
-                                              updatedSq.totalBlanks =
-                                                targetLength;
-                                              updatedSq.blanks = newBlanks;
-                                              return updatedSq;
                                             }
-                                            return sq;
+                                            return q;
                                           })
                                         );
                                       }}
@@ -586,21 +598,29 @@ const ShortFillQuestionSection = ({
                                       value={subQuestion.pointsPerBlank}
                                       onChange={(value) => {
                                         // 更新小题的每空分数
-                                        setSubQuestions(
-                                          subQuestions.map((sq) => {
-                                            if (sq.id === subQuestion.id) {
+                                        setQuestions(
+                                          questions.map((q) => {
+                                            if (q.id === question.id && q.subQuestions) {
                                               return {
-                                                ...sq,
-                                                pointsPerBlank: value,
-                                                blanks: sq.blanks.map(
-                                                  (blank) => ({
-                                                    ...blank,
-                                                    points: value,
-                                                  })
-                                                ),
+                                                ...q,
+                                                subQuestions: q.subQuestions.map((sq) => {
+                                                  if (sq.id === subQuestion.id) {
+                                                    return {
+                                                      ...sq,
+                                                      pointsPerBlank: value,
+                                                      blanks: sq.blanks.map(
+                                                        (blank) => ({
+                                                          ...blank,
+                                                          points: value,
+                                                        })
+                                                      ),
+                                                    };
+                                                  }
+                                                  return sq;
+                                                })
                                               };
                                             }
-                                            return sq;
+                                            return q;
                                           })
                                         );
                                       }}
@@ -613,14 +633,10 @@ const ShortFillQuestionSection = ({
                                     danger
                                     size="small"
                                     onClick={() =>
-                                      removeSubQuestion(subQuestion.id)
+                                      removeSubQuestion(question.id, subQuestion.id)
                                     }
                                     disabled={
-                                      subQuestions.filter(
-                                        (sq) =>
-                                          sq.questionId ===
-                                          subQuestion.questionId
-                                      ).length <= 1
+                                      (question.subQuestions || []).length <= 1
                                     }
                                   >
                                     删除
@@ -645,6 +661,7 @@ const ShortFillQuestionSection = ({
                                       value={blank.points}
                                       onChange={(value) =>
                                         updateBlankPoints(
+                                          question.id,
                                           subQuestion.id,
                                           blank.id,
                                           value
