@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Button, Typography, Form, Input, Checkbox, Empty, Space } from "antd";
 import {
   DownloadOutlined,
@@ -30,8 +30,29 @@ const ChinesePaperDesign = () => {
     hasSealingLine: false,
     hasNote: true,
   });
+  // 存储分页后的数据
+  const [paginationData, setPaginationData] = useState([]);
+  const [totalPages, setTotalPages] = useState(1); // 分页数据
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // 当questions或hasNote改变时，重新计算分页
+  useEffect(() => {
+    if (questions.length > 0) {
+      const { totalPages, paginatedQuestions } = calculateQuestionsPagination(
+        questions,
+        {
+          hasNote: formValues.hasNote !== false,
+        }
+      );
+      setTotalPages(totalPages);
+      setPaginationData(paginatedQuestions);
+    } else {
+      setPaginationData([]);
+      setTotalPages(1);
+    }
+  }, [questions, formValues.hasNote]);
 
   // 使用useCallback缓存getQuestionPositions函数，避免不必要的重新渲染
   const getQuestionPositions = useCallback((positions) => {
@@ -162,10 +183,6 @@ const ChinesePaperDesign = () => {
   // 处理选择题添加成功
   const handleObjectiveQuestionSuccess = (newQuestion) => {
     const newQuestions = [...questions, { ...newQuestion, type: "objective" }];
-    // 计算分页
-    calculateQuestionsPagination(newQuestions, {
-      hasNote: formValues.hasNote !== false,
-    });
     // 将新题目添加到题目列表
     setQuestions(newQuestions);
   };
@@ -220,6 +237,8 @@ const ChinesePaperDesign = () => {
         >
           <AnswerSheetRenderer
             questions={questions}
+            paginationData={paginationData}
+            totalPages={totalPages}
             hasSealingLine={formValues.hasSealingLine !== false}
             hasNote={formValues.hasNote !== false}
             getQuestionPositions={getQuestionPositions}

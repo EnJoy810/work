@@ -24,6 +24,9 @@ import {
  */
 const AnswerSheetRenderer = ({
   questions: propQuestions = [],
+  paginationData = [],
+  totalPages = 1,
+  hasSealingLine = false,
   hasNote = true,
   getQuestionPositions,
   onQuestionsUpdate = () => {}, // 设置为空函数作为默认值
@@ -250,8 +253,8 @@ const AnswerSheetRenderer = ({
 
   // 计算页面数量
   const calculatePageCount = () => {
-    // 返回固定页数1
-    return 1;
+    // 返回计算的页数
+    return totalPages;
   };
 
   // 渲染考试信息
@@ -259,7 +262,7 @@ const AnswerSheetRenderer = ({
     return (
       <div
         style={{
-          marginBottom: "20px", 
+          marginBottom: "20px",
           fontSize: "14px",
           display: "flex",
           alignItems: "center",
@@ -523,13 +526,7 @@ const AnswerSheetRenderer = ({
   };
 
   // 渲染单页内容
-  const renderPageContent = (pageIndex) => {
-    // 获取每页显示的题目
-    const pageQuestions = propQuestions.slice(
-      pageIndex * 5,
-      (pageIndex + 1) * 5
-    );
-
+  const renderPageContent = (pageQuestions = [], pageIndex) => {
     // 按题型分类题目
     const objectiveQuestions = pageQuestions.filter(
       (q) => q.type === "objective"
@@ -793,7 +790,7 @@ const AnswerSheetRenderer = ({
           //   );
           // }
           // 其他页保持原样
-          return renderPageContent(pageIndex);
+          return renderPageContent(paginationData[pageIndex], pageIndex);
         })}
       </div>
     );
