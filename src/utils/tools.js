@@ -365,19 +365,20 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
         const titleHeight = 23.99; // 标题高度
         const questionWrapPadding = 23.33; // 题目包裹间距
         const lineHeight = 40; // 填空题每行高度
-        if (element.fillType === "short") {
-          // 短填空题 分页
-          // 计算剩余可显示行数
-          const remainingLines = Math.floor(
-            (firstPageAvailableHeight +
-              questionHeight +
-              remainingHeight -
-              titleHeight -
-              questionWrapPadding) /
-              lineHeight
-          );
+        const remainingLines = Math.floor(
+          (firstPageAvailableHeight +
+            questionHeight +
+            remainingHeight -
+            titleHeight -
+            questionWrapPadding) /
+            lineHeight
+        );
+        // 查找分割点 - 基于行数判断
+        let splitIndex = -1;
+        let secondPartSubQuestions = null;
 
-          // 计算需要分割的位置
+        if (element.fillType === "short") {
+          // 短填空题 计算需要分割的位置
           // 每行显示的空数
           const blanksPerLine = element.blanksPerLine || 4;
 
@@ -412,8 +413,7 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
               break;
             }
           }
-          console.log("分割点下标: ", splitIndex);
-
+          console.log("分割点下标 short: ", splitIndex, element);
           // 分割数据
           if (splitIndex >= 0) {
             // 当前页只包含到splitIndex的题目
@@ -425,10 +425,10 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
               questions: currentPageData,
             };
 
-            // 将第一部分添加到paginatedQuestions[0]
+            // 将第一部分添加到currentPageQuestions
             currentPageQuestions.push(firstPart);
             console.log(
-              "currentPageQuestions 分割的第一部分数据",
+              "currentPageQuestions 短填空分割的第一部分数据",
               currentPageQuestions,
               firstPart
             );
@@ -445,8 +445,8 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
 
             // 将第二部分添加到paginatedQuestions[1]
             paginatedQuestions[1] = [secondPart];
-            console.log(
-              "paginatedQuestions 分割的第二部分数据",
+            console.log(  
+              "paginatedQuestions 短填空分割的所有数据",
               paginatedQuestions,
               secondPart
             );
@@ -455,13 +455,125 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
             remindIndex = remindIndex - 1;
           }
         } else if (element.fillType === "long") {
-          // 长填空题 分页
-          
+          // 长填空题 分页 - 只根据行数判断
+
+          console.log(
+            "长填空剩余可显示行数: ",
+            remainingLines,
+            "元素: ",
+            element
+          );
+
+          let totalLines = 0;
+          for (let i = 0; i < element.questions.length; i++) {
+            const q = element.questions[i];
+            let lineCount = 0;
+            if (q.isAddSubQuestionClicked) {
+              // 遍历subQuestions，累加每个subQuestion的行数
+              let subTotalLines = 0;
+              let subSplitIndex = -1;
+
+              for (let j = 0; j < q.subQuestions.length; j++) {
+                const subQ = q.subQuestions[j];
+                const subQLines = subQ.totalLines || 1;
+                subTotalLines += subQLines;
+
+                // 检查累加后的行数是否超过剩余行数
+                totalLines += subTotalLines;
+                if (totalLines > remainingLines) {
+                  subSplitIndex = j - 1; // 找到subQuestion中的分割点
+                  break;
+                }
+              }
+
+              if (subSplitIndex >= 0) {
+                // 如果在subQuestion中找到分割点，需要分割该题目
+                splitIndex = i; // 设置当前题目为分割点
+                // 需要特殊标记这个题目需要在内部分割subQuestions
+                q.needSubQuestionSplit = true;
+                q.subSplitIndex = subSplitIndex;
+                // 将subQuestions的数据分割为两部分
+                const firstPartSubQuestions = q.subQuestions.slice(
+                  0,
+                  subSplitIndex + 1
+                );
+                secondPartSubQuestions = q.subQuestions.slice(
+                  subSplitIndex + 1
+                );
+                console.log(
+                  "分割两部分数据",
+                  subSplitIndex,
+                  firstPartSubQuestions,
+                  secondPartSubQuestions
+                );
+                q.subQuestions = firstPartSubQuestions;
+                break;
+              } else {
+                // 如果所有subQuestion都能放下，累加总行数
+                totalLines += subTotalLines;
+              }
+            } else {
+              lineCount = q.linesPerQuestion || 1;
+
+              totalLines += lineCount;
+              if (totalLines > remainingLines) {
+                splitIndex = i - 1; // 最后一行最后一小题的下标
+                // 多余的行数
+                const remindLinesPerQuestion = totalLines - remainingLines;
+                // 计算当前题目需要显示的行数 important!
+                q.splitLinesPerQuestion =
+                  q.linesPerQuestion - remindLinesPerQuestion;
+
+                break;
+              }
+            }
+            console.log("lineCount 有小题 行数", lineCount);
+            console.log("totalLines", totalLines);
+          }
+          // 分割数据
+          if (splitIndex >= 0) {
+            // 当前页只包含到splitIndex的题目
+            const currentPageData = element.questions.slice(0, splitIndex + 1);
+
+            // 创建第一部分对象 - 复制element的所有属性，除了questions
+            const firstPart = {
+              ...element,
+              questions: currentPageData,
+            };
+
+            // 将第一部分添加到currentPageQuestions
+            currentPageQuestions.push(firstPart);
+            console.log(
+              "currentPageQuestions 长填空分割的第一部分数据",
+              currentPageQuestions,
+              firstPart
+            );
+
+            // 第二部分包含splitIndex+1到最后的数据
+            const nextPageData = element.questions.slice(splitIndex);
+
+            // 创建第二部分对象 - 复制element的所有属性，除了questions
+            const secondPart = {
+              ...element,
+              sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+              questions: nextPageData,
+            };
+
+            // 将第二部分添加到paginatedQuestions[1]
+            paginatedQuestions[1] = [secondPart];
+            console.log(
+              "paginatedQuestions 长填空分割的第二部分数据",
+              paginatedQuestions,
+              secondPart
+            );
+          } else {
+            // 没有分割点，将数据添加到下一行
+            remindIndex = remindIndex - 1;
+          }
+
+          console.log("长填空分割点下标: ", splitIndex, element);
         }
       }
-
-      // currentPage++;
-      // firstPageAvailableHeight = availableContentHeight;
     } else {
       currentPageQuestions.push(element);
       console.log("不需要分页", paginatedQuestions, firstPageAvailableHeight);
