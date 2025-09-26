@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
 import { Button, Typography, Form, Input, Checkbox, Empty, Space } from "antd";
+import { useRef } from "react";
 import {
   DownloadOutlined,
   EditOutlined,
@@ -37,6 +38,8 @@ const ChinesePaperDesign = () => {
   // 存储分页后的数据
   const [paginationData, setPaginationData] = useState([]);
   const [totalPages, setTotalPages] = useState(1); // 分页数据
+  // 用于引用AnswerSheetRenderer组件
+  const answerSheetRef = useRef(null);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -102,6 +105,18 @@ const ChinesePaperDesign = () => {
 
   // 预览并下载试卷
   const previewAndDownload = () => {
+    // 校验标题是否存在
+    // 使用ref方式从AnswerSheetRenderer组件获取title值
+    let title = '';
+    if (answerSheetRef.current && answerSheetRef.current.getTitle) {
+      title = answerSheetRef.current.getTitle().trim();
+    }
+    
+    if (!title) {
+      showInfo('请先输入答题卡标题');
+      return;
+    }
+    
     // 获取完整的题目列表，包含题目信息和位置信息
     if (questions.length > 0) {
       // 准备用于下载或预览的数据结构
@@ -122,6 +137,20 @@ const ChinesePaperDesign = () => {
         const clonedElement = element.cloneNode(true);
         clonedElement.style.marginBottom = "0";
         clonedElement.style.borderRadius = "0";
+        
+        // 在预览时处理标题和编辑按钮的样式
+        // 1. 处理标题样式：设置border为透明的1px
+        const titleElement = clonedElement.querySelector('.answer-sheet-title');
+        if (titleElement) {
+          titleElement.style.border = '1px solid transparent';
+        }
+        
+        // 2. 处理编辑按钮：隐藏编辑按钮
+        const editButton = clonedElement.querySelector('.answer-sheet-edit-btn');
+        if (editButton) {
+          editButton.style.display = 'none';
+        }
+        
         // 获取元素的HTML内容
         answerSheetPages.push(clonedElement.outerHTML);
       });
@@ -232,6 +261,7 @@ const ChinesePaperDesign = () => {
           }}
         >
           <AnswerSheetRenderer
+            ref={answerSheetRef}
             questions={questions}
             paginationData={paginationData}
             totalPages={totalPages}
