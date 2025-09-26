@@ -26,12 +26,10 @@ const AnswerSheetRenderer = ({
   questions: propQuestions = [],
   paginationData = [],
   totalPages = 1,
-  hasSealingLine = false,
   hasNote = true,
   getQuestionPositions,
   onQuestionsUpdate = () => {}, // 设置为空函数作为默认值
 }) => {
-  // console.log("hasSealingLine", hasSealingLine, hasNote);
   // 使用从常量文件导入的页面尺寸
   const pageWidth = PAGE_WIDTH;
   const pageHeight = PAGE_HEIGHT;
@@ -527,17 +525,6 @@ const AnswerSheetRenderer = ({
 
   // 渲染单页内容
   const renderPageContent = (pageQuestions = [], pageIndex) => {
-    // 按题型分类题目
-    const objectiveQuestions = pageQuestions.filter(
-      (q) => q.type === "objective"
-    );
-    const subjectiveQuestions = pageQuestions.filter(
-      (q) => q.type !== "objective"
-    );
-
-    console.log("objectiveQuestions 选择题", objectiveQuestions);
-    console.log("subjectiveQuestions 非选择题", subjectiveQuestions);
-
     return (
       <div
         key={pageIndex}
@@ -641,95 +628,73 @@ const AnswerSheetRenderer = ({
           </>
         )}
 
-        {/* 题目列表 - 按题型分类显示 */}
+        {/* 题目列表 - 按题目顺序和类型渲染 */}
         <div className="answer-sheet-questions">
           {pageQuestions.length > 0 ? (
-            <>
-              {/* 选择题部分 */}
-              {objectiveQuestions.length > 0 &&
-                objectiveQuestions.map((objectiveItem) => {
-                  // 编辑选择题
-                  const handleEditObjectiveQuestion = (question) => {
-                    console.log("编辑选择题:", question);
-                    openObjectiveModal(question);
-                  };
+            pageQuestions.map((questionItem) => {
+              // 编辑题目
+              const handleEditQuestion = (question) => {
+                console.log(`编辑${question.type === 'objective' ? '选择题' : '非选择题'}:`, question);
+                if (question.type === 'objective') {
+                  openObjectiveModal(question);
+                } else {
+                  // 设置当前编辑的填空题数据，然后打开弹窗
+                  setEditingBlankItem(question);
+                  setIsBlankModalVisible(true);
+                }
+              };
 
-                  // 删除选择题
-                  const handleDeleteObjectiveQuestion = (question) => {
-                    console.log("删除选择题:", question);
-                    Modal.confirm({
-                      title: "确认删除",
-                      content: `确定要删除选择题【${question.questionNumber}】吗？`,
-                      okText: "确定",
-                      cancelText: "取消",
-                      onOk() {
-                        // 执行删除操作
-                        deleteObjectiveQuestion(question.sectionId);
-                      },
-                    });
-                  };
+              // 删除题目
+              const handleDeleteQuestion = (question) => {
+                console.log(`删除${question.type === 'objective' ? '选择题' : '非选择题'}:`, question);
+                Modal.confirm({
+                  title: "确认删除",
+                  content: `确定要删除${question.type === 'objective' ? '选择题' : '填空题'}【${
+                    question.questionNumber || "大题"
+                  }】吗？`,
+                  okText: "确定",
+                  cancelText: "取消",
+                  onOk() {
+                    // 执行删除操作
+                    deleteObjectiveQuestion(question.sectionId);
+                  },
+                });
+              };
 
-                  return (
-                    <QuestionWrapper
-                      key={objectiveItem.sectionId}
-                      objectiveItem={objectiveItem}
-                      onEdit={handleEditObjectiveQuestion}
-                      onDelete={handleDeleteObjectiveQuestion}
-                    >
-                      <ObjectiveQuestionsRenderer
-                        objectiveItem={objectiveItem}
-                        pageRef={pageRefs.current[pageIndex]}
-                        onPositionUpdate={handleQuestionPositionUpdate}
-                      />
-                    </QuestionWrapper>
-                  );
-                })}
-
-              {/* 非选择题部分 */}
-              {subjectiveQuestions.length > 0 &&
-                subjectiveQuestions.map((subjectiveItem) => {
-                  // 编辑非选择题，参照选择题编辑模式
-                  const handleEditSubjectiveQuestion = (question) => {
-                    console.log("编辑非选择题:", question);
-                    // 设置当前编辑的填空题数据，然后打开弹窗
-                    setEditingBlankItem(question);
-                    setIsBlankModalVisible(true);
-                  };
-
-                  // 删除非选择题
-                  const handleDeleteSubjectiveQuestion = (question) => {
-                    console.log("删除非选择题:", question);
-                    Modal.confirm({
-                      title: "确认删除",
-                      content: `确定要删除填空题【${
-                        question.questionNumber || "大题"
-                      }】吗？`,
-                      okText: "确定",
-                      cancelText: "取消",
-                      onOk() {
-                        // 执行删除操作
-                        deleteObjectiveQuestion(question.sectionId);
-                      },
-                    });
-                  };
-
-                  return (
-                    <QuestionWrapper
-                      key={subjectiveItem.sectionId}
-                      subjectiveItem={subjectiveItem}
-                      onEdit={handleEditSubjectiveQuestion}
-                      onDelete={handleDeleteSubjectiveQuestion}
-                    >
-                      <SubjectiveQuestionsRenderer
-                        questions={subjectiveItem}
-                        pageIndex={pageIndex}
-                        onPositionUpdate={handleQuestionPositionUpdate}
-                        pageRef={pageRefs.current[pageIndex]}
-                      />
-                    </QuestionWrapper>
-                  );
-                })}
-            </>
+              // 根据题目类型渲染不同组件
+              if (questionItem.type === 'objective') {
+                return (
+                  <QuestionWrapper
+                    key={questionItem.sectionId}
+                    objectiveItem={questionItem}
+                    onEdit={handleEditQuestion}
+                    onDelete={handleDeleteQuestion}
+                  >
+                    <ObjectiveQuestionsRenderer
+                      objectiveItem={questionItem}
+                      pageRef={pageRefs.current[pageIndex]}
+                      onPositionUpdate={handleQuestionPositionUpdate}
+                    />
+                  </QuestionWrapper>
+                );
+              } else {
+                return (
+                  <QuestionWrapper
+                    key={questionItem.sectionId}
+                    subjectiveItem={questionItem}
+                    onEdit={handleEditQuestion}
+                    onDelete={handleDeleteQuestion}
+                  >
+                    <SubjectiveQuestionsRenderer
+                      questions={questionItem}
+                      pageIndex={pageIndex}
+                      onPositionUpdate={handleQuestionPositionUpdate}
+                      pageRef={pageRefs.current[pageIndex]}
+                    />
+                  </QuestionWrapper>
+                );
+              }
+            })
           ) : (
             <div
               style={{ textAlign: "center", color: "#999", padding: "20px" }}

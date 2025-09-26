@@ -67,16 +67,18 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
           questionsContainerRef.current = el;
         }}
       >
-        {/* 非选择题标题 */}
-        <div
-          style={{
-            fontWeight: "bold",
-            fontSize: "16px",
-          }}
-        >
-          {questionNumber}、{content}
-        </div>
-
+        {/* 非选择题标题  */}
+        {/* 非切片题目才显示标题 */}
+        {!questions.sliceQuestion ? (
+          <div
+            style={{
+              fontWeight: "bold",
+              fontSize: "16px",
+            }}
+          >
+            {questionNumber}、{content}
+          </div>
+        ) : null}
         {/* 根据fillType渲染对应的填空内容 */}
         {renderQuestionContent()}
       </div>

@@ -6,6 +6,7 @@ import React from "react";
  */
 const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
   const { blanksPerLine, questions: subQuestions } = questions;
+  console.log("blanksPerLine 短填空渲染", questions);
 
   // 获取subQuestions数组中的所有blanks数组，形成一个新的数组
   const allBlanks = [];

@@ -404,9 +404,9 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
                   0
                 )
               : q.blanksPerQuestion || 1;
-            console.log("blankCount 有小题", blankCount);
+            // console.log("blankCount 有小题", blankCount);
             totalBlanks += blankCount;
-            console.log("totalBlanks", totalBlanks);
+            // console.log("totalBlanks", totalBlanks);
 
             if (totalBlanks > visibleBlanks) {
               splitIndex = i - 1; // 最后一行最后一小题的下标
@@ -445,7 +445,7 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
 
             // 将第二部分添加到paginatedQuestions[1]
             paginatedQuestions[1] = [secondPart];
-            console.log(  
+            console.log(
               "paginatedQuestions 短填空分割的所有数据",
               paginatedQuestions,
               secondPart
@@ -550,7 +550,7 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
             );
 
             // 第二部分包含splitIndex+1到最后的数据
-            const nextPageData = element.questions.slice(splitIndex);
+            const nextPageData = element.questions.slice(splitIndex + 1);
 
             // 创建第二部分对象 - 复制element的所有属性，除了questions
             const secondPart = {
