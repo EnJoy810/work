@@ -33,16 +33,16 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
       });
     }
   });
-  console.log("processedQuestions 长填空渲染", processedQuestions);
+  // console.log("processedQuestions 长填空渲染", processedQuestions);
 
   // 渲染函数，基于处理好的数据数组进行渲染
   const renderLongFillQuestions = () => {
     return processedQuestions.map((question) => (
-      <div key={question.key} style={{ marginBottom: "20px" }}>
+      <div key={question.key} className="long-fill-question">
         {/* 第一行包含标题和下划线 */}
         <div
           style={{
-            marginBottom: "8px",
+            marginBottom: "10px",
             display: "flex",
             alignItems: "center",
           }}
@@ -72,7 +72,7 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
           <div
             key={`${question.key}-line-${lineIndex + 1}`}
             style={{
-              marginBottom: "8px",
+              marginBottom: "10px",
               borderBottom: "1px solid #000",
               height: "30px",
               width: "100%",
@@ -85,9 +85,9 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
   };
 
   return (
-    <div ref={ref}>
+    <div ref={ref} className="long-fill-wrap">
       {/* 长填空题多行区域 */}
-      <div style={{ marginTop: "10px" }}>{renderLongFillQuestions()}</div>
+      {renderLongFillQuestions()}
     </div>
   );
 });

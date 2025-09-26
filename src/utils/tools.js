@@ -198,7 +198,12 @@ export const formatMoney = (amount, decimals = 2) => {
 };
 
 // 导入页面尺寸常量
-import { PAGE_WIDTH, PAGE_HEIGHT, PAGE_MARGIN } from "./constants";
+import {
+  PAGE_WIDTH,
+  PAGE_HEIGHT,
+  PAGE_MARGIN,
+  PAGE_CONTENT_HEIGHT,
+} from "./constants";
 
 // 计算元素相对于参考元素的位置信息
 export const calculateElementPosition = (element, referenceElement) => {
@@ -279,5 +284,200 @@ export const calculateElementPosition = (element, referenceElement) => {
       right: rightPercent,
       bottom: bottomPercent,
     },
+  };
+};
+
+// 计算题目高度
+// 根据题目类型返回计算的高度
+export const calculateQuestionHeight = (question) => {
+  // 题目类型高度常量
+  const objectHeight = 157.3; // 选择题高度
+  const baseShortFirstHeight = 87.33; // 填空题基础高度（包含标题的一行高度）
+  const blankLineHeight = 40; // 填空题每行高度
+
+  // 根据题目类型返回对应的高度
+  if (question.type === "objective") {
+    return objectHeight;
+  } else if (question.type === "blank") {
+    return baseShortFirstHeight + (question.totalLines - 1) * blankLineHeight;
+  }
+
+  // 默认返回0
+  return 0;
+};
+
+// 计算题目分页
+// 接收题目参数，返回分页题目数组和分页总数
+export const calculateQuestionsPagination = (questions, options = {}) => {
+  console.log("calculateQuestionsPagination 计算题目分页", questions, options);
+  // 如果没有题目，返回默认值
+  if (!questions || questions.length === 0) {
+    return {
+      paginatedQuestions: [],
+      totalPages: 1,
+    };
+  }
+
+  const { hasNote = true } = options;
+
+  // 页面高度常量（从常量文件导入的对应值）
+  const titleHeight = 63.09; // 标题高度
+  const subjectHeight = 41; // 考试科目高度
+  const classHeight = 72.11; // 班级高度
+  const noteHeight = 182.07; // 注意事项高度
+
+  // 累加四个高度值计算内容高度，只有当hasNote为true时才添加noteHeight
+  const totalContentHeight =
+    titleHeight + subjectHeight + classHeight + (hasNote ? noteHeight : 0);
+
+  // 计算可用内容高度（每页内容高度减去标题、考试科目、班级、注意事项的高度）
+  const availableContentHeight = PAGE_CONTENT_HEIGHT - totalContentHeight;
+  console.log("availableContentHeight 1", availableContentHeight);
+
+  // 计算第一面的剩余高度
+  let firstPageAvailableHeight = availableContentHeight;
+  // let currentPage = 2; // 当前计算的页面
+  let paginatedQuestions = []; // 最终的题目结果
+  let currentPageQuestions = []; // 当前页面的题目
+  let remindIndex = 0; // 剩余题目索引
+  for (let index = 0; index < questions.length; index++) {
+    const element = questions[index];
+    // 调用抽离的函数计算题目高度
+    const questionHeight = calculateQuestionHeight(element);
+    console.log("题目高度计算: ", questionHeight, element);
+    firstPageAvailableHeight -= questionHeight;
+    console.log("每道题添加后剩余高度 2", firstPageAvailableHeight);
+
+    // 题目计算完，判断是否需要分页 留一定余量
+    const remainingHeight = 0;
+    if (firstPageAvailableHeight < -remainingHeight) {
+      remindIndex = index + 1;
+      // 第一面剩余高度不足，需要分页
+      // 查看每道题的高度 细分分页题目数据
+      console.log(
+        "第一面剩余高度不足，需要分页",
+        firstPageAvailableHeight,
+        element
+      );
+      if (element.type === "objective") {
+        // 当前题是选择题  直接下一页
+      } else if (element.type === "blank") {
+        const titleHeight = 23.99; // 标题高度
+        const questionWrapPadding = 23.33; // 题目包裹间距
+        const lineHeight = 40; // 填空题每行高度
+        if (element.fillType === "short") {
+          // 短填空题 分页
+          // 计算剩余可显示行数
+          const remainingLines = Math.floor(
+            (firstPageAvailableHeight +
+              questionHeight +
+              remainingHeight -
+              titleHeight -
+              questionWrapPadding) /
+              lineHeight
+          );
+
+          // 计算需要分割的位置
+          // 每行显示的空数
+          const blanksPerLine = element.blanksPerLine || 4;
+
+          // 计算可显示的空数
+          const visibleBlanks = remainingLines * blanksPerLine;
+
+          console.log(
+            "剩余可显示行数: ",
+            remainingLines,
+            "总行数: ",
+            blanksPerLine
+          );
+
+          // 查找分割点（最后一行最后一小题的下标）
+          let totalBlanks = 0;
+          let splitIndex = -1;
+
+          for (let i = 0; i < element.questions.length; i++) {
+            const q = element.questions[i];
+            const blankCount = q.isAddSubQuestionClicked
+              ? q.subQuestions.reduce(
+                  (acc, subQ) => acc + subQ.totalBlanks || 1,
+                  0
+                )
+              : q.blanksPerQuestion || 1;
+            console.log("blankCount 有小题", blankCount);
+            totalBlanks += blankCount;
+            console.log("totalBlanks", totalBlanks);
+
+            if (totalBlanks > visibleBlanks) {
+              splitIndex = i - 1; // 最后一行最后一小题的下标
+              break;
+            }
+          }
+          console.log("分割点下标: ", splitIndex);
+
+          // 分割数据
+          if (splitIndex >= 0) {
+            // 当前页只包含到splitIndex的题目
+            const currentPageData = element.questions.slice(0, splitIndex + 1);
+
+            // 创建第一部分对象 - 复制element的所有属性，除了questions
+            const firstPart = {
+              ...element,
+              questions: currentPageData,
+            };
+
+            // 将第一部分添加到paginatedQuestions[0]
+            currentPageQuestions.push(firstPart);
+            console.log(
+              "currentPageQuestions 分割的第一部分数据",
+              currentPageQuestions,
+              firstPart
+            );
+
+            // 第二部分包含splitIndex+1到最后的数据
+            const nextPageData = element.questions.slice(splitIndex + 1);
+
+            // 创建第二部分对象 - 复制element的所有属性，除了questions
+            const secondPart = {
+              ...element,
+              sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+              questions: nextPageData,
+            };
+
+            // 将第二部分添加到paginatedQuestions[1]
+            paginatedQuestions[1] = [secondPart];
+            console.log(
+              "paginatedQuestions 分割的第二部分数据",
+              paginatedQuestions,
+              secondPart
+            );
+          } else {
+            // 没有分割点，将数据添加到下一行
+            remindIndex = remindIndex - 1;
+          }
+        } else if (element.fillType === "long") {
+          // 长填空题 分页
+          
+        }
+      }
+
+      // currentPage++;
+      // firstPageAvailableHeight = availableContentHeight;
+    } else {
+      currentPageQuestions.push(element);
+      console.log("不需要分页", paginatedQuestions, firstPageAvailableHeight);
+    }
+  }
+
+  const remindQuestions = questions.slice(remindIndex); // 剩余题目
+  paginatedQuestions[0] = currentPageQuestions;
+  console.log(
+    "currentPage 3 处理好数据了   ",
+    paginatedQuestions,
+    remindQuestions
+  );
+
+  return {
+    paginatedQuestions,
+    totalPages: paginatedQuestions.length,
   };
 };

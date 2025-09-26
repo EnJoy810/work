@@ -565,6 +565,7 @@ const ObjectiveQuestionModal = ({
                 handleSegmentChange(segment.id, "endQuestion", value)
               }
               min={1}
+              max={20}
               style={{ width: 80 }}
               placeholder="结束题"
             />

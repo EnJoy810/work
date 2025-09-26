@@ -11,7 +11,13 @@ import BlankQuestionModal from "./BlankQuestionModal";
 import ExamInfoSection from "./ExamInfoSection";
 
 // 从常量文件导入页面尺寸
-import { PAGE_WIDTH, PAGE_HEIGHT, PAGE_MARGIN } from '../../../utils/constants';
+import {
+  PAGE_WIDTH,
+  PAGE_HEIGHT,
+  PAGE_MARGIN,
+  TOP_BOTTOM_MARGIN,
+  PAGE_CONTENT_HEIGHT,
+} from "../../../utils/constants";
 /**
  * 答题卷渲染组件
  * 负责在固定大小的页面上绘制题目，并支持多页显示
@@ -27,7 +33,7 @@ const AnswerSheetRenderer = ({
   const pageWidth = PAGE_WIDTH;
   const pageHeight = PAGE_HEIGHT;
   const pageMargin = PAGE_MARGIN;
-  const topBottomMargin = 80; // 上下页边距，单位：px
+  const topBottomMargin = TOP_BOTTOM_MARGIN;
 
   // 标题状态管理
   const [title, setTitle] = useState("");
@@ -242,14 +248,10 @@ const AnswerSheetRenderer = ({
     console.log("删除选择题后的题目列表:", updatedQuestions);
   };
 
-  // 删除非选择题的函数已在renderPageContent中局部定义
-  // 这里保留注释以确保代码的可读性
-
   // 计算页面数量
   const calculatePageCount = () => {
-    // 这里是简化的计算逻辑，实际应该根据题目数量和每页可容纳的题目数来计算
-    // 为了演示多页效果，当题目数量超过5时，显示第二页
-    return propQuestions.length > 5 ? 2 : 1;
+    // 返回固定页数1
+    return 1;
   };
 
   // 渲染考试信息
@@ -257,7 +259,7 @@ const AnswerSheetRenderer = ({
     return (
       <div
         style={{
-          marginBottom: "20px",
+          marginBottom: "20px", 
           fontSize: "14px",
           display: "flex",
           alignItems: "center",
@@ -643,7 +645,7 @@ const AnswerSheetRenderer = ({
         )}
 
         {/* 题目列表 - 按题型分类显示 */}
-        <div style={{ marginTop: "20px" }}>
+        <div className="answer-sheet-questions">
           {pageQuestions.length > 0 ? (
             <>
               {/* 选择题部分 */}

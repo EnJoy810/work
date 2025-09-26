@@ -13,7 +13,7 @@ import AnswerSheetRenderer from "./components/AnswerSheetRenderer";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setPreviewData } from "../../store/slices/previewSlice";
-
+import { calculateQuestionsPagination } from "../../utils/tools";
 const { Title } = Typography;
 
 /**
@@ -132,18 +132,21 @@ const ChinesePaperDesign = () => {
 
       // 打印数据存储前的状态
       console.log("即将存储到Redux的数据 - examData:", examData);
-      console.log("即将存储到Redux的数据 - answerSheetPages长度:", answerSheetPages.length);
-      
+      console.log(
+        "即将存储到Redux的数据 - answerSheetPages长度:",
+        answerSheetPages.length
+      );
+
       // 存储数据到Redux
       dispatch(
         setPreviewData({
           examData,
-          answerSheetPages
+          answerSheetPages,
         })
       );
-      
+
       console.log("数据已存储到Redux，即将导航到预览页面");
-      
+
       // 跳转到预览页面
       navigate("/exam-paper-preview");
     } else {
@@ -158,8 +161,13 @@ const ChinesePaperDesign = () => {
 
   // 处理选择题添加成功
   const handleObjectiveQuestionSuccess = (newQuestion) => {
+    const newQuestions = [...questions, { ...newQuestion, type: "objective" }];
+    // 计算分页
+    calculateQuestionsPagination(newQuestions, {
+      hasNote: formValues.hasNote !== false,
+    });
     // 将新题目添加到题目列表
-    setQuestions([...questions, { ...newQuestion, type: "objective" }]);
+    setQuestions(newQuestions);
   };
 
   // 关闭选择题弹窗
@@ -174,8 +182,13 @@ const ChinesePaperDesign = () => {
 
   // 处理填空题添加成功
   const handleBlankQuestionSuccess = (newQuestion) => {
+    const newQuestions = [...questions, { ...newQuestion, type: "blank" }];
+    // 计算分页
+    calculateQuestionsPagination(newQuestions, {
+      hasNote: formValues.hasNote !== false,
+    });
     // 将新题目添加到题目列表
-    setQuestions([...questions, { ...newQuestion, type: "blank" }]);
+    setQuestions(newQuestions);
   };
 
   // 处理其他题目类型的添加

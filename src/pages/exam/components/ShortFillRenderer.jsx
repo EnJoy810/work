@@ -11,7 +11,6 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
   const allBlanks = [];
   subQuestions.forEach((subItem) => {
     if (subItem.blanks && Array.isArray(subItem.blanks)) {
-      
       if (subItem.isAddSubQuestionClicked) {
         // 小题
         subItem.subQuestions.forEach((subBlank, index) => {
@@ -19,6 +18,7 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
             if (index === 0 && blankIndex === 0) {
               blank.questionNumber = subItem.questionNumber; // 第一项获取上级的题号显示
             }
+            // console.log("小题：", blank, blankIndex, index);
             blank.innerQuestionNumber = blankIndex + 1;
             allBlanks.push(blank);
           });
@@ -38,7 +38,7 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
     <div ref={ref}>
       {/* 短填空题下划线区域 */}
       {allBlanks.length > 0 && (
-        <div style={{ marginTop: "10px" }}>
+        <div>
           {/* 计算需要渲染的行数 */}
           {Array.from({
             length: Math.ceil(allBlanks.length / blanksPerLine),
@@ -53,7 +53,6 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
                 key={lineIndex}
                 style={{
                   display: "flex",
-                  marginBottom: "15px",
                   alignItems: "center",
                   width: "100%",
                   paddingRight: "10px",
@@ -76,6 +75,9 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
                     {/* 无论是否有值都渲染span，确保空间占用 */}
                     <span
                       style={{
+                        display: "flex",
+                        alignItems: "flex-end",
+                        height: "40px",
                         marginRight: "5px",
                         visibility:
                           blank.questionNumber || blank.innerQuestionNumber
@@ -96,7 +98,7 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
                         borderBottom: "1px solid #000",
                         flexGrow: 1,
                         minWidth: "50px",
-                        height: "30px",
+                        height: "40px",
                         display: "flex",
                         alignItems: "flex-end",
                       }}
