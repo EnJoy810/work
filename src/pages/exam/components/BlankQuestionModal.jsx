@@ -516,14 +516,11 @@ const BlankQuestionModal = ({
           <div style={{ flex: 1 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <label style={{ minWidth: "80px" }}>大题题号</label>
-              <select
+              <Select
                 value={questionNumber}
-                onChange={(e) => handleNumberChange(e.target.value)}
+                onChange={handleNumberChange}
                 style={{
                   flex: 1,
-                  padding: "4px 8px",
-                  border: "1px solid #d9d9d9",
-                  borderRadius: "4px",
                 }}
               >
                 {[
@@ -548,11 +545,11 @@ const BlankQuestionModal = ({
                   "十九",
                   "二十",
                 ].map((num) => (
-                  <option key={num} value={num}>
+                  <Select.Option key={num} value={num}>
                     {num}
-                  </option>
+                  </Select.Option>
                 ))}
-              </select>
+                </Select>
             </div>
           </div>
           <div style={{ flex: 3 }}>

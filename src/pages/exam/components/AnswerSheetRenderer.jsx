@@ -610,13 +610,14 @@ const AnswerSheetRenderer = forwardRef(
                 placeholder="请输入答题卡标题"
                 style={{
                   height: "53px",
-                  lineHeight: "36px",
+                  lineHeight: "53px",
                   textAlign: "center",
+                  verticalAlign: "middle",
                   margin: "0 0 10px 0",
                   width: "100%",
                   border: "1px dashed #ccc",
                   borderRadius: "4px",
-                  padding: "8px 12px",
+                  padding: "0 12px",
                   fontSize: "24px",
                   fontWeight: "bold",
                   backgroundColor: "transparent",
