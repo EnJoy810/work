@@ -9,6 +9,7 @@ import QuestionWrapper from "./QuestionWrapper";
 import ObjectiveQuestionModal from "./ObjectiveQuestionModal";
 import BlankQuestionModal from "./BlankQuestionModal";
 import ExamInfoSection from "./ExamInfoSection";
+import WordQuestionRenderer from "./WordQuestionRenderer";
 
 // 从常量文件导入页面尺寸
 import {
@@ -27,8 +28,10 @@ const AnswerSheetRenderer = ({
   paginationData = [],
   totalPages = 1,
   hasNote = true,
+  wordQuestionValues = {},
   getQuestionPositions,
   onQuestionsUpdate = () => {}, // 设置为空函数作为默认值
+  onWordQuestionAction = () => {}, // 用于处理作文题的编辑和删除操作
 }) => {
   // 使用从常量文件导入的页面尺寸
   const pageWidth = PAGE_WIDTH;
@@ -634,8 +637,13 @@ const AnswerSheetRenderer = ({
             pageQuestions.map((questionItem) => {
               // 编辑题目
               const handleEditQuestion = (question) => {
-                console.log(`编辑${question.type === 'objective' ? '选择题' : '非选择题'}:`, question);
-                if (question.type === 'objective') {
+                console.log(
+                  `编辑${
+                    question.type === "objective" ? "选择题" : "非选择题"
+                  }:`,
+                  question
+                );
+                if (question.type === "objective") {
                   openObjectiveModal(question);
                 } else {
                   // 设置当前编辑的填空题数据，然后打开弹窗
@@ -646,12 +654,17 @@ const AnswerSheetRenderer = ({
 
               // 删除题目
               const handleDeleteQuestion = (question) => {
-                console.log(`删除${question.type === 'objective' ? '选择题' : '非选择题'}:`, question);
+                console.log(
+                  `删除${
+                    question.type === "objective" ? "选择题" : "非选择题"
+                  }:`,
+                  question
+                );
                 Modal.confirm({
                   title: "确认删除",
-                  content: `确定要删除${question.type === 'objective' ? '选择题' : '填空题'}【${
-                    question.questionNumber || "大题"
-                  }】吗？`,
+                  content: `确定要删除${
+                    question.type === "objective" ? "选择题" : "填空题"
+                  }【${question.questionNumber || "大题"}】吗？`,
                   okText: "确定",
                   cancelText: "取消",
                   onOk() {
@@ -662,7 +675,7 @@ const AnswerSheetRenderer = ({
               };
 
               // 根据题目类型渲染不同组件
-              if (questionItem.type === 'objective') {
+              if (questionItem.type === "objective") {
                 return (
                   <QuestionWrapper
                     key={questionItem.sectionId}
@@ -757,6 +770,40 @@ const AnswerSheetRenderer = ({
           // 其他页保持原样
           return renderPageContent(paginationData[pageIndex], pageIndex);
         })}
+
+        {/* 渲染作文题格子页面 */}
+        {/* 使用WordQuestionRenderer组件渲染作文题 */}
+        {wordQuestionValues.totalWordCount && (
+          <WordQuestionRenderer 
+            wordQuestionValues={wordQuestionValues} 
+            pageConfig={{
+              pageWidth,
+              pageHeight,
+              pageMargin,
+              topBottomMargin
+            }}
+            totalPages={pageCount}
+            questionIndex={0} // 因为作文题不再放在questions数组中，所以固定为0
+            onEdit={(question) => {
+              console.log('编辑作文题:', question);
+              // 通知父组件显示作文题编辑弹窗并传递当前值
+              onWordQuestionAction('edit', wordQuestionValues);
+            }}
+            onDelete={(question) => {
+              console.log('删除作文题:', question);
+              Modal.confirm({
+                title: "确认删除",
+                content: "确定要删除作文题吗？",
+                okText: "确定",
+                cancelText: "取消",
+                onOk() {
+                  // 通知父组件删除作文题，将wordQuestionValues设置为空对象
+                  onWordQuestionAction('delete');
+                }
+              });
+            }}
+          />
+        )}
       </div>
     );
   };

@@ -9,6 +9,7 @@ import {
 import { useMessageService } from "../../components/common/message";
 import ObjectiveQuestionModal from "./components/ObjectiveQuestionModal";
 import BlankQuestionModal from "./components/BlankQuestionModal";
+import WordQuestionModal from "./components/WordQuestionModal";
 import AnswerSheetRenderer from "./components/AnswerSheetRenderer";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -20,11 +21,14 @@ const { Title } = Typography;
  * 语文试卷设计页面组件 - 左右布局
  */
 const ChinesePaperDesign = () => {
-  const { showSuccess, showInfo } = useMessageService();
+  const { showInfo } = useMessageService();
   const [form] = Form.useForm();
   const [modalVisible, setModalVisible] = useState(false);
   const [blankQuestionModalVisible, setBlankQuestionModalVisible] =
     useState(false);
+  const [wordQuestionModalVisible, setWordQuestionModalVisible] =
+    useState(false);
+  const [wordQuestionValues, setWordQuestionValues] = useState({});
   const [questions, setQuestions] = useState([]);
   const [formValues, setFormValues] = useState({
     hasSealingLine: false,
@@ -177,6 +181,34 @@ const ChinesePaperDesign = () => {
     // 如果是填空题类型，显示填空题弹窗
     if (type === "blank") {
       setBlankQuestionModalVisible(true);
+    } else if (type === "word") {
+      setWordQuestionModalVisible(true);
+    }
+  };
+
+  // 处理作文题添加成功
+  const handleWordQuestionSuccess = (values) => {
+    // console.log("作文题添加成功，但不添加到questions数组中", values);
+    setWordQuestionValues(values);
+  };
+
+  // 关闭作文题弹窗
+  const closeWordQuestionModal = () => {
+    setWordQuestionModalVisible(false);
+  };
+
+  // 处理作文题的编辑和删除操作
+  const onWordQuestionAction = (action, data = null) => {
+    if (action === 'edit') {
+      // 编辑操作：显示作文题弹窗并传递当前值进行回显
+      setWordQuestionModalVisible(true);
+      // 如果有数据传递过来，更新wordQuestionValues以便在弹窗中回显
+      if (data && Object.keys(data).length > 0) {
+        setWordQuestionValues(data);
+      }
+    } else if (action === 'delete') {
+      // 删除操作：将wordQuestionValues设置为空对象
+      setWordQuestionValues({});
     }
   };
   // 监听表单值变化
@@ -205,11 +237,13 @@ const ChinesePaperDesign = () => {
             totalPages={totalPages}
             hasSealingLine={formValues.hasSealingLine !== false}
             hasNote={formValues.hasNote !== false}
+            wordQuestionValues={wordQuestionValues}
             getQuestionPositions={getQuestionPositions}
             onQuestionsUpdate={(updatedQuestions) => {
               console.log("接收到更新的题目数据：", updatedQuestions);
               setQuestions(updatedQuestions);
             }}
+            onWordQuestionAction={onWordQuestionAction}
           />
         </div>
 
@@ -278,15 +312,15 @@ const ChinesePaperDesign = () => {
               >
                 填空题
               </Button>
-              {/* <Button
+              <Button
                 type="primary"
                 ghost
-                icon={<PlusOutlined />}
-                onClick={() => handleAddOtherQuestion("essay")}
+                icon={wordQuestionValues.totalWordCount ? <EditOutlined /> : <PlusOutlined />}
+                onClick={() => handleAddOtherQuestion("word")}
                 block
               >
-                解答题
-              </Button> */}
+                {wordQuestionValues.totalWordCount ? "编辑作文题" : "作文题"}
+              </Button>
             </Space>
           </div>
           {/* 分割线 */}
@@ -322,6 +356,16 @@ const ChinesePaperDesign = () => {
           visible={blankQuestionModalVisible}
           onCancel={closeBlankQuestionModal}
           onSuccess={handleBlankQuestionSuccess}
+        />
+      ) : null}
+
+      {/* 作文题弹窗 - 使用自包含组件 */}
+      {wordQuestionModalVisible ? (
+        <WordQuestionModal
+          visible={wordQuestionModalVisible}
+          onCancel={closeWordQuestionModal}
+          onSuccess={handleWordQuestionSuccess}
+          initialData={wordQuestionValues}
         />
       ) : null}
     </>
