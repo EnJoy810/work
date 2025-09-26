@@ -577,11 +577,22 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
 
     let currentPage = 1;
     while (remindQuestions.length > 0) {
-      const { currentPageQuestions: nextPageQuestions, remindIndex } =
+      const { currentPageQuestions: nextPageQuestions, remindIndex, nextPageFirstQuestion } = 
         processPageQuestions(remindQuestions, nextPageAvailableHeight);
 
       paginatedQuestions[currentPage] = nextPageQuestions;
-      remindQuestions = remindQuestions.slice(remindIndex);
+      
+      // 处理可能存在的下一页第一个题目
+      if (nextPageFirstQuestion) {
+        // 添加分割后的题目到剩余题目开头
+        // 使用remindIndex + 1跳过原始题目，避免重复
+        const remainingQuestions = remindQuestions.slice(remindIndex + 1);
+        remindQuestions = [nextPageFirstQuestion, ...remainingQuestions];
+      } else {
+        // 普通分页，直接获取剩余题目
+        remindQuestions = remindQuestions.slice(remindIndex);
+      }
+      
       currentPage++;
     }
   }
