@@ -17,6 +17,10 @@ const ExamPaperPreview = () => {
   const A4_WIDTH = 595;
   const A4_HEIGHT = 842;
 
+  // A3尺寸定义（单位：像素，基于72dpi）
+  const A3_WIDTH = 783 * 2;
+  const A3_HEIGHT = 1165;
+
   // 清理预览数据
   // useEffect(() => {
   //   console.log("预览页面组件挂载");
@@ -46,22 +50,32 @@ const ExamPaperPreview = () => {
 
   // 下载PDF功能
   const handleDownloadPDF = () => {
-    // 获取所有页面的内容
-    const pageElements = document.querySelectorAll(".preview-page-container");
+    // 获取所有A3预览容器
+    const a3Containers = document.querySelectorAll(".a3-preview-container");
 
-    // 创建一个临时容器来放置所有页面
+    // 创建一个临时容器来放置所有A3页面
     const tempContainer = document.createElement("div");
 
-    // 克隆并添加所有页面
-    pageElements.forEach((page) => {
-      const clonedPage = page.cloneNode(true);
+    // 克隆并添加所有A3容器
+    a3Containers.forEach((container) => {
+      const clonedContainer = container.cloneNode(true);
+
+      // 重置样式，确保以A3尺寸渲染
+      clonedContainer.style.width = A3_WIDTH + "px";
+      clonedContainer.style.height = A3_HEIGHT + "px";
+      clonedContainer.style.margin = "0 0 0 0";
+      clonedContainer.style.padding = "0";
+      clonedContainer.style.boxShadow = "none";
+      clonedContainer.style.border = "none";
+
+      // 为每个A3容器创建一个PDF页面容器
       const pageContent = document.createElement("div");
-      pageContent.className = "pdf-page";
-      pageContent.appendChild(clonedPage);
+      pageContent.className = "pdf-a3-page";
+      pageContent.appendChild(clonedContainer);
       tempContainer.appendChild(pageContent);
     });
 
-    // 设置PDF选项
+    // 设置PDF选项，使用A3尺寸和横向
     const opt = {
       margin: 0,
       padding: 0,
@@ -78,9 +92,9 @@ const ExamPaperPreview = () => {
         scrollY: 0,
       },
       jsPDF: {
-        unit: "mm",
-        format: "a4",
-        orientation: "portrait",
+        unit: "px", // 使用像素单位以匹配我们的尺寸定义
+        format: [A3_WIDTH, A3_HEIGHT], // 使用A3尺寸
+        orientation: "landscape", // 横向，因为一个A3页面上显示两页A4内容
       },
     };
 
@@ -126,32 +140,75 @@ const ExamPaperPreview = () => {
           </Button>
         </div>
       </Header>
-      <Content style={{ padding: "24px", background: "#f0f2f5" }}>
+      <Content style={{ background: "#f0f2f5" }}>
         <div
           style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
+            overflow: "scroll",
+            width: "100%",
+            height: "100%",
+            // display: "flex",
+            // flexDirection: "column",
+            // alignItems: "center",
           }}
         >
           {answerSheetPages.length > 0 ? (
-            answerSheetPages.map((pageContent, index) => (
-              <div
-                key={index}
-                className="preview-page-container"
-                style={{
-                  // width: A3_WIDTH / 4, // 缩小4倍以在屏幕上显示
-                  // height: A3_HEIGHT / 4,
-                  backgroundColor: "white",
-                  // border: "1px solid #d9d9d9",
-                  // marginBottom: "24px",
-                  // padding: "16px",
-                  overflow: "hidden",
-                  // boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                }}
-                dangerouslySetInnerHTML={{ __html: pageContent }}
-              />
-            ))
+            // 将页面两两分组，每两页放在一个A3大小的容器中
+            Array.from(
+              { length: Math.ceil(answerSheetPages.length / 2) },
+              (_, groupIndex) => {
+                const leftPage = answerSheetPages[groupIndex * 2];
+                const rightPage = answerSheetPages[groupIndex * 2 + 1];
+
+                return (
+                  <div
+                    key={groupIndex}
+                    className="a3-preview-container"
+                    style={{
+                      width: A3_WIDTH, // 缩小2倍以在屏幕上显示
+                      height: A3_HEIGHT,
+                      backgroundColor: "white",
+                      border: "1px solid #d9d9d9",
+                      marginBottom: "24px",
+                      padding: "8px",
+                      overflow: "hidden",
+                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    {/* 左页 */}
+                    {leftPage && (
+                      <div
+                        className="preview-page-container left-page"
+                        style={{
+                          width: "48%",
+                          height: "100%",
+                          backgroundColor: "white",
+                          overflow: "hidden",
+                          border: "1px solid #f0f0f0",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: leftPage }}
+                      />
+                    )}
+
+                    {/* 右页 */}
+                    {rightPage && (
+                      <div
+                        className="preview-page-container right-page"
+                        style={{
+                          width: "48%",
+                          height: "100%",
+                          backgroundColor: "white",
+                          overflow: "hidden",
+                          border: "1px solid #f0f0f0",
+                        }}
+                        dangerouslySetInnerHTML={{ __html: rightPage }}
+                      />
+                    )}
+                  </div>
+                );
+              }
+            )
           ) : (
             <div
               style={{
