@@ -200,10 +200,6 @@ const ChinesePaperDesign = () => {
   // 处理填空题添加成功
   const handleBlankQuestionSuccess = (newQuestion) => {
     const newQuestions = [...questions, { ...newQuestion, type: "blank" }];
-    // 计算分页
-    calculateQuestionsPagination(newQuestions, {
-      hasNote: formValues.hasNote !== false,
-    });
     // 将新题目添加到题目列表
     setQuestions(newQuestions);
   };
