@@ -107,16 +107,16 @@ const ChinesePaperDesign = () => {
   const previewAndDownload = () => {
     // 校验标题是否存在
     // 使用ref方式从AnswerSheetRenderer组件获取title值
-    let title = '';
+    let title = "";
     if (answerSheetRef.current && answerSheetRef.current.getTitle) {
       title = answerSheetRef.current.getTitle().trim();
     }
-    
+
     if (!title) {
-      showInfo('请先输入答题卡标题');
+      showInfo("请先输入答题卡标题");
       return;
     }
-    
+
     // 获取完整的题目列表，包含题目信息和位置信息
     if (questions.length > 0) {
       // 准备用于下载或预览的数据结构
@@ -137,20 +137,44 @@ const ChinesePaperDesign = () => {
         const clonedElement = element.cloneNode(true);
         clonedElement.style.marginBottom = "0";
         clonedElement.style.borderRadius = "0";
-        
+
         // 在预览时处理标题和编辑按钮的样式
-        // 1. 处理标题样式：设置border为透明的1px
-        const titleElement = clonedElement.querySelector('.answer-sheet-title');
+        // 1. 处理标题：将input标签替换为div标签
+        const titleElement = clonedElement.querySelector(".answer-sheet-title");
         if (titleElement) {
-          titleElement.style.border = '1px solid transparent';
+          // 创建新的div元素
+          const divElement = document.createElement("div");
+          // 复制input的样式
+          const titleStyle = titleElement.style;
+          divElement.style.height = titleStyle.height;
+          divElement.style.lineHeight = titleStyle.lineHeight;
+          divElement.style.textAlign = titleStyle.textAlign;
+          divElement.style.verticalAlign = titleStyle.verticalAlign;
+          divElement.style.margin = titleStyle.margin;
+          divElement.style.width = titleStyle.width;
+          divElement.style.border = "none";
+          divElement.style.borderRadius = titleStyle.borderRadius;
+          divElement.style.padding = titleStyle.padding;
+          divElement.style.fontSize = titleStyle.fontSize;
+          divElement.style.fontWeight = titleStyle.fontWeight;
+          divElement.style.backgroundColor = titleStyle.backgroundColor;
+          divElement.style.fontFamily = titleStyle.fontFamily;
+          divElement.style.transition = titleStyle.transition;
+          divElement.style.outline = "none";
+          // 设置文本内容为从AnswerSheetRenderer组件获取的title值
+          divElement.textContent = title;
+          // 替换元素
+          titleElement.parentNode.replaceChild(divElement, titleElement);
         }
-        
+
         // 2. 处理编辑按钮：隐藏编辑按钮
-        const editButton = clonedElement.querySelector('.answer-sheet-edit-btn');
+        const editButton = clonedElement.querySelector(
+          ".answer-sheet-edit-btn"
+        );
         if (editButton) {
-          editButton.style.display = 'none';
+          editButton.style.display = "none";
         }
-        
+
         // 获取元素的HTML内容
         answerSheetPages.push(clonedElement.outerHTML);
       });
@@ -228,14 +252,14 @@ const ChinesePaperDesign = () => {
 
   // 处理作文题的编辑和删除操作
   const onWordQuestionAction = (action, data = null) => {
-    if (action === 'edit') {
+    if (action === "edit") {
       // 编辑操作：显示作文题弹窗并传递当前值进行回显
       setWordQuestionModalVisible(true);
       // 如果有数据传递过来，更新wordQuestionValues以便在弹窗中回显
       if (data && Object.keys(data).length > 0) {
         setWordQuestionValues(data);
       }
-    } else if (action === 'delete') {
+    } else if (action === "delete") {
       // 删除操作：将wordQuestionValues设置为空对象
       setWordQuestionValues({});
     }
@@ -345,7 +369,13 @@ const ChinesePaperDesign = () => {
               <Button
                 type="primary"
                 ghost
-                icon={wordQuestionValues.totalWordCount ? <EditOutlined /> : <PlusOutlined />}
+                icon={
+                  wordQuestionValues.totalWordCount ? (
+                    <EditOutlined />
+                  ) : (
+                    <PlusOutlined />
+                  )
+                }
                 onClick={() => handleAddOtherQuestion("word")}
                 block
               >

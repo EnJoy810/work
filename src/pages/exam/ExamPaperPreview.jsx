@@ -19,7 +19,7 @@ const ExamPaperPreview = () => {
 
   // A3尺寸定义（单位：像素，基于72dpi）
   const A3_WIDTH = 783 * 2;
-  const A3_HEIGHT = 1165;
+  const A3_HEIGHT = 1135; // 1165 
 
   // 清理预览数据
   // useEffect(() => {
@@ -167,11 +167,11 @@ const ExamPaperPreview = () => {
                       width: A3_WIDTH, // 缩小2倍以在屏幕上显示
                       height: A3_HEIGHT,
                       backgroundColor: "white",
-                      border: "1px solid #d9d9d9",
+                      // border: "1px solid #d9d9d9",
                       marginBottom: "24px",
-                      padding: "8px",
+                      padding: "10px",
                       overflow: "hidden",
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
+                      // boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
                       display: "flex",
                       justifyContent: "space-between",
                     }}
@@ -181,11 +181,11 @@ const ExamPaperPreview = () => {
                       <div
                         className="preview-page-container left-page"
                         style={{
-                          width: "48%",
+                          width: "49%",
                           height: "100%",
                           backgroundColor: "white",
                           overflow: "hidden",
-                          border: "1px solid #f0f0f0",
+                          // border: "1px solid #f0f0f0",
                         }}
                         dangerouslySetInnerHTML={{ __html: leftPage }}
                       />
@@ -196,11 +196,11 @@ const ExamPaperPreview = () => {
                       <div
                         className="preview-page-container right-page"
                         style={{
-                          width: "48%",
+                          width: "49%",
                           height: "100%",
                           backgroundColor: "white",
                           overflow: "hidden",
-                          border: "1px solid #f0f0f0",
+                          // border: "1px solid #f0f0f0",
                         }}
                         dangerouslySetInnerHTML={{ __html: rightPage }}
                       />

@@ -47,7 +47,16 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
             alignItems: "center",
           }}
         >
-          <div style={{ marginRight: "10px", fontWeight: "500" }}>
+          <div
+            className="long-fill-question-title"
+            style={{
+              marginRight: "10px",
+              fontWeight: "500",
+              height: "30px",
+              display: "flex",
+              alignItems: "flex-end",
+            }}
+          >
             {question.questionNumber ? `${question.questionNumber}、` : ""}
             {question.innerQuestionNumber
               ? `(${question.innerQuestionNumber})`

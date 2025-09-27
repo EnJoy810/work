@@ -138,7 +138,7 @@ const ObjectiveQuestionsRenderer = ({
                         style={{
                           width: "20px",
                           height: "13px",
-                          lineHeight: "13px",
+                          lineHeight: "11px",
                           borderRadius: "3px",
                           border: "1px solid #000",
                           textAlign: "center",

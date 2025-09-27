@@ -16,11 +16,12 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
         // 小题
         subItem.subQuestions.forEach((subBlank, index) => {
           subBlank.blanks.forEach((blank, blankIndex) => {
+            console.log("blankIndex", blankIndex);
             if (index === 0 && blankIndex === 0) {
               blank.questionNumber = subItem.questionNumber; // 第一项获取上级的题号显示
             }
+            blank.innerQuestionNumber = blankIndex === 0 ? index + 1 : 0;
             // console.log("小题：", blank, blankIndex, index);
-            blank.innerQuestionNumber = blankIndex + 1;
             allBlanks.push(blank);
           });
         });
@@ -34,6 +35,7 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
       }
     }
   });
+  // console.log("allBlanks", allBlanks);
 
   return (
     <div ref={ref}>
