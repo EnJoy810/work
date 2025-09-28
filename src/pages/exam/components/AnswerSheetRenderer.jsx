@@ -25,6 +25,7 @@ import {
   PAGE_MARGIN,
   TOP_BOTTOM_MARGIN,
   PAGE_CONTENT_HEIGHT,
+  PAGE_POINT,
 } from "../../../utils/constants";
 /**
  * 答题卷渲染组件
@@ -48,6 +49,7 @@ const AnswerSheetRenderer = forwardRef(
     const pageWidth = PAGE_WIDTH;
     const pageHeight = PAGE_HEIGHT;
     const pageMargin = PAGE_MARGIN;
+    const pagePoint = PAGE_POINT;
     const topBottomMargin = TOP_BOTTOM_MARGIN;
 
     // 标题状态管理
@@ -558,8 +560,8 @@ const AnswerSheetRenderer = forwardRef(
           <div
             style={{
               position: "absolute",
-              top: `${pageMargin}px`,
-              left: `${pageMargin}px`,
+              top: `${pagePoint}px`,
+              left: `${pagePoint}px`,
               width: "10px",
               height: "10px",
               backgroundColor: "black",
@@ -569,8 +571,8 @@ const AnswerSheetRenderer = forwardRef(
           <div
             style={{
               position: "absolute",
-              top: `${pageMargin}px`,
-              right: `${pageMargin}px`,
+              top: `${pagePoint}px`,
+              right: `${pagePoint}px`,
               width: "10px",
               height: "10px",
               backgroundColor: "black",
@@ -580,8 +582,8 @@ const AnswerSheetRenderer = forwardRef(
           <div
             style={{
               position: "absolute",
-              bottom: `${pageMargin}px`,
-              left: `${pageMargin}px`,
+              bottom: `${pagePoint}px`,
+              left: `${pagePoint}px`,
               width: "10px",
               height: "10px",
               backgroundColor: "black",
@@ -591,8 +593,8 @@ const AnswerSheetRenderer = forwardRef(
           <div
             style={{
               position: "absolute",
-              bottom: `${pageMargin}px`,
-              right: `${pageMargin}px`,
+              bottom: `${pagePoint}px`,
+              right: `${pagePoint}px`,
               width: "10px",
               height: "10px",
               backgroundColor: "black",

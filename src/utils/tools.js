@@ -203,6 +203,7 @@ import {
   PAGE_HEIGHT,
   PAGE_MARGIN,
   PAGE_CONTENT_HEIGHT,
+  PAGE_POINT,
 } from "./constants";
 
 // 计算元素相对于参考元素的位置信息
@@ -214,7 +215,8 @@ export const calculateElementPosition = (element, referenceElement) => {
   // 获取页面尺寸信息
   const pageWidth = PAGE_WIDTH;
   const pageHeight = PAGE_HEIGHT;
-  const pageMargin = PAGE_MARGIN;
+  // const pageMargin = PAGE_MARGIN;
+  const pagePoint = PAGE_POINT; // 相对于定位点的位置
 
   // 获取元素的位置和尺寸信息
   const elementRect = element.getBoundingClientRect();
@@ -236,6 +238,8 @@ export const calculateElementPosition = (element, referenceElement) => {
       bottom: pageHeight,
     };
   }
+  console.log("referenceRect 左", elementRect.left, referenceRect.left);
+  console.log("referenceRect ", elementRect, referenceRect);
 
   // 计算相对位置（相对于参考元素的左上角）
   const relativeLeft = parseFloat(
@@ -251,8 +255,8 @@ export const calculateElementPosition = (element, referenceElement) => {
     (referenceRect.bottom - elementRect.bottom).toFixed(2)
   );
 
-  const realWidth = pageWidth - 2 * pageMargin;
-  const realHeight = pageHeight - 2 * pageMargin;
+  const realWidth = pageWidth - 2 * pagePoint;
+  const realHeight = pageHeight - 2 * pagePoint;
 
   // 计算百分比位置
   const leftPercent = parseFloat((relativeLeft / realWidth).toFixed(4));
