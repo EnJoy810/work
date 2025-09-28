@@ -37,8 +37,15 @@ const { Panel } = Collapse;
  * @param {Function} props.onCancel - 关闭弹窗回调函数
  * @param {Function} props.onSuccess - 添加/编辑成功后的回调函数
  * @param {Object} props.initialData - 编辑模式下的初始数据
+ * @param {Array} props.existingQuestions - 已存在的题目数据，用于确定默认题号
  */
-const BlankQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
+const BlankQuestionModal = ({
+  visible,
+  onCancel,
+  onSuccess,
+  initialData,
+  existingQuestions = [],
+}) => {
   // 每行填空题的高度为40px
   const LINE_HEIGHT = 40;
 
@@ -53,6 +60,31 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
   // 内部状态管理
   // 大题题号和题目内容
   const [questionNumber, setQuestionNumber] = useState("一");
+
+  // 大写数字映射
+  const NUMBER_TO_CHINESE = [
+    "",
+    "一",
+    "二",
+    "三",
+    "四",
+    "五",
+    "六",
+    "七",
+    "八",
+    "九",
+    "十",
+    "十一",
+    "十二",
+    "十三",
+    "十四",
+    "十五",
+    "十六",
+    "十七",
+    "十八",
+    "十九",
+    "二十",
+  ];
   const [questionContent, setQuestionContent] = useState("");
 
   // 选择的填空类型：短填空或长填空
@@ -294,10 +326,79 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
         setIsInitialDataLoaded(true);
       }
     } else if (visible) {
-      // 如果是添加模式，使用默认值
-      setQuestionNumber("一");
-      setQuestionContent("填空题");
+      // 如果是添加模式，确定默认题号为existingQuestions中大题题号的最大值加1
+      let maxQuestionNumber = 0;
+      let maxEndQuestion = 0;
+      console.log("existingQuestions", existingQuestions);
+      // 查找现有题目中大题题号的最大值和startQuestion的最大值
+      if (Array.isArray(existingQuestions) && existingQuestions.length > 0) {
+        existingQuestions.forEach((q) => {
+          if (q.questionNumber) {
+            // 转换中文数字为阿拉伯数字
+            const numIndex = NUMBER_TO_CHINESE.indexOf(q.questionNumber);
+            if (numIndex > maxQuestionNumber) {
+              maxQuestionNumber = numIndex;
+            }
+          }
+          // startQuestion最大值应该是所有endQuestion中最大值加1
+          // 检查短填空的endQuestion
+          if (q.shortFillConfig && Array.isArray(q.shortFillConfig)) {
+            q.shortFillConfig.forEach((config) => {
+              if (config.endQuestion) {
+                const startNum = parseInt(config.endQuestion, 10);
+                if (!isNaN(startNum) && startNum > maxEndQuestion) {
+                  maxEndQuestion = startNum;
+                }
+              }
+            });
+          }
+          
+          // 检查长填空的endQuestion
+          if (q.longFillConfig && Array.isArray(q.longFillConfig)) {
+            q.longFillConfig.forEach((config) => {
+              if (config.endQuestion) {
+                const startNum = parseInt(config.endQuestion, 10);
+                if (!isNaN(startNum) && startNum > maxEndQuestion) {
+                  maxEndQuestion = startNum;
+                }
+              }
+            });
+          }
+        });
+      }
+
+      // 设置默认题号为最大值加1对应的中文数字
+      const defaultQuestionNumber =
+        NUMBER_TO_CHINESE[Math.min(maxQuestionNumber + 1, 20)] || "一";
+
+      setQuestionNumber(defaultQuestionNumber);
+      setQuestionContent("");
       setFillType("short");
+
+      // 设置默认的maxEndQuestion为最大值加1
+      const defaultStartQuestion = (maxEndQuestion + 1).toString();
+      
+      // 设置短填空的startQuestion
+      setShortFillConfig([
+        {
+          id: 1,
+          startQuestion: defaultStartQuestion,
+          endQuestion: "",
+          pointsPerBlank: "2",
+          blanksPerQuestion: "1",
+        },
+      ]);
+      
+      // 设置长填空的startQuestion为相同的值
+      setLongFillConfig([
+        {
+          id: 1,
+          startQuestion: defaultStartQuestion,
+          endQuestion: "",
+          pointsPerLine: "2",
+          linesPerQuestion: "1",
+        },
+      ]);
     }
   }, [visible, initialData, isEditMode]);
 
@@ -429,28 +530,7 @@ const BlankQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
                   flex: 1,
                 }}
               >
-                {[
-                  "一",
-                  "二",
-                  "三",
-                  "四",
-                  "五",
-                  "六",
-                  "七",
-                  "八",
-                  "九",
-                  "十",
-                  "十一",
-                  "十二",
-                  "十三",
-                  "十四",
-                  "十五",
-                  "十六",
-                  "十七",
-                  "十八",
-                  "十九",
-                  "二十",
-                ].map((num) => (
+                {NUMBER_TO_CHINESE.slice(1).map((num) => (
                   <Select.Option key={num} value={num}>
                     {num}
                   </Select.Option>

@@ -416,6 +416,7 @@ const ChinesePaperDesign = () => {
           visible={blankQuestionModalVisible}
           onCancel={closeBlankQuestionModal}
           onSuccess={handleBlankQuestionSuccess}
+          existingQuestions={questions}
         />
       ) : null}
 

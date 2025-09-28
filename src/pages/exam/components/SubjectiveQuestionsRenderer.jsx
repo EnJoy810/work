@@ -80,7 +80,6 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
               fontSize: "16px",
             }}
           >
-            标题渲染：
             {questionNumber}、{content}{" "}
             {multipleChoiceItem
               ? `(${multipleChoiceItem.subQuestions.length}选${
