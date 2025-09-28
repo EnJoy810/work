@@ -238,8 +238,8 @@ export const calculateElementPosition = (element, referenceElement) => {
       bottom: pageHeight,
     };
   }
-  console.log("referenceRect 左", elementRect.left, referenceRect.left);
-  console.log("referenceRect ", elementRect, referenceRect);
+  // console.log("referenceRect 左", elementRect.left, referenceRect.left);
+  // console.log("referenceRect ", elementRect, referenceRect);
 
   // 计算相对位置（相对于参考元素的左上角）
   const relativeLeft = parseFloat(

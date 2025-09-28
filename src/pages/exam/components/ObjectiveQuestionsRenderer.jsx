@@ -22,6 +22,9 @@ const ObjectiveQuestionsRenderer = ({
   // 创建ref用于获取选择题部分的DOM元素
   const questionsContainerRef = useRef(null);
 
+  // 创建ref集合用于存储每个小题的DOM元素引用
+  const questionItemRefs = useRef({});
+
   // 使用useEffect在组件渲染后获取尺寸和位置信息
   // 移除questions依赖，避免位置信息更新导致的无限循环渲染
   // 用于存储上一次的位置信息，避免不必要的更新
@@ -39,7 +42,6 @@ const ObjectiveQuestionsRenderer = ({
       const extendedPositionInfo = {
         ...positionInfo,
         questionType: "objective",
-        timestamp: new Date().getTime(),
       };
 
       // 只有当位置信息真正变化时才调用回调函数
@@ -56,6 +58,47 @@ const ObjectiveQuestionsRenderer = ({
         // 更新引用，存储当前位置信息
         previousPositionInfoRef.current = currentPositionKey;
       }
+
+      // 为每个小题计算位置并收集更新信息
+      const updatedQuestions = questions.map((question) => {
+        const questionRef = questionItemRefs.current[question.id];
+        if (questionRef && onPositionUpdate) {
+          const questionPositionInfo = calculateElementPosition(
+            questionRef,
+            pageRef
+          );
+          const extendedPositionInfo = {
+            ...questionPositionInfo,
+            questionType: "smallObjective",
+          };
+
+          // 返回包含位置信息的新question对象，而不是直接修改原对象
+          return {
+            ...question,
+            questionPositionInfo: extendedPositionInfo,
+          };
+        }
+        return question;
+      });
+
+      // 在所有小题位置都计算完后，创建更新后的objectiveItem对象
+      const updatedObjectiveItem = {
+        ...objectiveItem,
+        questions: updatedQuestions,
+      };
+      console.log("updatedObjectiveItem", updatedObjectiveItem);
+
+      // 通过回调函数将更新后的完整数据传递给父组件
+      // 确保符合handleQuestionPositionUpdate函数的参数格式：identifier, positionInfo
+      onPositionUpdate(`${objectiveItem.sectionId}_complete`, {
+        ...updatedObjectiveItem,
+        timestamp: new Date().getTime(),
+      });
+
+      console.log(
+        `选择题部分(sectionId: ${objectiveItem.sectionId})的questions数据已更新并通过回调函数传递`
+      );
+      console.log("questions 看看位置数据", updatedQuestions);
     }
   }, [objectiveItem, pageRef, onPositionUpdate]); // 仅当objectiveItem、pageRef或onPositionUpdate变化时重新计算
 
@@ -111,6 +154,7 @@ const ObjectiveQuestionsRenderer = ({
               return (
                 <div
                   key={question.id || questionIndex}
+                  ref={(el) => (questionItemRefs.current[question.id] = el)}
                   style={{
                     display: "flex",
                     alignItems: "center",
