@@ -318,7 +318,7 @@ export const calculatePageContentHeight = (options = {}) => {
 
   // 累加高度值计算内容高度
   // 对于第一页，包含所有头部信息；对于后续页面，不包含这些信息
-  let totalContentHeight = 0;
+  let totalContentHeight = 0; // 每页都有上下边距
   if (pageType === "first") {
     totalContentHeight =
       titleHeight + subjectHeight + classHeight + (hasNote ? noteHeight : 0);
@@ -347,7 +347,11 @@ export const splitBlankQuestion = (
       questionWrapPadding) /
       lineHeight
   );
-
+  console.log("remainingLines", remainingLines);
+  // 剩余行数小于0，直接将数据添加到第二页，不需要分割
+  if (remainingLines <= 0) {
+    return { firstPart: null, secondPart: null };
+  }
   // 查找分割点 - 基于行数判断
   let splitIndex = -1;
   let firstPart = null;
@@ -482,8 +486,10 @@ export const processPageQuestions = (
     const element = questions[index];
     // 调用抽离的函数计算题目高度
     const questionHeight = calculateQuestionHeight(element);
+    console.log("当前题目高度  1->", element.type, questionHeight);
 
     availableHeight -= questionHeight;
+    console.log("当前可用高度  2->", availableHeight);
 
     // 题目计算完，判断是否需要分页 留一定余量
     if (availableHeight < -remainingHeight) {
@@ -497,6 +503,12 @@ export const processPageQuestions = (
           questionHeight,
           remainingHeight
         );
+        console.log(
+          "firstPart, secondPart",
+          firstPart,
+          secondPart,
+          remindIndex
+        );
 
         if (firstPart && secondPart) {
           // 将第一部分添加到当前页
@@ -507,9 +519,16 @@ export const processPageQuestions = (
             remindIndex: index,
             nextPageFirstQuestion: secondPart,
           };
+        } else if (!firstPart && !secondPart) {
+          
+          // 都不需要分割
+          return {
+            currentPageQuestions: questions.slice(0, index),
+            remindIndex: index ,
+            nextPageFirstQuestion:  null,
+          };
         }
       }
-
       break;
     } else {
       currentPageQuestions.push(element);
@@ -520,6 +539,7 @@ export const processPageQuestions = (
   if (remindIndex === 0) {
     remindIndex = questions.length; // 设置为数组长度，表示没有剩余题目
   }
+  console.log("remindIndex", remindIndex);
 
   return { currentPageQuestions, remindIndex };
 };
@@ -535,8 +555,8 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
       totalPages: 1,
     };
   }
-  
 
+  // debugger;
   // 计算第一页可用高度
   const firstPageAvailableHeight = calculatePageContentHeight({
     hasNote: options.hasNote !== false,
@@ -546,7 +566,12 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
   // 处理第一页题目
   const { currentPageQuestions, remindIndex, nextPageFirstQuestion } =
     processPageQuestions(questions, firstPageAvailableHeight);
-
+  console.log(
+    "处理第一页题目结果：",
+    currentPageQuestions,
+    remindIndex,
+    nextPageFirstQuestion
+  );
   // 初始化分页结果数组
   let paginatedQuestions = [];
   paginatedQuestions[0] = currentPageQuestions;
@@ -561,11 +586,14 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
     // 然后添加剩余的题目（注意跳过当前被分割的题目）
     // 由于被分割的题目已经通过nextPageFirstQuestion添加了一部分，所以需要从remindIndex + 1开始获取剩余题目
     if (remindIndex + 1 < questions.length) {
-      remindQuestions = [...remindQuestions, ...questions.slice(remindIndex + 1)];
+      remindQuestions = [
+        ...remindQuestions,
+        ...questions.slice(remindIndex + 1),
+      ];
     }
   } else {
     // 普通分页，直接获取剩余题目
-    remindQuestions = questions.slice(remindIndex);
+    remindQuestions = questions.slice(remindIndex); 
   }
 
   // 计算后续页面
@@ -577,11 +605,14 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
 
     let currentPage = 1;
     while (remindQuestions.length > 0) {
-      const { currentPageQuestions: nextPageQuestions, remindIndex, nextPageFirstQuestion } = 
-        processPageQuestions(remindQuestions, nextPageAvailableHeight);
+      const {
+        currentPageQuestions: nextPageQuestions,
+        remindIndex,
+        nextPageFirstQuestion,
+      } = processPageQuestions(remindQuestions, nextPageAvailableHeight);
 
       paginatedQuestions[currentPage] = nextPageQuestions;
-      
+
       // 处理可能存在的下一页第一个题目
       if (nextPageFirstQuestion) {
         // 添加分割后的题目到剩余题目开头
@@ -592,7 +623,7 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
         // 普通分页，直接获取剩余题目
         remindQuestions = remindQuestions.slice(remindIndex);
       }
-      
+
       currentPage++;
     }
   }

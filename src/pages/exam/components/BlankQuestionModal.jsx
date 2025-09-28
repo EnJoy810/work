@@ -37,15 +37,8 @@ const { Panel } = Collapse;
  * @param {Function} props.onCancel - 关闭弹窗回调函数
  * @param {Function} props.onSuccess - 添加/编辑成功后的回调函数
  * @param {Object} props.initialData - 编辑模式下的初始数据
- * @param {number} props.pageRemainingLines - 当前页面剩余可显示的行数
  */
-const BlankQuestionModal = ({
-  visible,
-  onCancel,
-  onSuccess,
-  initialData,
-  pageRemainingLines: propPageRemainingLines,
-}) => {
+const BlankQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
   // 每行填空题的高度为40px
   const LINE_HEIGHT = 40;
 
@@ -55,44 +48,12 @@ const BlankQuestionModal = ({
   // 标记编辑模式下的初始数据是否已加载完成
   const [isInitialDataLoaded, setIsInitialDataLoaded] = useState(false);
 
-  // 动态计算页面剩余行数
-  const getPageRemainingLines = () => {
-    try {
-      // 获取当前页面的可用高度
-      // 使用answer-sheet-page作为选择器
-      const contentContainer = document.querySelector(".answer-sheet-page");
-      if (contentContainer) {
-        const containerHeight = contentContainer.clientHeight;
-        const scrollTop = window.scrollY;
-        const windowHeight = window.innerHeight;
-
-        // 计算可见区域底部与容器底部的距离
-        const remainingHeight = containerHeight - (scrollTop + windowHeight);
-
-        // 如果有足够的剩余空间，计算剩余行数；否则返回最小行数1
-        if (remainingHeight > 0) {
-          return Math.max(1, Math.floor(remainingHeight / LINE_HEIGHT));
-        }
-      }
-    } catch (error) {
-      console.error("计算页面剩余行数时出错:", error);
-    }
-
-    // 兜底方案：如果无法获取高度信息，使用默认值10
-    return 10;
-  };
-
-  // 使用传入的参数或动态计算的剩余行数
-  const pageRemainingLines =
-    propPageRemainingLines !== undefined
-      ? propPageRemainingLines
-      : getPageRemainingLines();
   const { showSuccess, showInfo } = useMessageService();
 
   // 内部状态管理
   // 大题题号和题目内容
   const [questionNumber, setQuestionNumber] = useState("一");
-  const [questionContent, setQuestionContent] = useState("填空题");
+  const [questionContent, setQuestionContent] = useState("");
 
   // 选择的填空类型：短填空或长填空
   const [fillType, setFillType] = useState("short");
@@ -398,38 +359,8 @@ const BlankQuestionModal = ({
       const totalLines = Math.ceil(totalBlanksPerQuestion / blanksPerLine);
       submitData.totalBlanksPerQuestion = totalBlanksPerQuestion;
       submitData.totalLines = totalLines;
-
-      // 使用从父组件传入的当前页面剩余可显示行数
-      const pageCapacity = pageRemainingLines;
-      submitData.pageCapacity = pageCapacity;
-
-      // 计算当前页面和下一页的行数
-      if (totalLines <= pageCapacity) {
-        // 所有行都可以在当前页面显示
-        submitData.pagination.currentPageLines = Array.from(
-          { length: totalLines },
-          (_, i) => i
-        );
-      } else {
-        // 部分行需要在下一页显示
-        submitData.pagination.currentPageLines = Array.from(
-          { length: pageCapacity },
-          (_, i) => i
-        );
-        submitData.pagination.nextPageLines = Array.from(
-          { length: totalLines - pageCapacity },
-          (_, i) => i + pageCapacity
-        );
-      }
     } else {
       // 长填空数据
-      // submitData.questionNumbers = longQuestions.map((q) => q.questionNumber);
-      // submitData.startQuestion =
-      //   longQuestions.length > 0 ? longQuestions[0].questionNumber : null;
-      // submitData.endQuestion =
-      //   longQuestions.length > 0
-      //     ? longQuestions[longQuestions.length - 1].questionNumber
-      //     : null;
       submitData.questions = longQuestions;
       submitData.longFillConfig = longFillConfig.map((config) => ({
         startQuestion: config.startQuestion,
@@ -437,8 +368,6 @@ const BlankQuestionModal = ({
         pointsPerLine: config.pointsPerLine,
         linesPerQuestion: config.linesPerQuestion,
       }));
-      // submitData.lineScores = longLineScores;
-      // submitData.linesPerLine = blanksPerLine; // 复用相同的设置
       submitData.showSubQuestionScore = showSubQuestionScore;
 
       // 计算长填空的分页信息
@@ -448,29 +377,6 @@ const BlankQuestionModal = ({
         0
       );
       submitData.totalLines = totalLines;
-
-      // 使用从父组件传入的当前页面剩余可显示行数
-      // const pageCapacity = pageRemainingLines;
-      // submitData.pagination.pageCapacity = pageCapacity;
-
-      // // 计算当前页面和下一页的行数
-      // if (totalLines <= pageCapacity) {
-      //   // 所有行都可以在当前页面显示
-      //   submitData.pagination.currentPageLines = Array.from(
-      //     { length: totalLines },
-      //     (_, i) => i
-      //   );
-      // } else {
-      //   // 部分行需要在下一页显示
-      //   submitData.pagination.currentPageLines = Array.from(
-      //     { length: pageCapacity },
-      //     (_, i) => i
-      //   );
-      //   submitData.pagination.nextPageLines = Array.from(
-      //     { length: totalLines - pageCapacity },
-      //     (_, i) => i + pageCapacity
-      //   );
-      // }
     }
 
     // 如果是编辑模式，保留原有sectionId
@@ -549,7 +455,7 @@ const BlankQuestionModal = ({
                     {num}
                   </Select.Option>
                 ))}
-                </Select>
+              </Select>
             </div>
           </div>
           <div style={{ flex: 3 }}>

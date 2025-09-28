@@ -80,6 +80,7 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
               fontSize: "16px",
             }}
           >
+            标题渲染：
             {questionNumber}、{content}{" "}
             {multipleChoiceItem
               ? `(${multipleChoiceItem.subQuestions.length}选${
@@ -87,7 +88,7 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
                 }，共${
                   multipleChoiceItem.selectedBlanksCount *
                   (multipleChoiceItem.subQuestions[0].blanks[0].points *
-                    multipleChoiceItem.subQuestions[0].totalBlanks   || 1)
+                    multipleChoiceItem.subQuestions[0].totalBlanks || 1)
                 } 分)`
               : ""}
           </div>
