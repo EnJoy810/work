@@ -303,7 +303,15 @@ export const calculateQuestionHeight = (question) => {
 
   // 根据题目类型返回对应的高度
   if (question.type === "objective") {
-    return objectHeight;
+    // 根据选择题数量返回不同的高度
+    // 如果是小题数量小于5题，返回对应高度；否则返回默认高度
+    const questionCount = question.questions ? question.questions.length : 1;
+    const heights = [0, 85.32, 103.32, 121.32, 141.32];
+    if (questionCount < 5) {
+      return heights[questionCount] || objectHeight;
+    } else {
+      return objectHeight;
+    }
   } else if (question.type === "blank") {
     if (question.sliceQuestion) {
       // 分割的数据需要重新计算行数

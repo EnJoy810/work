@@ -10,7 +10,11 @@ import {
   Checkbox,
 } from "antd";
 import { useMessageService } from "../../../components/common/message";
-import { generateSegmentId, generateQuestionId, generateSectionId } from "../../../utils/tools";
+import {
+  generateSegmentId,
+  generateQuestionId,
+  generateSectionId,
+} from "../../../utils/tools";
 
 /**
  * 选择题添加/编辑弹窗组件 - 支持批量添加和分段管理
@@ -103,11 +107,12 @@ const ObjectiveQuestionModal = ({
   // 添加新的分段
   const addSegment = () => {
     const newId = generateSegmentId(segments);
-    const newQuestion = Math.max(
-      ...segments.map((s) => s.startQuestion),
-      ...segments.map((s) => s.endQuestion),
-      0
-    ) + 1;
+    const newQuestion =
+      Math.max(
+        ...segments.map((s) => s.startQuestion),
+        ...segments.map((s) => s.endQuestion),
+        0
+      ) + 1;
     setSegments([
       ...segments,
       {
@@ -203,24 +208,30 @@ const ObjectiveQuestionModal = ({
 
       // 如果有questions数据，则设置分段和题目
       if (initialData.questions && initialData.questions.length > 0) {
-        // 从questions数据反向推导segments数据
-        const minQuestionNum = Math.min(
-          ...initialData.questions.map((q) => q.questionNumber)
-        );
-        const maxQuestionNum = Math.max(
-          ...initialData.questions.map((q) => q.questionNumber)
-        );
-        // 使用第一个题目的分数和选项数作为默认值
-        const firstQuestion = initialData.questions[0];
-        setSegments([
-          {
-            id: 1,
-            startQuestion: minQuestionNum.toString(),
-            endQuestion: maxQuestionNum.toString(),
-            score: firstQuestion.score.toString(),
-            optionsCount: firstQuestion.optionsCount.toString(),
-          },
-        ]);
+        // 在编辑模式下，如果initialData中包含segments字段，优先使用它
+        if (isEditMode && initialData.segments && Array.isArray(initialData.segments) && initialData.segments.length > 0) {
+          setSegments(initialData.segments);
+        } else {
+          // 从questions数据反向推导segments数据
+          const minQuestionNum = Math.min(
+            ...initialData.questions.map((q) => q.questionNumber)
+          );
+          const maxQuestionNum = Math.max(
+            ...initialData.questions.map((q) => q.questionNumber)
+          );
+          // 使用第一个题目的分数和选项数作为默认值
+          const firstQuestion = initialData.questions[0];
+          setSegments([
+            {
+              id: 1,
+              startQuestion: minQuestionNum.toString(),
+              endQuestion: maxQuestionNum.toString(),
+              score: firstQuestion.score.toString(),
+              optionsCount: firstQuestion.optionsCount.toString(),
+            },
+          ]);
+        }
+        
         // 严格按照initialData中的questions数据设置题目列表，不受segments影响
         setTimeout(() => {
           setQuestions(initialData.questions);
@@ -345,7 +356,26 @@ const ObjectiveQuestionModal = ({
       });
 
       // 合并并排序
-      const finalQuestions = [...updatedQuestions, ...newQuestionsToAdd];
+      let finalQuestions = [...updatedQuestions, ...newQuestionsToAdd];
+
+      // 过滤超出所有分段范围的题目（当结束题数量减少时删除对应题目）
+      finalQuestions = finalQuestions.filter((question) => {
+        // 检查题目是否在任何一个分段的范围内
+        return segments.some((segment) => {
+          const { startQuestion, endQuestion } = segment;
+          if (!startQuestion || !endQuestion) return false;
+
+          const start = parseInt(startQuestion);
+          const end = parseInt(endQuestion);
+          if (isNaN(start) || isNaN(end) || start > end) return false;
+
+          return (
+            question.questionNumber >= start && question.questionNumber <= end
+          );
+        });
+      });
+
+      // 再次排序
       finalQuestions.sort((a, b) => a.questionNumber - b.questionNumber);
 
       setQuestions(finalQuestions);
@@ -385,6 +415,7 @@ const ObjectiveQuestionModal = ({
         questionNumber: questionNumber,
         questionContent: questionContent,
         isEdit: isEditMode,
+        segments: segments,
       };
       if (isEditMode) {
         successData = { ...initialData, ...successData };

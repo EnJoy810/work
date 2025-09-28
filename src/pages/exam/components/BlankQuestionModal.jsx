@@ -258,7 +258,7 @@ const BlankQuestionModal = ({
     if (visible && initialData) {
       // 回填大题题号和题目内容
       setQuestionNumber(initialData.questionNumber || "一");
-      setQuestionContent(initialData.content || "填空题");
+      setQuestionContent(initialData.content || "");
       setFillType(initialData.fillType || "short");
       if (initialData.fillType === "short") {
         // 短填空
