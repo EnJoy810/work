@@ -298,13 +298,34 @@ export const calculateQuestionHeight = (question) => {
   // 题目类型高度常量
   const objectHeight = 157.3; // 选择题高度
   const baseShortFirstHeight = 87.33; // 填空题基础高度（包含标题的一行高度）
+  const baseShowFirstHeight = 23.33; // 填空题基础高度，数据分割没有标题的时候
   const blankLineHeight = 40; // 填空题每行高度
 
   // 根据题目类型返回对应的高度
   if (question.type === "objective") {
     return objectHeight;
   } else if (question.type === "blank") {
-    return baseShortFirstHeight + (question.totalLines - 1) * blankLineHeight;
+    if (question.sliceQuestion) {
+      // 分割的数据需要重新计算行数
+      let totalLines = 0;
+      question.questions.forEach((q) => {
+        // 小题
+        if (q.isAddSubQuestionClicked) {
+          q.subQuestions.forEach((subQ) => {
+            totalLines += subQ.totalLines;
+          });
+        } else {
+          // showLinesPerQuestion有值则说明数据分割了
+          totalLines += q.showLinesPerQuestion || q.linesPerQuestion;
+        }
+      });
+      // console.log("totalLines 总行数", totalLines);
+      return question.sliceQuestion
+        ? baseShowFirstHeight
+        : baseShortFirstHeight + (totalLines - 1) * blankLineHeight;
+    } else {
+      return baseShortFirstHeight + (question.totalLines - 1) * blankLineHeight;
+    }
   }
 
   // 默认返回0
@@ -441,16 +462,24 @@ export const splitBlankQuestion = (
           totalLines += subTotalLines;
         }
       } else {
+        console.log("q 行", q.linesPerQuestion);
         const lineCount = q.linesPerQuestion || 1;
 
         totalLines += lineCount;
         if (totalLines > remainingLines) {
-          splitIndex = i - 1; // 最后一行最后一小题的下标
+          splitIndex = i; // 最后一行最后一小题的下标
           // 多余的行数
-          const remindLinesPerQuestion = totalLines - remainingLines;
+          const perQuestionRemindLines = totalLines - remainingLines;
+          // 当前题目多余的行数
+          q.perQuestionRemindLines = perQuestionRemindLines;
           // 计算当前题目需要显示的行数 important!
-          q.splitLinesPerQuestion = q.linesPerQuestion - remindLinesPerQuestion;
-
+          q.perQuestionSplitLines = q.linesPerQuestion - perQuestionRemindLines;
+          console.log(
+            "当前剩余显示的行数",
+            q.linesPerQuestion - perQuestionRemindLines,
+            "多余的行数 ",
+            perQuestionRemindLines
+          );
           break;
         }
       }
@@ -458,19 +487,73 @@ export const splitBlankQuestion = (
 
     // 分割数据
     if (splitIndex >= 0) {
-      const currentPageData = question.questions.slice(0, splitIndex + 1);
-      const nextPageData = question.questions.slice(splitIndex + 1);
+      // 分割的数据
+      const splitData = question.questions[splitIndex];
+      console.log("分割的数据-》", splitData, "分割的下标", splitIndex);
+      const currentPageData = question.questions.slice(0, splitIndex);
+      const nextPageData = question.questions.slice(splitIndex);
 
-      firstPart = {
-        ...question,
-        questions: currentPageData,
-      };
+      if (
+        question.fillType === "long" &&
+        splitData.perQuestionRemindLines > 0
+      ) {
+        if (splitData.perQuestionSplitLines === 0) {
+          // 不分割 小题里的
+          firstPart = {
+            ...question,
+            originQuestions: question.questions,
+            questions: currentPageData,
+          };
 
-      secondPart = {
-        ...question,
-        sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
-        questions: nextPageData,
-      };
+          secondPart = {
+            ...question,
+            originQuestions: question.questions,
+            sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+            questions: nextPageData,
+          };
+        } else {
+          // 长填空
+          const leftFirstPart = question.questions.slice(0, splitIndex);
+          const rightFirstPart = [
+            {
+              ...splitData,
+              showLinesPerQuestion: splitData.perQuestionSplitLines, // 分割后显示的行数
+            },
+          ];
+          // 题目有部分在下一个页显示
+          firstPart = {
+            ...question,
+            originQuestions: question.questions,
+            questions: [...leftFirstPart, ...rightFirstPart],
+          };
+          const leftSecondPart = [
+            {
+              ...splitData,
+              showLinesPerQuestion: splitData.perQuestionRemindLines, // 分割后多余显示的行数
+            },
+          ];
+          const rightSecondPart = [...question.questions.slice(splitIndex + 1)];
+          secondPart = {
+            ...question,
+            originQuestions: question.questions,
+            sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+            questions: [...leftSecondPart, ...rightSecondPart],
+          };
+        }
+      } else {
+        firstPart = {
+          ...question,
+          originQuestions: question.questions,
+          questions: currentPageData,
+        };
+
+        secondPart = {
+          ...question,
+          originQuestions: question.questions,
+          sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+          questions: nextPageData,
+        };
+      }
     }
   }
 
@@ -491,7 +574,7 @@ export const processPageQuestions = (
     const element = questions[index];
     // 调用抽离的函数计算题目高度
     const questionHeight = calculateQuestionHeight(element);
-    console.log("当前题目高度  1->", element.type, questionHeight);
+    console.log("当前题目高度  1->", element.type, questionHeight, element);
 
     availableHeight -= questionHeight;
     console.log("当前可用高度  2->", availableHeight);

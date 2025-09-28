@@ -5,8 +5,12 @@ import React from "react";
  * 负责渲染长填空题的多行布局
  */
 const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
-  const { questions: subQuestions } = questions;
-  console.log("subQuestions 长填空渲染", questions,questions.showSubQuestionScore);
+  const { questions: subQuestions, sliceQuestion } = questions;
+  console.log(
+    "subQuestions 长填空渲染",
+    questions,
+    questions.showSubQuestionScore
+  );
 
   // 先处理数据数组，生成结构化的数据
   const processedQuestions = [];
@@ -19,6 +23,7 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
           innerQuestionNumber: subIndex + 1, // 小题名称
           linesPerQuestion: subQuestion.totalLines, // 每题行数
           pointsPerLine: subQuestion.pointsPerLine, // 每题分数
+          showLinesPerQuestion: subItem.showLinesPerQuestion, // 分割后显示的行数
         };
         if (subIndex === 0) {
           blank.questionNumber = subItem.questionNumber; // 第一项获取上级的题号显示
@@ -32,13 +37,15 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
         questionNumber: subItem.questionNumber, // 题名称
         linesPerQuestion: subItem.linesPerQuestion, // 每题行数
         pointsPerLine: subItem.pointsPerLine, // 每题分数
+        showLinesPerQuestion: subItem.showLinesPerQuestion, // 分割后显示的行数
       });
     }
   });
-  // console.log("processedQuestions 长填空渲染", processedQuestions);
+  console.log("processedQuestions 长填空渲染", processedQuestions);
 
   // 渲染函数，基于处理好的数据数组进行渲染
   const renderLongFillQuestions = () => {
+    // console.log("有来渲染吗", processedQuestions);
     return processedQuestions.map((question) => (
       <div key={question.key} className="long-fill-question">
         {/* 第一行包含标题和下划线 */}
@@ -49,22 +56,29 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
             alignItems: "center",
           }}
         >
-          <div
-            className="long-fill-question-title"
-            style={{
-              marginRight: "10px",
-              fontWeight: "500",
-              height: "30px",
-              display: "flex",
-              alignItems: "flex-end",
-            }}
-          >
-            {question.questionNumber ? `${question.questionNumber}、` : ""}
-            {question.innerQuestionNumber
-              ? `(${question.innerQuestionNumber})`
-              : ""}
-              {questions.showSubQuestionScore? `（${question.pointsPerLine}分）` : ""}
-          </div>
+          {/* 没分割 或者 分割了但是没有分割的行数 */}
+          {(!sliceQuestion ||
+            (sliceQuestion && !question.showLinesPerQuestion)) && (
+            <div
+              className="long-fill-question-title"
+              style={{
+                marginRight: "10px",
+                fontWeight: "500",
+                height: "30px",
+                display: "flex",
+                alignItems: "flex-end",
+              }}
+            >
+              {question.questionNumber ? `${question.questionNumber}、` : ""}
+              {question.innerQuestionNumber
+                ? `(${question.innerQuestionNumber})`
+                : ""}
+              {questions.showSubQuestionScore
+                ? `（${question.pointsPerLine}分）`
+                : ""}
+            </div>
+          )}
+
           <div
             style={{
               borderBottom: "1px solid #000",
@@ -76,10 +90,12 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
             }}
           />
         </div>
-
         {/* 剩余的行仅显示下划线 */}
         {Array.from({
-          length: Math.max(0, question.linesPerQuestion - 1),
+          length: Math.max(
+            0,
+            (question.showLinesPerQuestion || question.linesPerQuestion) - 1
+          ),
         }).map((_, lineIndex) => (
           <div
             key={`${question.key}-line-${lineIndex + 1}`}

@@ -283,7 +283,7 @@ const BlankQuestionModal = ({
         setTimeout(() => {
           // 回填questions数据
           if (initialData.questions && Array.isArray(initialData.questions)) {
-            setQuestions(initialData.questions);
+            setQuestions(initialData.originQuestions || initialData.questions);
           }
         }, 200);
 
@@ -313,7 +313,9 @@ const BlankQuestionModal = ({
         setTimeout(() => {
           // 回填questions数据
           if (initialData.questions && Array.isArray(initialData.questions)) {
-            setLongQuestions(initialData.questions);
+            setLongQuestions(
+              initialData.originQuestions || initialData.questions
+            );
           }
         }, 200);
       }
