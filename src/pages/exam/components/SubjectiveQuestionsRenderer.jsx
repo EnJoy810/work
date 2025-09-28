@@ -9,7 +9,11 @@ import LongFillRenderer from "./LongFillRenderer";
  */
 const SubjectiveQuestionsRenderer = React.forwardRef(
   ({ questions, onPositionUpdate, pageRef }, ref) => {
+    console.log("questions 非选择题渲染组件", questions);
     const { questionNumber, content, fillType } = questions;
+    const multipleChoiceItem = (questions.questions || []).find(
+      (q) => q.isMultipleChoice
+    );
 
     // 创建ref用于获取非选择题部分的DOM元 素
     const questionsContainerRef = useRef(null);
@@ -76,7 +80,16 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
               fontSize: "16px",
             }}
           >
-            {questionNumber}、{content}
+            {questionNumber}、{content}{" "}
+            {multipleChoiceItem
+              ? `(${multipleChoiceItem.subQuestions.length}选${
+                  multipleChoiceItem.selectedBlanksCount
+                }，共${
+                  multipleChoiceItem.selectedBlanksCount *
+                  (multipleChoiceItem.subQuestions[0].blanks[0].points *
+                    multipleChoiceItem.subQuestions[0].totalBlanks   || 1)
+                } 分)`
+              : ""}
           </div>
         ) : null}
         {/* 根据fillType渲染对应的填空内容 */}

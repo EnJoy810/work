@@ -6,7 +6,7 @@ import React from "react";
  */
 const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
   const { questions: subQuestions } = questions;
-  console.log("subQuestions 长填空渲染", questions);
+  console.log("subQuestions 长填空渲染", questions,questions.showSubQuestionScore);
 
   // 先处理数据数组，生成结构化的数据
   const processedQuestions = [];
@@ -18,6 +18,7 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
         const blank = {
           innerQuestionNumber: subIndex + 1, // 小题名称
           linesPerQuestion: subQuestion.totalLines, // 每题行数
+          pointsPerLine: subQuestion.pointsPerLine, // 每题分数
         };
         if (subIndex === 0) {
           blank.questionNumber = subItem.questionNumber; // 第一项获取上级的题号显示
@@ -30,6 +31,7 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
         key: subItem.id,
         questionNumber: subItem.questionNumber, // 题名称
         linesPerQuestion: subItem.linesPerQuestion, // 每题行数
+        pointsPerLine: subItem.pointsPerLine, // 每题分数
       });
     }
   });
@@ -61,6 +63,7 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
             {question.innerQuestionNumber
               ? `(${question.innerQuestionNumber})`
               : ""}
+              {questions.showSubQuestionScore? `（${question.pointsPerLine}分）` : ""}
           </div>
           <div
             style={{

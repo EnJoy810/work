@@ -16,7 +16,7 @@ const ShortFillRenderer = React.forwardRef(({ questions }, ref) => {
         // 小题
         subItem.subQuestions.forEach((subBlank, index) => {
           subBlank.blanks.forEach((blank, blankIndex) => {
-            console.log("blankIndex", blankIndex);
+            // console.log("blankIndex", blankIndex);
             if (index === 0 && blankIndex === 0) {
               blank.questionNumber = subItem.questionNumber; // 第一项获取上级的题号显示
             }
