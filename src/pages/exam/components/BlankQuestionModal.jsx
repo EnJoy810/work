@@ -239,7 +239,7 @@ const BlankQuestionModal = ({
   // 重置表单
   const resetForm = () => {
     setQuestionNumber("一");
-    setQuestionContent("填空题");
+    setQuestionContent("");
     setShortFillConfig([
       {
         id: 1,
@@ -352,7 +352,7 @@ const BlankQuestionModal = ({
               }
             });
           }
-          
+
           // 检查长填空的endQuestion
           if (q.longFillConfig && Array.isArray(q.longFillConfig)) {
             q.longFillConfig.forEach((config) => {
@@ -377,7 +377,7 @@ const BlankQuestionModal = ({
 
       // 设置默认的maxEndQuestion为最大值加1
       const defaultStartQuestion = (maxEndQuestion + 1).toString();
-      
+
       // 设置短填空的startQuestion
       setShortFillConfig([
         {
@@ -388,7 +388,7 @@ const BlankQuestionModal = ({
           blanksPerQuestion: "1",
         },
       ]);
-      
+
       // 设置长填空的startQuestion为相同的值
       setLongFillConfig([
         {
@@ -450,14 +450,29 @@ const BlankQuestionModal = ({
       // 小题数据现在从questions中获取，不再需要单独的subQuestions状态
       submitData.blanksPerLine = blanksPerLine;
       submitData.showSubQuestionScore = showSubQuestionScore;
-
-      // 计算短填空的分页信息
       // 短填空的总行数 = 总空数 / 每行空数，向上取整
       const totalBlanksPerQuestion = questions.reduce(
         (sum, q) => sum + q.blanksPerQuestion,
         0
       );
-      const totalLines = Math.ceil(totalBlanksPerQuestion / blanksPerLine);
+      let totalBlanks = 0;
+      questions.forEach((q) => {
+        // 小题
+        if (q.isAddSubQuestionClicked) {
+          q.subQuestions.forEach((subQ) => {
+            totalBlanks += subQ.totalBlanks;
+          });
+        } else {
+          totalBlanks += q.blanksPerQuestion;
+        }
+      });
+      const totalLines = Math.ceil(totalBlanks / blanksPerLine);
+      console.log(
+        "totalLines 短填空带标题 总行数",
+        totalLines,
+        "空数",
+        totalBlanks
+      );
       submitData.totalBlanksPerQuestion = totalBlanksPerQuestion;
       submitData.totalLines = totalLines;
     } else {
@@ -470,13 +485,20 @@ const BlankQuestionModal = ({
         linesPerQuestion: config.linesPerQuestion,
       }));
       submitData.showSubQuestionScore = showSubQuestionScore;
-
-      // 计算长填空的分页信息
+      console.log("longQuestions", longQuestions);
       // 长填空的总行数 = 题目数量 × 每道题行数
-      const totalLines = longQuestions.reduce(
-        (sum, q) => sum + q.linesPerQuestion,
-        0
-      );
+      let totalLines = 0;
+      longQuestions.forEach((q) => {
+        // 小题
+        if (q.isAddSubQuestionClicked) {
+          q.subQuestions.forEach((subQ) => {
+            totalLines += subQ.totalLines;
+          });
+        } else {
+          totalLines += q.linesPerQuestion;
+        }
+      });
+      // console.log("totalLines 总行数", totalLines);
       submitData.totalLines = totalLines;
     }
 

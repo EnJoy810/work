@@ -407,8 +407,8 @@ const AnswerSheetRenderer = forwardRef(
               <div
                 style={{
                   border: "1px solid #000",
-                  width: "20px",
-                  height: "20px",
+                  width: "24px",
+                  height: "16px",
                   backgroundColor: "#000",
                   margin: "3px auto",
                 }}

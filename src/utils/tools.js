@@ -290,6 +290,7 @@ export const calculateElementPosition = (element, referenceElement) => {
 // 计算题目高度
 // 根据题目类型返回计算的高度
 export const calculateQuestionHeight = (question) => {
+  console.log("计算题目高度 ", question);
   // 题目类型高度常量
   const objectHeight = 157.3; // 选择题高度
   const baseShortFirstHeight = 87.33; // 填空题基础高度（包含标题的一行高度）
@@ -347,7 +348,7 @@ export const splitBlankQuestion = (
       questionWrapPadding) /
       lineHeight
   );
-  console.log("remainingLines", remainingLines);
+  console.log("remainingLines 剩余行数:", remainingLines);
   // 剩余行数小于0，直接将数据添加到第二页，不需要分割
   if (remainingLines <= 0) {
     return { firstPart: null, secondPart: null };
@@ -507,6 +508,7 @@ export const processPageQuestions = (
           "firstPart, secondPart",
           firstPart,
           secondPart,
+          index,
           remindIndex
         );
 
@@ -520,12 +522,11 @@ export const processPageQuestions = (
             nextPageFirstQuestion: secondPart,
           };
         } else if (!firstPart && !secondPart) {
-          
           // 都不需要分割
           return {
             currentPageQuestions: questions.slice(0, index),
-            remindIndex: index ,
-            nextPageFirstQuestion:  null,
+            remindIndex: index,
+            nextPageFirstQuestion: null,
           };
         }
       }
@@ -593,7 +594,7 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
     }
   } else {
     // 普通分页，直接获取剩余题目
-    remindQuestions = questions.slice(remindIndex); 
+    remindQuestions = questions.slice(remindIndex);
   }
 
   // 计算后续页面
