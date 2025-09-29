@@ -38,6 +38,8 @@ const ChinesePaperDesign = () => {
   // 存储分页后的数据
   const [paginationData, setPaginationData] = useState([]);
   const [totalPages, setTotalPages] = useState(1); // 分页数据
+  // 存储位置数据的专用对象，避免在questions中修改引起多次页面渲染
+  const [questionPositions, setQuestionPositions] = useState({});
   // 用于引用AnswerSheetRenderer组件
   const answerSheetRef = useRef(null);
 
@@ -66,79 +68,58 @@ const ChinesePaperDesign = () => {
     if (positions && typeof positions === "object") {
       // 过滤掉timestamp属性，避免其导致的无限循环
       const filteredPositions = { ...positions };
-      Object.keys(filteredPositions).forEach(key => {
+      Object.keys(filteredPositions).forEach((key) => {
         if (filteredPositions[key]?.timestamp !== undefined) {
           delete filteredPositions[key].timestamp;
         }
       });
-      
-      setQuestions((prevQuestions) => {
-        // 创建新的题目数组
-        const updatedQuestions = prevQuestions.map((question) => {
-          // 使用sectionId作为唯一标识查找对应的位置信息，避免题号重复的问题
-          const positionInfo = question.sectionId
-            ? filteredPositions[question.sectionId]
-            : null;
 
-          // 对于选择题，查找包含完整小题位置信息的数据
-          // ObjectiveQuestionsRenderer中使用${sectionId}_complete传递完整数据
-          const completePositionInfo = 
-            question.sectionId && question.type === "objective"
-              ? filteredPositions[`${question.sectionId}_complete`]
-              : null;
+      // 更新专门的位置数据对象，而不是修改questions数组
+      setQuestionPositions((prevPositions) => {
+        // 创建新的位置信息对象
+        const updatedPositions = { ...prevPositions };
 
-          // 如果找到包含完整小题位置信息的数据，只更新与位置相关的属性
-          if (completePositionInfo && completePositionInfo.questions) {
-            // 检查是否需要更新 - 只有当位置信息真正变化时才更新
-            const needUpdate = question.questions?.some((q, index) => {
-              const newPosition = completePositionInfo.questions[index]?.questionPositionInfo;
-              const oldPosition = q?.questionPositionInfo;
-              return JSON.stringify(newPosition) !== JSON.stringify(oldPosition);
-            }) || JSON.stringify(completePositionInfo.positionInfo) !== JSON.stringify(question.positionInfo);
-            
-            if (!needUpdate) {
-              return question; // 位置信息没有变化，返回原对象避免重新渲染
+        // 遍历所有传入的位置数据
+        Object.keys(filteredPositions).forEach((key) => {
+          // 对于选择题完整数据，特殊处理
+          if (key.endsWith("_complete")) {
+            const completePositionInfo = filteredPositions[key];
+
+            if (completePositionInfo && completePositionInfo.questions) {
+              // 检查是否需要更新 - 只有当位置信息真正变化时才更新
+              const needUpdate =
+                !prevPositions[key] ||
+                JSON.stringify(completePositionInfo.positionInfo) !==
+                  JSON.stringify(prevPositions[key]?.positionInfo) ||
+                completePositionInfo.questions.some(
+                  (q, index) =>
+                    JSON.stringify(q?.questionPositionInfo) !==
+                    JSON.stringify(
+                      prevPositions[key]?.questions?.[index]
+                        ?.questionPositionInfo
+                    )
+                );
+
+              if (needUpdate) {
+                updatedPositions[key] = completePositionInfo;
+                console.log(`更新选择题完整位置信息: ${key}`);
+              }
             }
-            
-            console.log("找到选择题完整位置信息且有变化，更新位置相关属性");
-            return {
-              ...question,
-              // 只更新positionInfo，不更新整个对象避免触发无限渲染
-              positionInfo: completePositionInfo.positionInfo || positionInfo,
-              // 更新questions数组中的位置信息，但保持原数组结构
-              questions: completePositionInfo.questions.map((q, index) => ({
-                ...(question.questions && question.questions[index] ? question.questions[index] : q),
-                questionPositionInfo: q.questionPositionInfo || null
-              }))
-            };
+          } else {
+            // 对于普通位置信息
+            const positionInfo = filteredPositions[key];
+            if (
+              positionInfo &&
+              JSON.stringify(positionInfo) !==
+                JSON.stringify(prevPositions[key])
+            ) {
+              updatedPositions[key] = positionInfo;
+              console.log(`更新位置信息: ${key}`);
+            }
           }
-          // 如果找到位置信息，并且与现有位置信息不同，则更新
-          else if (
-            positionInfo &&
-            JSON.stringify(positionInfo) !==
-              JSON.stringify(question.positionInfo)
-          ) {
-            return {
-              ...question,
-              positionInfo: { ...positionInfo }, // 添加位置信息属性
-            };
-          }
-
-          return question;
         });
 
-        // 检查是否有任何题目被更新
-        const hasChanges =
-          JSON.stringify(updatedQuestions) !== JSON.stringify(prevQuestions);
-
-        // 只有在有变化时才返回新数组，避免不必要的渲染
-        if (hasChanges) {
-          console.log("已将位置信息添加到题目对象中");
-          return updatedQuestions;
-        }
-
-        // 没有变化时返回原数组
-        return prevQuestions;
+        return updatedPositions;
       });
     }
   }, []);
@@ -175,10 +156,12 @@ const ChinesePaperDesign = () => {
         questions: questions,
         // 添加ExamInfoSection的位置信息
         examInfoPosition: examInfoPosition,
+        // 添加单独存储的位置数据
+        questionPositions: questionPositions,
       };
 
       console.log("试卷完整数据：", examData);
-      
+
       // 获取所有answer-sheet-page元素的内容
       const answerSheetPages = [];
       const pageElements = document.querySelectorAll(".answer-sheet-page");

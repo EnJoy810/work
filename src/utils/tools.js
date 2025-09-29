@@ -568,19 +568,6 @@ export const splitBlankQuestion = (
         console.log("有小题的  来分割了 subSplitData", subSplitData);
         if (subSplitData.perQuestionSplitLines === 0) {
           // 当前subQ 需要显示的行数为0， 即将当前sub数据直接放到下一页
-          const firstSubQuestions = splitData.subQuestions.slice(
-            0,
-            subSplitIndex
-          );
-
-          const leftSecondPart = [
-            {
-              ...splitData,
-              showLinesPerQuestion: splitData.perQuestionRemindLines, // 分割后多余显示的行数
-            },
-          ];
-          const rightSecondPart = [...question.questions.slice(splitIndex + 1)];
-
           firstPart = {
             ...question,
             originQuestions: question.questions,
