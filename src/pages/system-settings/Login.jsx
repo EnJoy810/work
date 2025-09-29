@@ -1,10 +1,14 @@
 import React, { useState } from "react";
 import { Card, Form, Input, Select, Button } from "antd";
-import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
+import {
+  EyeInvisibleOutlined,
+  EyeTwoTone,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../../store/slices/userSlice";
 import { useMessageService } from "../../components/common/message";
+import LogoIcon from "../../components/common/LogoIcon";
 import "../../App.css";
 
 const { Option } = Select;
@@ -87,15 +91,19 @@ const Login = () => {
     <div className="login-container">
       <Card
         title={
-          <div style={{ textAlign: "center", marginBottom: 10 }}>
-            <div
-              style={{ fontSize: "20px", fontWeight: "bold", marginBottom: 8 }}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}
             >
-              清境智能
+              <LogoIcon fontSize={20} />
+              <div style={{ marginLeft: 12 }}>
+                <div
+                  style={{ fontSize: "20px", fontWeight: "bold", marginBottom: 2 }}
+                >
+                  清境智能
+                </div>
+                <div style={{ fontSize: "14px", color: "#666" }}>在线阅卷系统</div>
+              </div>
             </div>
-            <div style={{ fontSize: "14px", color: "#666" }}>在线阅卷系统</div>
-          </div>
-        }
+          }
         className="login-card"
         variant="outlined"
         styles={{
@@ -114,13 +122,13 @@ const Login = () => {
           >
             欢迎登录
           </h3>
-          <p style={{ color: "#666", fontSize: "14px" }}>
+          {/* <p style={{ color: "#666", fontSize: "14px" }}>
             请选择学校和角色，输入账号密码登录系统
-          </p>
+          </p> */}
         </div>
 
         <Form form={form} layout="vertical" onFinish={handleSubmit}>
-          <Form.Item
+          {/* <Form.Item
             name="school"
             label="所属学校"
             rules={[{ required: true, message: "请选择所属学校" }]}
@@ -146,7 +154,7 @@ const Login = () => {
                 </Option>
               ))}
             </Select>
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item
             name="username"
@@ -180,7 +188,7 @@ const Login = () => {
             </Button>
           </Form.Item>
 
-          <div style={{ textAlign: "center", marginTop: 8 }}>
+          {/* <div style={{ textAlign: "center", marginTop: 8 }}>
             <Button
               type="link"
               onClick={handleForgotPassword}
@@ -188,7 +196,7 @@ const Login = () => {
             >
               忘记密码？请联系技术支持
             </Button>
-          </div>
+          </div> */}
         </Form>
       </Card>
     </div>

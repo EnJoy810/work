@@ -17,8 +17,14 @@
   background-color: #e9ebef;
 }
 
+.nav-bar-header .menu-item.active {
+  background-color: #001529;
+  color: #fff;
+}
+
 .nav-bar-header .menu-item-label {
   margin-left: 10px;
+  font-size: 15px;
 }
 
 .nav-bar-header .user-drop {

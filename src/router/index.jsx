@@ -1,24 +1,29 @@
-import { createBrowserRouter } from 'react-router-dom'
-import Layout from '../layout'
-import pages from '../pages'
-import { ProtectedRoute, LoginPage } from './ProtectedRoutes.jsx'
-import ExamPaperPreview from '../pages/exam/ExamPaperPreview.jsx'
+import { createBrowserRouter } from "react-router-dom";
+import Layout from "../layout";
+import pages from "../pages";
+import { ProtectedRoute, LoginPage } from "./ProtectedRoutes.jsx";
 
 // 解构获取各个页面组件
-const { Home } = pages.dashboard;
+const { Home, CreateExam, UploadAnswerSheet } = pages.dashboard;
 const { UserList } = pages.studentManagement;
 const { NotFound } = pages;
 const { MessageDemo } = pages.systemSettings;
-const { ExamPaperDesign, ChinesePaperDesign, MathPaperDesign, EnglishPaperDesign } = pages.exam;
+const {
+  ExamPaperDesign,
+  ChinesePaperDesign,
+  MathPaperDesign,
+  EnglishPaperDesign,
+  ExamPaperPreview,
+} = pages.exam;
 
 // 创建路由配置
 const router = createBrowserRouter([
   {
-    path: '/login',
-    element: <LoginPage />
+    path: "/login",
+    element: <LoginPage />,
   },
   {
-    path: '/',
+    path: "/",
     element: (
       <ProtectedRoute>
         <Layout />
@@ -28,44 +33,52 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Home />
+        element: <Home />,
       },
       {
-        path: 'users',
-        element: <UserList />
+        path: "users",
+        element: <UserList />,
       },
       {
-        path: 'message-demo',
-        element: <MessageDemo />
+        path: "message-demo",
+        element: <MessageDemo />,
       },
       {
-        path: 'exam-paper-design',
-        element: <ExamPaperDesign />
+        path: "create-exam",
+        element: <CreateExam />,
       },
       {
-        path: 'exam-paper-design/chinese',
-        element: <ChinesePaperDesign />
+        path: "upload-answer-sheet",
+        element: <UploadAnswerSheet />,
       },
       {
-        path: 'exam-paper-design/math',
-        element: <MathPaperDesign />
+        path: "exam-paper-design",
+        element: <ExamPaperDesign />,
       },
       {
-        path: 'exam-paper-design/english',
-        element: <EnglishPaperDesign />
-      }
-    ]
+        path: "exam-paper-design/chinese",
+        element: <ChinesePaperDesign />,
+      },
+      {
+        path: "exam-paper-design/math",
+        element: <MathPaperDesign />,
+      },
+      {
+        path: "exam-paper-design/english",
+        element: <EnglishPaperDesign />,
+      },
+    ],
   },
   // 试卷预览页面 - 不需要Layout包裹但需要登录保护
   {
-    path: '/exam-paper-preview',
+    path: "/exam-paper-preview",
     element: (
       <ProtectedRoute>
         <ExamPaperPreview />
       </ProtectedRoute>
     ),
-    errorElement: <NotFound />
-  } 
-])
+    errorElement: <NotFound />,
+  },
+]);
 
-export default router
+export default router;

@@ -14,7 +14,7 @@ const LayoutComponent = () => {
       {/* 主内容区 */}
       <Content style={{ overflow: "auto" }}>
         <div
-          style={{ padding: "64px 24px 40px 24px", background: "#fff", minHeight: 360 }}
+          style={{ padding: "84px 24px 40px 24px", background: "#fff", minHeight: 360 }}
         >
           <Outlet />
         </div>

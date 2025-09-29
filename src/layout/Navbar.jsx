@@ -10,12 +10,13 @@ import {
   LogoutOutlined,
   DownOutlined,
 } from "@ant-design/icons";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Layout, Menu, Dropdown, Avatar } from "antd";
 import { useMessageService } from "../components/common/message";
 import { useSelector, useDispatch } from "react-redux";
 import { clearUserInfo } from "../store/slices/userSlice";
 import "./navbar.css";
+import LogoIcon from "../components/common/LogoIcon";
 
 const { Header } = Layout;
 
@@ -24,6 +25,7 @@ const Navbar = () => {
   const dispatch = useDispatch();
   const { userInfo } = useSelector((state) => state.user);
   const { showSuccess } = useMessageService();
+  const location = useLocation();
 
   // 用户菜单配置
   const userMenuItems = [
@@ -116,7 +118,8 @@ const Navbar = () => {
           display: "flex",
           alignItems: "center",
           height: "100%",
-          width: "100%",
+          // width: "90%",
+          // margin: "0 auto",
         }}
       >
         {/* 左侧：系统标题 */}
@@ -130,8 +133,10 @@ const Navbar = () => {
             fontWeight: "bold",
           }}
         >
+          <LogoIcon fontSize={18} />
           <span
             style={{
+              marginLeft: 8,
               color: "#000",
               marginRight: 8,
               fontSize: 22,
@@ -152,12 +157,18 @@ const Navbar = () => {
           }}
         >
           {menuList.map((item) => {
+            // 判断当前路由是否匹配菜单项的路径
+            const isActive =
+              location.pathname === item.path ||
+              (item.path !== "/" &&
+                location.pathname.startsWith(item.path + "/"));
+
             return (
               <Link
                 key={item.key}
                 to={item.path}
-                className="menu-item"
-                style={{ textDecoration: "none", color: "inherit" }}
+                className={`menu-item ${isActive ? "active" : ""}`}
+                style={{ textDecoration: "none" }}
               >
                 {item.icon}
                 <span className="menu-item-label">{item.label}</span>
