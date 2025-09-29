@@ -1,15 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  Typography,
-  Upload,
-  message,
-  Button,
-  Card,
-  Input,
-  Select,
-  Form,
-} from "antd";
+import { Typography, Upload, Button, Card, Input, Select, Form } from "antd";
+import { useMessageService } from "../../components/common/message";
 import {
   UploadOutlined,
   FileTextOutlined,
@@ -17,7 +9,7 @@ import {
   PlusOutlined,
   FileProtectOutlined,
 } from "@ant-design/icons";
-import "./home.css";
+import "./styles/home.css";
 
 const { Title, Paragraph } = Typography;
 const { Dragger } = Upload;
@@ -29,29 +21,81 @@ const { Dragger } = Upload;
 const CreateExam = () => {
   const navigate = useNavigate();
   const [form] = Form.useForm();
+  const [paperFile, setPaperFile] = useState(null);
+  const [answerFile, setAnswerFile] = useState(null);
+  const { showSuccess, showError, showInfo } = useMessageService();
 
   // 处理创建新考试
   const handleCreateExam = () => {
     form
       .validateFields()
       .then((values) => {
-        // 获取考试信息数据
-        const examData = {
-          name: values.examName,
-          subject: values.examSubject,
-          // 这里可以添加其他需要的考试信息
-        };
+        // 检查文件是否上传
+    if (!paperFile) {
+      showError("请上传试卷题目文件");
+      return;
+    }
 
-        console.log("创建新考试数据:", examData);
-        message.success("考试创建成功");
+    if (!answerFile) {
+      showError("请上传答案及解析文件");
+      return;
+    }
 
-        // 这里可以添加提交考试数据到后端的逻辑
-        // 提交成功后可以跳转到考试详情页或其他页面
-        // navigate(`/exam/${examId}`);
+        // 创建FormData对象
+        const formData = new FormData();
+
+        // 添加考试信息
+        formData.append("name", values.examName);
+        formData.append("subject", values.examSubject);
+
+        // 添加文件数据
+        formData.append("paperFile", paperFile);
+        formData.append("answerFile", answerFile);
+
+        console.log("创建新考试数据: 已准备FormData");
+        // 输出FormData内容
+        // console.log("FormData内容:");
+        // const formDataEntries = {};
+        // formData.forEach((value, key) => {
+        //   if (value instanceof File) {
+        //     formDataEntries[key] = `File: ${value.name} (${value.size} bytes, type: ${value.type})`;
+        //   } else {
+        //     formDataEntries[key] = value;
+        //   }
+        // });
+        // console.log(formDataEntries);
+
+        // 模拟提交到后端接口
+        // 实际项目中替换为真实的API调用
+        // 示例：
+        // fetch('/api/exams/create', {
+        //   method: 'POST',
+        //   body: formData,
+        // })
+        // .then(response => response.json())
+        // .then(data => {
+        //   console.log('提交成功:', data);
+        //   message.success('考试创建成功');
+        //   navigate(`/exam/${data.examId}`);
+        // })
+        // .catch(error => {
+        //   console.error('提交失败:', error);
+        //   message.error('考试创建失败，请重试');
+        // });
+
+        showSuccess("考试创建成功");
+
+        // 重置状态
+        setPaperFile(null);
+        setAnswerFile(null);
+        form.resetFields();
+
+        // 跳转到考试列表或详情页
+        // navigate("/dashboard");
       })
       .catch((info) => {
-        // message.error('表单验证失败');
         console.log("表单验证失败:", info);
+        // showError("表单验证失败");
       });
   };
 
@@ -61,41 +105,66 @@ const CreateExam = () => {
     multiple: false,
     accept: ".pdf",
     beforeUpload: (file) => {
-      // 这里可以添加文件校验逻辑
+      // 阻止自动上传，只保存文件到state
       const validTypes = ["application/pdf"];
       const isAllowedType = validTypes.includes(file.type);
       if (!isAllowedType) {
-        message.error("只支持 PDF 格式的文件!");
+        showError("只支持 PDF 格式的文件!");
+        return false;
       }
-      return isAllowedType;
+
+      // 保存文件到state
+      setPaperFile(file);
+      return false;
     },
     onChange(info) {
-      console.log("文件上传信息:", info);
-      const { status } = info.file;
-      if (status === "done") {
-        message.success(`${info.file.name} 文件上传成功`);
-      } else if (status === "error") {
-        message.error(`${info.file.name} 文件上传失败`);
+      // 当文件被移除时更新状态
+      if (info.file.status === "removed") {
+        setPaperFile(null);
+        showInfo("已移除试卷文件");
       }
     },
     onDrop(e) {
       console.log("Dropped files", e.dataTransfer.files);
     },
+    fileList: paperFile ? [{
+      uid: "paper-1",
+      name: paperFile.name,
+      status: "done",
+    }] : [],
+    // 隐藏上传按钮，只使用拖拽区域
+    showUploadList: true,
   };
 
   // 答案及解析上传配置
   const answerUploadProps = {
     ...paperUploadProps,
     name: "answer",
+    beforeUpload: (file) => {
+      // 阻止自动上传，只保存文件到state
+      const validTypes = ["application/pdf"];
+      const isAllowedType = validTypes.includes(file.type);
+      if (!isAllowedType) {
+        showError("只支持 PDF 格式的文件!");
+        return false;
+      }
+
+      // 保存文件到state
+      setAnswerFile(file);
+      return false;
+    },
     onChange(info) {
-      console.log("文件上传信息:", info);
-      const { status } = info.file;
-      if (status === "done") {
-        message.success(`${info.file.name} 答案文件上传成功`);
-      } else if (status === "error") {
-        message.error(`${info.file.name} 答案文件上传失败`);
+      // 当文件被移除时更新状态
+      if (info.file.status === "removed") {
+        setAnswerFile(null);
+        showInfo("已移除答案文件");
       }
     },
+    fileList: answerFile ? [{
+      uid: "answer-1",
+      name: answerFile.name,
+      status: "done",
+    }] : [],
   };
 
   // 返回首页
@@ -206,7 +275,9 @@ const CreateExam = () => {
             alignItems: "center",
           }}
         >
-          <FileSearchOutlined style={{ marginRight: "8px", color: "#52c41a" }} />
+          <FileSearchOutlined
+            style={{ marginRight: "8px", color: "#52c41a" }}
+          />
           答案及解析
         </Title>
         <div style={{ marginBottom: "24px" }}>
@@ -286,7 +357,9 @@ const CreateExam = () => {
             alignItems: "center",
           }}
         >
-          <FileProtectOutlined style={{ marginRight: "8px", color: "#fa8c16" }} />
+          <FileProtectOutlined
+            style={{ marginRight: "8px", color: "#fa8c16" }}
+          />
           考试信息
         </Title>
 
@@ -318,7 +391,7 @@ const CreateExam = () => {
                 labelCol={{ span: 8 }}
                 wrapperCol={{ span: 16 }}
               >
-                <Select style={{ width: "100%" }} placeholder="请选择考试科目" defaultValue="chinese">
+                <Select style={{ width: "100%" }} placeholder="请选择考试科目">
                   <Select.Option value="chinese">语文</Select.Option>
                   {/* <Select.Option value="math">数学</Select.Option>
                   <Select.Option value="english">英语</Select.Option> */}

@@ -1,0 +1,81 @@
+/* 数据分析页面样式 */
+.data-analysis-container {
+  padding: 24px;
+  background-color: #f0f2f5;
+  min-height: 100vh;
+}
+
+.data-analysis-header {
+  margin-bottom: 24px;
+  background-color: #fff;
+  padding: 16px 24px;
+  border-radius: 6px;
+}
+
+.statistics-row {
+  margin-bottom: 24px;
+}
+
+.statistics-row .ant-card {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.statistics-row .ant-card:hover {
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.data-analysis-table {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.data-analysis-table .ant-table-thead > tr > th {
+  background-color: #fafafa;
+  font-weight: 600;
+  font-size: 14px;
+  color: #262626;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.data-analysis-table .ant-table-tbody > tr > td {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.data-analysis-table .ant-table-tbody > tr:hover > td {
+  background-color: #fafafa;
+}
+
+.pagination-container {
+  margin-top: 16px;
+  background-color: #fff;
+  padding: 16px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 响应式调整 */
+@media (max-width: 1200px) {
+  .statistics-row .ant-col {
+    margin-bottom: 16px;
+  }
+  
+  .statistics-row .ant-col:last-child {
+    margin-bottom: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .data-analysis-container {
+    padding: 16px;
+  }
+  
+  .statistics-row .ant-col {
+    width: 100%;
+  }
+}
