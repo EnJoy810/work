@@ -1,68 +1,75 @@
-import axios from 'axios'
-import { store } from '../store'
+import axios from "axios";
+import { store } from "../store";
+import { message } from 'antd';
 
 // 创建axios实例
 const request = axios.create({
-  baseURL: '/api', // 默认API基础路径
+  baseURL: "/api", // 默认API基础路径
   timeout: 10000,
   headers: {
-    'Content-Type': 'application/json'
-  }
-})
+    "Content-Type": "application/json",
+  },
+});
 
 // 请求拦截器
 request.interceptors.request.use(
-  config => {
+  (config) => {
     // 从Redux store中获取token
-    const state = store.getState()
-    const token = state.user.token
+    const state = store.getState();
+    const token = state.user.token;
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`
+      config.headers.Authorization = `Bearer ${token}`;
     }
-    return config
+    return config;
   },
-  error => {
-    return Promise.reject(error)
+  (error) => {
+    return Promise.reject(error);
   }
-)
+);
 
 // 响应拦截器
 request.interceptors.response.use(
-  response => {
+  (response) => {
     // 根据后端接口规范处理响应数据
-    const res = response.data
-    if (res.code !== 200 && res.code !== 0) {
+    const res = response.data;
+    console.log("res--->", res);
+    if (res.code !== "200" && res.code !== 0) {
       // 处理错误情况
-      console.error('请求错误:', res.message || '未知错误')
-      return Promise.reject(new Error(res.message || '未知错误'))
+    console.error("请求错误:", res.message || "未知错误");
+    // 使用antd的message组件显示错误提示
+    message.error(res.message || "请求错误，请稍后重试");
+    
+    return Promise.reject(new Error(res.message || "未知错误"));
     }
-    return res
+    return res;
   },
-  error => {
+  (error) => {
     // 处理网络错误
-    console.error('网络错误:', error.message)
+    console.error("网络错误:", error.message);
     if (error.response) {
       switch (error.response.status) {
         case 401:
           // 未授权，跳转到登录页
-          console.error('未授权，请重新登录')
-          break
+          console.error("未授权，请重新登录");
+          // 跳转到登录页
+          window.location.href = "/login";
+          break;
         case 403:
-          console.error('拒绝访问')
-          break
+          console.error("拒绝访问");
+          break;
         case 404:
-          console.error('请求地址不存在')
-          break
+          console.error("请求地址不存在");
+          break;
         case 500:
-          console.error('服务器错误')
-          break
+          console.error("服务器错误");
+          break;
         default:
-          console.error('请求失败')
+          console.error("请求失败");
       }
     }
-    return Promise.reject(error)
+    return Promise.reject(error);
   }
-)
+);
 
 // 封装常用的请求方法
 export default {
@@ -70,55 +77,55 @@ export default {
   get(url, params = {}, config = {}) {
     return request({
       url,
-      method: 'get',
+      method: "get",
       params,
-      ...config
-    })
+      ...config,
+    });
   },
 
   // POST请求
   post(url, data = {}, config = {}) {
     return request({
       url,
-      method: 'post',
+      method: "post",
       data,
-      ...config
-    })
+      ...config,
+    });
   },
 
   // PUT请求
   put(url, data = {}, config = {}) {
     return request({
       url,
-      method: 'put',
+      method: "put",
       data,
-      ...config
-    })
+      ...config,
+    });
   },
 
   // DELETE请求
   delete(url, params = {}, config = {}) {
     return request({
       url,
-      method: 'delete',
+      method: "delete",
       params,
-      ...config
-    })
+      ...config,
+    });
   },
 
   // 上传文件
   upload(url, file, onUploadProgress) {
-    const formData = new FormData()
-    formData.append('file', file)
-    
+    const formData = new FormData();
+    formData.append("file", file);
+
     return request({
       url,
-      method: 'post',
+      method: "post",
       data: formData,
       headers: {
-        'Content-Type': 'multipart/form-data'
+        "Content-Type": "multipart/form-data",
       },
-      onUploadProgress
-    })
-  }
-}
+      onUploadProgress,
+    });
+  },
+};

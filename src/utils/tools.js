@@ -1,4 +1,24 @@
 // 格式化时间
+// 密码加密（使用SHA-256算法）
+export const encryptPassword = async (password) => {
+  try {
+    // 使用SHA-256算法加密密码
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hash = await crypto.subtle.digest("SHA-256", data);
+    // 将ArrayBuffer转换为十六进制字符串
+    const hashArray = Array.from(new Uint8Array(hash));
+    const hashHex = hashArray
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    return hashHex;
+  } catch (cryptoError) {
+    console.warn("密码加密失败:", cryptoError);
+    // 加密失败时返回原始密码
+    return password;
+  }
+};
+
 export const formatDate = (date, format = "YYYY-MM-DD HH:mm:ss") => {
   if (!date) return "";
 
@@ -567,7 +587,20 @@ export const splitBlankQuestion = (
         console.log("有小题的  来分割了 splitData", splitData);
         console.log("有小题的  来分割了 subSplitData", subSplitData);
         if (subSplitData.perQuestionSplitLines === 0) {
+          console.log("刚好整小题分割", subSplitData, subSplitIndex);
           // 当前subQ 需要显示的行数为0， 即将当前sub数据直接放到下一页
+          // 需要依据subSplitIndex分割subQuestions
+          const leftSubFirstPart = splitData.subQuestions.slice(
+            0,
+            subSplitIndex
+          );
+          const rightSubFirstPart = splitData.subQuestions.slice(subSplitIndex);
+          console.log(
+            "leftSubFirstPart 小题左部分",
+            leftSubFirstPart,
+            "rightSubFirstPart 小题右部分",
+            rightSubFirstPart
+          );
           firstPart = {
             ...question,
             originQuestions: question.questions,

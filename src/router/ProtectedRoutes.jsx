@@ -7,10 +7,10 @@ const { Login } = pages.systemSettings;
 
 // 受保护的路由组件 - 使用Redux状态判断登录状态
 export const ProtectedRoute = ({ children }) => {
-  const { isLoggedIn } = useSelector(state => state.user)
-  if (!isLoggedIn) {
-    return <Navigate to="/login" replace />
-  }
+  // const { isLoggedIn } = useSelector(state => state.user)
+  // if (!isLoggedIn) {
+  //   return <Navigate to="/login" replace />
+  // }
   return children
 }
 

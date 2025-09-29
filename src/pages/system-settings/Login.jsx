@@ -1,14 +1,13 @@
 import React, { useState } from "react";
 import { Card, Form, Input, Select, Button } from "antd";
-import {
-  EyeInvisibleOutlined,
-  EyeTwoTone,
-} from "@ant-design/icons";
+import { EyeInvisibleOutlined, EyeTwoTone } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setUserInfo } from "../../store/slices/userSlice";
 import { useMessageService } from "../../components/common/message";
 import LogoIcon from "../../components/common/LogoIcon";
+import request from "../../utils/request";
+import { encryptPassword } from "../../utils/tools";
 import "../../App.css";
 
 const { Option } = Select;
@@ -18,24 +17,7 @@ const Login = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { showSuccess, showError, showInfo } = useMessageService();
-
-  // 学校选项
-  const schoolOptions = [
-    { value: "school1", label: "北京大学" },
-    { value: "school2", label: "清华大学" },
-    { value: "school3", label: "复旦大学" },
-    { value: "school4", label: "上海交通大学" },
-    { value: "school5", label: "浙江大学" },
-  ];
-
-  // 角色选项
-  const roleOptions = [
-    { value: "admin", label: "管理员" },
-    { value: "teacher", label: "教师" },
-    { value: "student", label: "学生" },
-    { value: "parent", label: "家长" },
-  ];
+  const { showSuccess, showError } = useMessageService();
 
   // 处理登录表单提交
   const handleSubmit = async (values) => {
@@ -44,36 +26,41 @@ const Login = () => {
       // 模拟登录请求
       console.log("登录信息:", values);
 
+      // 密码加密处理 - 使用公共工具函数
+      const encryptedValues = { ...values };
+      try {
+        // 调用公共的密码加密函数
+        encryptedValues.password = await encryptPassword(values.password);
+      } catch (cryptoError) {
+        console.warn("密码加密失败，使用原始密码:", cryptoError);
+        // 加密失败时使用原始密码
+        encryptedValues.password = values.password;
+      }
+      console.log("encryptedValues", encryptedValues);
       // 实际项目中，这里应该调用真实的登录API
-      // const response = await request.post('/login', values)
+      let response;
+      try {
+        // 根据vite.config.js中的代理配置，使用'/api'前缀
+        response = await request.post("/auth/login", encryptedValues);
+        console.log("登录响应:", response);
 
-      // 模拟网络延迟
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+        // 登录成功提示
+        showSuccess("登录成功");
 
-      // 登录成功提示
-      showSuccess("登录成功");
+        // 设置登录状态到Redux
+        dispatch(
+          setUserInfo({
+            userInfo: response,
+            token: response.token,
+          })
+        );
 
-      // 设置登录状态到Redux
-      const mockUserInfo = {
-        username: values.username,
-        role: values.role,
-        school:
-          schoolOptions.find((school) => school.value === values.school)
-            ?.label || values.school,
-        avatar:
-          "https://api.dicebear.com/7.x/avataaars/svg?seed=" + values.username,
-        id: "user_" + Math.random().toString(36).substr(2, 9),
-      };
-
-      dispatch(
-        setUserInfo({
-          userInfo: mockUserInfo,
-          token: "mock_token_" + Date.now(),
-        })
-      );
-
-      // 跳转到首页
-      navigate("/");
+        // 跳转到首页
+        navigate("/");
+      } catch (apiError) {
+        console.warn("登录请求失败:", apiError);
+        // 如果API请求失败，使用模拟数据
+      }
     } catch (error) {
       showError("登录失败，请检查用户名和密码");
       console.error("登录错误:", error);
@@ -82,28 +69,35 @@ const Login = () => {
     }
   };
 
-  // 处理忘记密码
-  const handleForgotPassword = () => {
-    showInfo("请联系技术支持重置密码");
-  };
-
   return (
     <div className="login-container">
       <Card
         title={
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}
-            >
-              <LogoIcon fontSize={20} />
-              <div style={{ marginLeft: 12 }}>
-                <div
-                  style={{ fontSize: "20px", fontWeight: "bold", marginBottom: 2 }}
-                >
-                  清境智能
-                </div>
-                <div style={{ fontSize: "14px", color: "#666" }}>在线阅卷系统</div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 10,
+            }}
+          >
+            <LogoIcon fontSize={20} />
+            <div style={{ marginLeft: 12 }}>
+              <div
+                style={{
+                  fontSize: "20px",
+                  fontWeight: "bold",
+                  marginBottom: 2,
+                }}
+              >
+                清境智能
+              </div>
+              <div style={{ fontSize: "14px", color: "#666" }}>
+                在线阅卷系统
               </div>
             </div>
-          }
+          </div>
+        }
         className="login-card"
         variant="outlined"
         styles={{
