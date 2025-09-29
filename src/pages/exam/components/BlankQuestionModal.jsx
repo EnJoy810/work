@@ -430,13 +430,13 @@ const BlankQuestionModal = ({
       totalCount: totalCount,
       isEdit: isEditMode,
       // 页面分页信息
-      pagination: {
-        currentPageLines: [], // 当前页面能渲染的行
-        nextPageLines: [], // 需要在下一页渲染的行
-        lineHeight: 40, // 每行高度40px
-        totalLines: 0, // 总行数
-        pageCapacity: 0, // 每页容量
-      },
+      // pagination: {
+      //   currentPageLines: [], // 当前页面能渲染的行
+      //   nextPageLines: [], // 需要在下一页渲染的行
+      //   lineHeight: 40, // 每行高度40px
+      //   totalLines: 0, // 总行数
+      //   pageCapacity: 0, // 每页容量
+      // },
     };
 
     // 根据填空类型添加对应的数据

@@ -33,6 +33,7 @@ const ObjectiveQuestionsRenderer = ({
   useEffect(() => {
     // 当组件挂载或依赖项变化时计算元素位置
     if (questionsContainerRef.current && pageRef && onPositionUpdate) {
+      console.log("来计算选择题的位置信息");
       const positionInfo = calculateElementPosition(
         questionsContainerRef.current,
         pageRef

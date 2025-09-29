@@ -27,6 +27,9 @@ import {
   PAGE_CONTENT_HEIGHT,
   PAGE_POINT,
 } from "../../../utils/constants";
+
+// 导入计算元素位置的工具函数
+import { calculateElementPosition } from "../../../utils/tools";
 /**
  * 答题卷渲染组件
  * 负责在固定大小的页面上绘制题目，并支持多页显示
@@ -55,9 +58,27 @@ const AnswerSheetRenderer = forwardRef(
     // 标题状态管理
     const [title, setTitle] = useState("");
 
-    // 暴露获取title值的方法给父组件
+    // 创建ExamInfoSection组件的ref
+    const examInfoSectionRef = useRef(null);
+
+    // 暴露获取title值和ExamInfoSection位置信息的方法给父组件
     useImperativeHandle(ref, () => ({
       getTitle: () => title,
+      getExamInfoSectionPosition: () => {
+        if (examInfoSectionRef.current) {
+          // 使用calculateElementPosition工具函数获取尺寸和位置信息
+          // 确保pageRefs[0]存在且是有效的DOM元素才传递
+          const referenceElement =
+            pageRefs.current && pageRefs.current[0]
+              ? pageRefs.current[0]
+              : null;
+          return calculateElementPosition(
+            examInfoSectionRef.current,
+            referenceElement
+          );
+        }
+        return null;
+      },
     }));
 
     // 直接使用props传递的题目列表，不再使用本地状态管理
@@ -89,22 +110,41 @@ const AnswerSheetRenderer = forwardRef(
     // 使用useCallback缓存位置更新函数，避免不必要的重新渲染
     const handleQuestionPositionUpdate = useCallback(
       (identifier, positionInfo) => {
-        setQuestionPositions((prev) => {
-          // 只有当位置信息真正改变时才更新状态
-          const currentPosition = prev[identifier];
-          if (
-            currentPosition &&
-            JSON.stringify(currentPosition) === JSON.stringify(positionInfo)
-          ) {
-            return prev; // 位置信息没有变化，返回原对象
-          }
-          return {
+        // 处理长填空题的位置信息
+        if (positionInfo.type === "longFillPositions" && positionInfo.positionsInfo) {
+          // 只存储位置信息，不修改原题目数据
+          setQuestionPositions((prev) => ({
             ...prev,
-            [identifier]: positionInfo,
-          };
-        });
+            [identifier]: positionInfo
+          }));
+        } 
+        // 处理短填空题的位置信息
+        else if (positionInfo.type === "shortFillPositions" && positionInfo.shortFillPositionsInfo) {
+          // 只存储位置信息，不修改原题目数据
+          setQuestionPositions((prev) => ({
+            ...prev,
+            [identifier]: positionInfo
+          }));
+        } 
+        else {
+          // 处理普通位置更新
+          setQuestionPositions((prev) => {
+            // 只有当位置信息真正改变时才更新状态
+            const currentPosition = prev[identifier];
+            if (
+              currentPosition &&
+              JSON.stringify(currentPosition) === JSON.stringify(positionInfo)
+            ) {
+              return prev; // 位置信息没有变化，返回原对象
+            }
+            return {
+              ...prev,
+              [identifier]: positionInfo,
+            };
+          });
+        }
       },
-      []
+      [] // 空依赖数组，避免因为依赖项变化导致函数重新创建
     );
 
     // 如果父组件提供了获取位置信息的回调，则调用它
@@ -640,7 +680,9 @@ const AnswerSheetRenderer = forwardRef(
               {renderExamInfo()}
 
               {/* 考生信息输入区域 */}
-              <ExamInfoSection />
+              <div ref={examInfoSectionRef}>
+                <ExamInfoSection />
+              </div>
 
               {/* 注意事项 */}
               {hasNote && renderNote()}

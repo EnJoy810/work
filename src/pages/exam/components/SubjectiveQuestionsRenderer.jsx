@@ -23,43 +23,57 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
 
     // 使用useEffect在组件渲染后获取尺寸和位置信息
     useEffect(() => {
-      // 当组件挂载或依赖项变化时计算元素位置
-      if (questionsContainerRef.current && pageRef && onPositionUpdate) {
-        const positionInfo = calculateElementPosition(
-          questionsContainerRef.current,
-          pageRef
-        );
+      // 当组件挂载时计算一次位置信息
+      if (questionsContainerRef.current && pageRef && onPositionUpdate && questions.sectionId) {
+        // 使用setTimeout确保DOM已经完全渲染
+        const timer = setTimeout(() => {
+          const positionInfo = calculateElementPosition(
+            questionsContainerRef.current,
+            pageRef
+          );
 
-        // 扩展位置信息，添加额外信息
-        const extendedPositionInfo = {
-          ...positionInfo,
-          questionType: fillType === "short" ? "shortFill" : "longFill",
-          sectionId: questions.sectionId,
-          timestamp: new Date().getTime(),
-          fillType: fillType,
-        };
+          // 扩展位置信息，添加额外信息
+          const extendedPositionInfo = {
+            ...positionInfo,
+            questionType: fillType === "short" ? "shortFill" : "longFill",
+            sectionId: questions.sectionId,
+            fillType: fillType,
+            // 移除timestamp字段，避免不必要的更新
+          };
 
-        // 只有当位置信息真正变化时才调用回调函数
-        const currentPositionKey = JSON.stringify(positionInfo);
-        if (currentPositionKey !== previousPositionInfoRef.current) {
-          // 调用回调函数传递位置信息
-          onPositionUpdate(questions.sectionId, extendedPositionInfo);
+          // 只有当位置信息真正变化时才调用回调函数
+          const currentPositionKey = JSON.stringify(positionInfo);
+          if (currentPositionKey !== previousPositionInfoRef.current) {
+            // 调用回调函数传递位置信息
+            onPositionUpdate(questions.sectionId, extendedPositionInfo);
 
-          // 更新引用，存储当前位置信息
-          previousPositionInfoRef.current = currentPositionKey;
-        }
+            // 更新引用，存储当前位置信息
+            previousPositionInfoRef.current = currentPositionKey;
+          }
+        }, 100);
+
+        // 清理定时器
+        return () => clearTimeout(timer);
       }
-    }, [questions, pageRef, onPositionUpdate, fillType]); // 仅当questions、pageRef或onPositionUpdate变化时重新计算
+    }, []); // 空依赖数组，确保只在组件挂载时运行一次
 
     // 根据fillType决定渲染哪种类型的填空题
-    const renderQuestionContent = () => {
-      if (fillType === "short") {
-        return <ShortFillRenderer questions={questions} />;
-      } else if (fillType === "long") {
-        return <LongFillRenderer questions={questions} />;
-      }
-      return null;
-    };
+  const renderQuestionContent = () => {
+    if (fillType === "short") {
+      return <ShortFillRenderer 
+        questions={questions} 
+        pageRef={pageRef} 
+        onPositionUpdate={onPositionUpdate} 
+      />;
+    } else if (fillType === "long") {
+      return <LongFillRenderer 
+        questions={questions} 
+        pageRef={pageRef} 
+        onPositionUpdate={onPositionUpdate} 
+      />;
+    }
+    return null;
+  };
 
     return (
       <div

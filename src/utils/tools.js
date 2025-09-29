@@ -211,6 +211,7 @@ export const calculateElementPosition = (element, referenceElement) => {
   if (!element) {
     return null;
   }
+  console.log("elementRect 位置数据", element, "参考位置", referenceElement);
 
   // 获取页面尺寸信息
   const pageWidth = PAGE_WIDTH;
@@ -430,6 +431,7 @@ export const splitBlankQuestion = (
   } else if (question.fillType === "long") {
     // 长填空题 分页 - 只根据行数判断
     let totalLines = 0;
+    let subSplitIndex = -1;
 
     for (let i = 0; i < question.questions.length; i++) {
       const q = question.questions[i];
@@ -437,42 +439,52 @@ export const splitBlankQuestion = (
       if (q.isAddSubQuestionClicked) {
         // 遍历subQuestions，累加每个subQuestion的行数
         let subTotalLines = 0;
-        let subSplitIndex = -1;
 
         for (let j = 0; j < q.subQuestions.length; j++) {
           const subQ = q.subQuestions[j];
           const subQLines = subQ.totalLines || 1;
           subTotalLines += subQLines;
 
-          // 检查累加后的行数是否超过剩余行数
-          totalLines += subTotalLines;
-          if (totalLines > remainingLines) {
-            subSplitIndex = j - 1; // 找到subQuestion中的分割点
+          console.log("subTotalLines 小填空的总行数", subTotalLines);
+          console.log(
+            "totalLine s 总行数 ",
+            totalLines,
+            "剩余 可显示的行数",
+            remainingLines,
+            subQ,
+            j
+          );
+          if (subTotalLines > remainingLines) {
+            splitIndex = i; // 最后一行最后一小题的下标
+            subSplitIndex = j; // 找到subQuestion中的分割点
+            // 多余的行数
+            const perQuestionRemindLines = subTotalLines - remainingLines;
+            // 当前题目多余的行数
+            subQ.perQuestionRemindLines = perQuestionRemindLines;
+            // 计算当前题目剩余需要显示的行数
+            subQ.perQuestionSplitLines =
+              subQ.totalLines - perQuestionRemindLines;
+
+            console.log("totalLines  多的行数", perQuestionRemindLines, q);
+            console.log(
+              "splitIndex ",
+              splitIndex,
+              "subSplitIndex 内",
+              subSplitIndex
+            );
+
+            console.log(
+              "splitIndex 大的",
+              splitIndex,
+              "subIndex 小的",
+              subSplitIndex
+            );
             break;
           }
-        }
-
-        if (subSplitIndex >= 0) {
-          // 如果在subQuestion中找到分割点，需要分割该题目
-          splitIndex = i; // 设置当前题目为分割点
-          // 需要特殊标记这个题目需要在内部分割subQuestions
-          q.needSubQuestionSplit = true;
-          q.subSplitIndex = subSplitIndex;
-          // 将subQuestions的数据分割为两部分
-          const firstPartSubQuestions = q.subQuestions.slice(
-            0,
-            subSplitIndex + 1
-          );
-          q.subQuestions = firstPartSubQuestions;
-          break;
-        } else {
-          // 如果所有subQuestion都能放下，累加总行数
-          totalLines += subTotalLines;
         }
       } else {
         console.log("q 行", q.linesPerQuestion);
         const lineCount = q.linesPerQuestion || 1;
-
         totalLines += lineCount;
         if (totalLines > remainingLines) {
           splitIndex = i; // 最后一行最后一小题的下标
@@ -482,6 +494,7 @@ export const splitBlankQuestion = (
           q.perQuestionRemindLines = perQuestionRemindLines;
           // 计算当前题目需要显示的行数 important!
           q.perQuestionSplitLines = q.linesPerQuestion - perQuestionRemindLines;
+
           console.log(
             "当前剩余显示的行数",
             q.linesPerQuestion - perQuestionRemindLines,
@@ -498,6 +511,7 @@ export const splitBlankQuestion = (
       // 分割的数据
       const splitData = question.questions[splitIndex];
       console.log("分割的数据-》", splitData, "分割的下标", splitIndex);
+      console.log("分割的小题下标", subSplitIndex);
       const currentPageData = question.questions.slice(0, splitIndex);
       const nextPageData = question.questions.slice(splitIndex);
 
@@ -546,6 +560,52 @@ export const splitBlankQuestion = (
             originQuestions: question.questions,
             sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
             questions: [...leftSecondPart, ...rightSecondPart],
+          };
+        }
+      } else if (subSplitIndex >= 0) {
+        const subSplitData = splitData.subQuestions[subSplitIndex];
+        console.log("有小题的  来分割了 splitData", splitData);
+        console.log("有小题的  来分割了 subSplitData", subSplitData);
+        if (subSplitData.perQuestionSplitLines === 0) {
+          // 当前subQ 需要显示的行数为0， 即将当前sub数据直接放到下一页
+          const firstSubQuestions = splitData.subQuestions.slice(
+            0,
+            subSplitIndex
+          );
+
+          const leftSecondPart = [
+            {
+              ...splitData,
+              showLinesPerQuestion: splitData.perQuestionRemindLines, // 分割后多余显示的行数
+            },
+          ];
+          const rightSecondPart = [...question.questions.slice(splitIndex + 1)];
+
+          firstPart = {
+            ...question,
+            originQuestions: question.questions,
+            questions: currentPageData,
+          };
+
+          secondPart = {
+            ...question,
+            originQuestions: question.questions,
+            sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+            questions: nextPageData,
+          };
+        } else {
+          // todo
+          firstPart = {
+            ...question,
+            originQuestions: question.questions,
+            questions: currentPageData,
+          };
+
+          secondPart = {
+            ...question,
+            originQuestions: question.questions,
+            sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+            questions: nextPageData,
           };
         }
       } else {

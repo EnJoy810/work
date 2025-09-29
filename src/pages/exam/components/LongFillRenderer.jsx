@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useRef, useEffect } from "react";
+import { calculateElementPosition } from "../../../utils/tools";
 
 /**
  * 长填空渲染组件
  * 负责渲染长填空题的多行布局
  */
-const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
+const LongFillRenderer = React.forwardRef(({ questions, pageRef, onPositionUpdate }, ref) => {
   const { questions: subQuestions, sliceQuestion } = questions;
   console.log(
     "subQuestions 长填空渲染",
@@ -12,6 +13,9 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
     questions.showSubQuestionScore
   );
 
+  // 创建ref集合用于存储每个小题的DOM元素引用
+  const questionItemRefs = useRef({});
+  
   // 先处理数据数组，生成结构化的数据
   const processedQuestions = [];
 
@@ -24,6 +28,7 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
           linesPerQuestion: subQuestion.totalLines, // 每题行数
           pointsPerLine: subQuestion.pointsPerLine, // 每题分数
           showLinesPerQuestion: subItem.showLinesPerQuestion, // 分割后显示的行数
+          id: subQuestion.id || `${subItem.id}-${subIndex}`, // 确保每个小题有唯一ID
         };
         if (subIndex === 0) {
           blank.questionNumber = subItem.questionNumber; // 第一项获取上级的题号显示
@@ -38,16 +43,79 @@ const LongFillRenderer = React.forwardRef(({ questions }, ref) => {
         linesPerQuestion: subItem.linesPerQuestion, // 每题行数
         pointsPerLine: subItem.pointsPerLine, // 每题分数
         showLinesPerQuestion: subItem.showLinesPerQuestion, // 分割后显示的行数
+        id: subItem.id,
       });
     }
   });
   console.log("processedQuestions 长填空渲染", processedQuestions);
 
+  // 为每个小题计算位置并收集更新信息
+  useEffect(() => {
+    // 当有必要的参数且问题数据存在时计算位置
+    // 注意：不应该在这个effect中更新props中的数据，否则会导致无限渲染
+    if (onPositionUpdate && pageRef && questions && questions.sectionId) {
+      // 使用setTimeout确保DOM已经完全渲染
+      const timer = setTimeout(() => {
+        // 只获取位置信息，不修改subQuestions数据
+        const positionsInfo = {};
+        
+        // 遍历所有题目收集位置信息
+        subQuestions.forEach((subItem) => {
+          if (subItem.isAddSubQuestionClicked && subItem.subQuestions) {
+            // 处理带有小题的情况
+            subItem.subQuestions.forEach((subQuestion) => {
+              const questionRef = questionItemRefs.current[subQuestion.id];
+              if (questionRef) {
+                const positionInfo = calculateElementPosition(
+                  questionRef,
+                  pageRef
+                );
+                
+                positionsInfo[subQuestion.id] = {
+                  ...positionInfo,
+                  questionType: "longFillSubQuestion"
+                };
+              }
+            });
+          } else if (subItem.linesPerQuestion) {
+            // 处理没有小题的情况
+            const questionRef = questionItemRefs.current[subItem.id];
+            if (questionRef) {
+              const positionInfo = calculateElementPosition(
+                questionRef,
+                pageRef
+              );
+              
+              positionsInfo[subItem.id] = {
+                ...positionInfo,
+                questionType: "longFillQuestion"
+              };
+            }
+          }
+        });
+        
+        // 只传递位置信息，不修改原数据结构
+        onPositionUpdate(questions.sectionId, {
+          type: "longFillPositions",
+          positionsInfo,
+          // 传递sectionId用于标识
+          sectionId: questions.sectionId
+        });
+      }, 100);
+      
+      // 清理定时器
+      return () => clearTimeout(timer);
+    }
+  }, [onPositionUpdate, pageRef, questions]); // 添加依赖项，在数据编辑后重新计算位置信息
+
   // 渲染函数，基于处理好的数据数组进行渲染
   const renderLongFillQuestions = () => {
     // console.log("有来渲染吗", processedQuestions);
     return processedQuestions.map((question) => (
-      <div key={question.key} className="long-fill-question">
+      <div 
+        key={question.key || question.id}
+        ref={el => questionItemRefs.current[question.id] = el}
+        className="long-fill-question">
         {/* 第一行包含标题和下划线 */}
         <div
           style={{

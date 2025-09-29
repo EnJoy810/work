@@ -64,16 +64,56 @@ const ChinesePaperDesign = () => {
   // 使用useCallback缓存getQuestionPositions函数，避免不必要的重新渲染
   const getQuestionPositions = useCallback((positions) => {
     if (positions && typeof positions === "object") {
+      // 过滤掉timestamp属性，避免其导致的无限循环
+      const filteredPositions = { ...positions };
+      Object.keys(filteredPositions).forEach(key => {
+        if (filteredPositions[key]?.timestamp !== undefined) {
+          delete filteredPositions[key].timestamp;
+        }
+      });
+      
       setQuestions((prevQuestions) => {
         // 创建新的题目数组
         const updatedQuestions = prevQuestions.map((question) => {
           // 使用sectionId作为唯一标识查找对应的位置信息，避免题号重复的问题
           const positionInfo = question.sectionId
-            ? positions[question.sectionId]
+            ? filteredPositions[question.sectionId]
             : null;
 
+          // 对于选择题，查找包含完整小题位置信息的数据
+          // ObjectiveQuestionsRenderer中使用${sectionId}_complete传递完整数据
+          const completePositionInfo = 
+            question.sectionId && question.type === "objective"
+              ? filteredPositions[`${question.sectionId}_complete`]
+              : null;
+
+          // 如果找到包含完整小题位置信息的数据，只更新与位置相关的属性
+          if (completePositionInfo && completePositionInfo.questions) {
+            // 检查是否需要更新 - 只有当位置信息真正变化时才更新
+            const needUpdate = question.questions?.some((q, index) => {
+              const newPosition = completePositionInfo.questions[index]?.questionPositionInfo;
+              const oldPosition = q?.questionPositionInfo;
+              return JSON.stringify(newPosition) !== JSON.stringify(oldPosition);
+            }) || JSON.stringify(completePositionInfo.positionInfo) !== JSON.stringify(question.positionInfo);
+            
+            if (!needUpdate) {
+              return question; // 位置信息没有变化，返回原对象避免重新渲染
+            }
+            
+            console.log("找到选择题完整位置信息且有变化，更新位置相关属性");
+            return {
+              ...question,
+              // 只更新positionInfo，不更新整个对象避免触发无限渲染
+              positionInfo: completePositionInfo.positionInfo || positionInfo,
+              // 更新questions数组中的位置信息，但保持原数组结构
+              questions: completePositionInfo.questions.map((q, index) => ({
+                ...(question.questions && question.questions[index] ? question.questions[index] : q),
+                questionPositionInfo: q.questionPositionInfo || null
+              }))
+            };
+          }
           // 如果找到位置信息，并且与现有位置信息不同，则更新
-          if (
+          else if (
             positionInfo &&
             JSON.stringify(positionInfo) !==
               JSON.stringify(question.positionInfo)
@@ -119,15 +159,26 @@ const ChinesePaperDesign = () => {
 
     // 获取完整的题目列表，包含题目信息和位置信息
     if (questions.length > 0) {
+      // 获取ExamInfoSection的位置信息
+      let examInfoPosition = null;
+      if (
+        answerSheetRef.current &&
+        answerSheetRef.current.getExamInfoSectionPosition
+      ) {
+        examInfoPosition = answerSheetRef.current.getExamInfoSectionPosition();
+      }
+
       // 准备用于下载或预览的数据结构
       const examData = {
         basicInfo: formValues,
         totalQuestions: questions.length,
         questions: questions,
+        // 添加ExamInfoSection的位置信息
+        examInfoPosition: examInfoPosition,
       };
 
       console.log("试卷完整数据：", examData);
-
+      
       // 获取所有answer-sheet-page元素的内容
       const answerSheetPages = [];
       const pageElements = document.querySelectorAll(".answer-sheet-page");

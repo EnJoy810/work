@@ -7,6 +7,7 @@ import React from "react";
 const ExamInfoSection = () => {
   return (
     <div
+      className="exam-info-section"
       style={{
         width: "100%",
         backgroundColor: "white",
