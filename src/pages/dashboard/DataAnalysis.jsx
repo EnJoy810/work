@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  Table,
-  Button,
-  Typography,
-  Row,
-  Col,
-  Card,
-  Statistic,
-} from "antd";
+import { Table, Button, Typography, Row, Col, Card, Statistic } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
+import ScoreDistributionChart from './components/ScoreDistributionChart';
 import "./styles/data-analysis.css";
 import request from "../../utils/request";
 
@@ -47,7 +40,7 @@ const DataAnalysis = () => {
     try {
       // 调用接口获取数据
       const response = await request.get("/grading/result", {
-        grading_id: id
+        grading_id: id,
       });
       console.log("获取数据分析列表成功:", response);
       // 处理接口返回的数据
@@ -61,8 +54,6 @@ const DataAnalysis = () => {
     }
   };
 
-
-
   // 表格列配置
   const columns = [
     {
@@ -70,47 +61,47 @@ const DataAnalysis = () => {
       dataIndex: "student_name",
       key: "studentName",
       width: 100,
-      align: 'center',
+      align: "center",
     },
-     {
+    {
       title: "总分",
       dataIndex: "max_total_score",
       key: "maxTotalScore",
       width: 80,
-      align: 'center',
-      render: (text) => <span style={{ color: '#1890ff' }}>{text}</span>,
+      align: "center",
+      render: (text) => <span style={{ color: "#1890ff" }}>{text}</span>,
     },
     {
       title: "学生得分",
       dataIndex: "total_score",
       key: "totalScore",
       width: 80,
-      align: 'center',
-      render: (text) => <span style={{ color: '#1890ff' }}>{text}</span>,
+      align: "center",
+      render: (text) => <span style={{ color: "#1890ff" }}>{text}</span>,
     },
     {
       title: "客观题得分",
       dataIndex: "objective_score",
       key: "objectiveScore",
       width: 100,
-      align: 'center',
-      render: (text) => <span style={{ color: '#1890ff' }}>{text}</span>,
+      align: "center",
+      render: (text) => <span style={{ color: "#1890ff" }}>{text}</span>,
     },
     {
       title: "填空题得分",
       dataIndex: "fillin_score",
       key: "fillinScore",
       width: 100,
-      align: 'center',
-      render: (text) => <span style={{ color: '#1890ff' }}>{text}</span>,
+      align: "center",
+      render: (text) => <span style={{ color: "#1890ff" }}>{text}</span>,
     },
     {
       title: "作文得分",
       dataIndex: "essay_score",
       key: "essayScore",
       width: 100,
-      align: 'center',
-      render: (text) => <span style={{ color: '#1890ff' }}>{text}</span>,
+      align: "center",
+      render: (text) => <span style={{ color: "#1890ff" }}>{text}</span>,
     },
     // {
     //   title: "批改时间",
@@ -123,27 +114,75 @@ const DataAnalysis = () => {
   // 计算统计数据
   const calculateStatistics = () => {
     if (!dataSource || dataSource.length === 0) {
-      return { avgScore: 0, highestScore: 0 };
+      return {
+        avgScore: 0,
+        highestScore: 0,
+        lowestScore: 0,
+        medianScore: 0,
+        excellentRate: 0,
+        passRate: 0,
+        lowScoreRate: 0,
+      };
     }
-    
+
+    // 提取所有学生得分并转换为数字
+    const scores = dataSource.map((item) => parseFloat(item.total_score) || 0);
+
     // 计算学生得分总和
-    const totalScoreSum = dataSource.reduce((sum, item) => {
-      const score = parseFloat(item.total_score) || 0;
-      return sum + score;
-    }, 0);
-    
+    const totalScoreSum = scores.reduce((sum, score) => sum + score, 0);
+
     // 计算平均分
-    const avgScore = totalScoreSum / dataSource.length;
-    
+    const avgScore = totalScoreSum / scores.length;
+
     // 找出最高分
-    const highestScore = dataSource.reduce((max, item) => {
-      const score = parseFloat(item.total_score) || 0;
-      return Math.max(max, score);
-    }, 0);
-    
-    return { avgScore, highestScore };
+    const highestScore = Math.max(...scores);
+
+    // 找出最低分
+    const lowestScore = Math.min(...scores);
+
+    // 计算中位数
+    const sortedScores = [...scores].sort((a, b) => a - b);
+    let medianScore = 0;
+    if (sortedScores.length % 2 === 0) {
+      // 偶数个数据，取中间两个数的平均值
+      const midIndex = sortedScores.length / 2;
+      medianScore = (sortedScores[midIndex - 1] + sortedScores[midIndex]) / 2;
+    } else {
+      // 奇数个数据，取中间值
+      const midIndex = Math.floor(sortedScores.length / 2);
+      medianScore = sortedScores[midIndex];
+    }
+
+    // 获取总分值（假设所有学生的总分相同）
+    const maxScore = parseFloat(dataSource[0]?.max_total_score) || 100;
+
+    // 计算优秀率（得分 >= 总分的80%）
+    const excellentCount = scores.filter(
+      (score) => score >= maxScore * 0.8
+    ).length;
+    const excellentRate = (excellentCount / scores.length) * 100;
+
+    // 计算及格率（得分 >= 总分的60%）
+    const passCount = scores.filter((score) => score >= maxScore * 0.6).length;
+    const passRate = (passCount / scores.length) * 100;
+
+    // 计算低分率（得分 < 总分的40%）
+    const lowScoreCount = scores.filter(
+      (score) => score < maxScore * 0.4
+    ).length;
+    const lowScoreRate = (lowScoreCount / scores.length) * 100;
+
+    return {
+      avgScore,
+      highestScore,
+      lowestScore,
+      medianScore,
+      excellentRate,
+      passRate,
+      lowScoreRate,
+    };
   };
-  
+
   const statistics = calculateStatistics();
 
   return (
@@ -154,11 +193,10 @@ const DataAnalysis = () => {
         </Title>
         <Button onClick={() => navigate(-1)}>返回首页</Button>
       </div>
-      
 
-      {/* 统计卡片 */}
-      <Row gutter={16} className="statistics-row">
-        <Col span={12}>
+      {/* 统计卡片 - 第一行 */}
+      <Row gutter={16} className="statistics-row" style={{ marginBottom: 16 }}>
+        <Col span={6}>
           <Card>
             <Statistic
               title="平均分"
@@ -168,7 +206,7 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
-        <Col span={12}>
+        <Col span={6}>
           <Card>
             <Statistic
               title="最高分"
@@ -178,7 +216,67 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="最低分"
+              value={statistics.lowestScore}
+              suffix="分"
+              valueStyle={{ color: "#1890ff" }}
+            />
+          </Card>
+        </Col>
+        <Col span={6}>
+          <Card>
+            <Statistic
+              title="中位数"
+              value={statistics.medianScore.toFixed(2)}
+              suffix="分"
+              valueStyle={{ color: "#722ed1" }}
+            />
+          </Card>
+        </Col>
       </Row>
+
+      {/* 统计卡片 - 第二行（比率统计） */}
+      <Row gutter={16} className="statistics-row" style={{ marginBottom: 16 }}>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="优秀率（≥80%）"
+              value={statistics.excellentRate.toFixed(2)}
+              suffix="%"
+              valueStyle={{ color: "#fa8c16" }}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="及格率（≥60%）"
+              value={statistics.passRate.toFixed(2)}
+              suffix="%"
+              valueStyle={{ color: "#52c41a" }}
+            />
+          </Card>
+        </Col>
+        <Col span={8}>
+          <Card>
+            <Statistic
+              title="低分率（<40%）"
+              value={statistics.lowScoreRate.toFixed(2)}
+              suffix="%"
+              valueStyle={{ color: "#f5222d" }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      {/* 分数段分布图 */}
+      <ScoreDistributionChart 
+        dataSource={dataSource} 
+        statistics={statistics} 
+      />
 
       {/* 表格 */}
       <Table
@@ -187,7 +285,7 @@ const DataAnalysis = () => {
         loading={loading}
         pagination={false}
         scroll={{ x: 1200 }}
-        rowKey="key"
+        rowKey="seat_number"
         className="data-analysis-table"
       />
 
