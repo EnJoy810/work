@@ -1,18 +1,14 @@
 import React, { useState, useEffect } from "react";
 import {
   Table,
-  Pagination,
-  Tag,
-  Space,
-  Card,
-  Row,
-  Col,
-  Statistic,
   Button,
   Typography,
+  Row,
+  Col,
+  Card,
+  Statistic,
 } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
-import { EyeOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import "./styles/data-analysis.css";
 import request from "../../utils/request";
 
@@ -29,15 +25,21 @@ const DataAnalysis = () => {
   const [dataSource, setDataSource] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 从URL参数中获取examId
+  // 从URL参数中获取examId并加载数据
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
     const id = searchParams.get("grading_id");
     if (id) {
       setGradingId(id);
-      loadExamData(id);
     }
   }, [location.search]);
+
+  // 当gradingId变化时加载数据
+  useEffect(() => {
+    if (gradingId) {
+      loadExamData(gradingId);
+    }
+  }, [gradingId]);
 
   // 从接口加载考试数据
   const loadExamData = async (id) => {
@@ -76,6 +78,7 @@ const DataAnalysis = () => {
       key: "maxTotalScore",
       width: 80,
       align: 'center',
+      render: (text) => <span style={{ color: '#1890ff' }}>{text}</span>,
     },
     {
       title: "学生得分",
@@ -117,8 +120,31 @@ const DataAnalysis = () => {
     // },
   ];
 
-  // 统计数据功能待实现
-  // 由于分页功能已禁用，暂时不实现统计数据
+  // 计算统计数据
+  const calculateStatistics = () => {
+    if (!dataSource || dataSource.length === 0) {
+      return { avgScore: 0, highestScore: 0 };
+    }
+    
+    // 计算学生得分总和
+    const totalScoreSum = dataSource.reduce((sum, item) => {
+      const score = parseFloat(item.total_score) || 0;
+      return sum + score;
+    }, 0);
+    
+    // 计算平均分
+    const avgScore = totalScoreSum / dataSource.length;
+    
+    // 找出最高分
+    const highestScore = dataSource.reduce((max, item) => {
+      const score = parseFloat(item.total_score) || 0;
+      return Math.max(max, score);
+    }, 0);
+    
+    return { avgScore, highestScore };
+  };
+  
+  const statistics = calculateStatistics();
 
   return (
     <div className="data-analysis-container">
@@ -130,8 +156,8 @@ const DataAnalysis = () => {
       </div>
 
       {/* 统计卡片 */}
-      {/* <Row gutter={16} className="statistics-row">
-        <Col span={6}>
+      <Row gutter={16} className="statistics-row">
+        <Col span={6} offset={6}>
           <Card>
             <Statistic
               title="平均分"
@@ -151,27 +177,7 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="最低分"
-              value={statistics.lowestScore}
-              suffix="分"
-              valueStyle={{ color: "#1890ff" }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="通过率"
-              value={statistics.passRate.toFixed(2)}
-              suffix="%"
-              valueStyle={{ color: "#722ed1" }}
-            />
-          </Card>
-        </Col>
-      </Row> */}
+      </Row>
 
       {/* 表格 */}
       <Table
