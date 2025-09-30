@@ -136,15 +136,19 @@ const ExamCard = ({ exam, navigate }) => {
               color: "#666",
             }}
           >
-            <span>班级id：  {exam.class_id}</span> 
-            <span style={{ marginLeft: "20px" }}>创建时间: {formatDate(exam.created_time)}</span>
+            <span>班级id： {exam.class_id}</span>
+            <span style={{ marginLeft: "20px" }}>
+              创建时间: {formatDate(exam.created_time)}
+            </span>
             {/* 学科: {exam.subject} 年级: {exam.grade} 总分:
             {exam.totalScore}分 创建时间: {exam.createTime} */}
           </div>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
           {/* 已完成状态显示查看评分细则、查看评分过程和数据分析 */}
-          {exam.status === "READY" && (
+          {(exam.status === "READY" ||
+            exam.status === "PROCESSING" ||
+            exam.status === "COMPLETED") && (
             <>
               <Button
                 type="default"
@@ -153,10 +157,15 @@ const ExamCard = ({ exam, navigate }) => {
               >
                 查看评分细则
               </Button>
+            </>
+          )}
+
+          {exam.status === "READY" && (
+            <>
               <Button
                 type="primary"
                 onClick={() => {
-                  navigate("/upload-answer-sheet");
+                  navigate(`/upload-answer-sheet?grading_id=${exam.grading_id}`);
                 }}
                 icon={<UploadOutlined />}
               >

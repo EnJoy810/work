@@ -6,6 +6,7 @@ import {
   RightOutlined,
   DownOutlined,
 } from "@ant-design/icons";
+import XLabSvg from "../../assets/X-Lab.svg";
 
 const { Title, Text } = Typography;
 
@@ -96,7 +97,7 @@ const LoginShowcase = ({ onShowLogin }) => {
         <div className="green-circle"></div>
         <div className="blue-circle"></div>
         <div className="welcome-content">
-          <div className="welcome-badge">
+          {/* <div className="welcome-badge">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="12"
@@ -116,7 +117,7 @@ const LoginShowcase = ({ onShowLogin }) => {
               <circle cx="4" cy="20" r="2"></circle>
             </svg>
             <span style={{ marginLeft: 8 }}>AI驱动的智能教育平台</span>
-          </div>
+          </div> */}
           <h1 className="welcome-title">清境智能</h1>
           <h2 className="welcome-subtitle">在线阅卷系统</h2>
           <p className="welcome-description">
@@ -168,7 +169,7 @@ const LoginShowcase = ({ onShowLogin }) => {
             <Button
               size="large"
               className="learn-more-button"
-              onClick={() => scrollToSection(2)}
+              onClick={() => scrollToSection(3)}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -216,6 +217,18 @@ const LoginShowcase = ({ onShowLogin }) => {
                 </div>
               </Col>
             </Row>
+
+            <div
+              className="welcome-logo"
+              style={{ marginTop: "40px", textAlign: "center" }}
+            >
+              <img
+                className="logo-image"
+                src={XLabSvg}
+                alt="X-Lab"
+                style={{ maxWidth: "140px", height: "auto" }}
+              />
+            </div>
           </div>
           <div
             className="scroll-down-indicator"
@@ -709,33 +722,333 @@ const LoginShowcase = ({ onShowLogin }) => {
                   <div className="feature-content">
                     <h4 className="feature-title">{feature.title}</h4>
                     <p className="feature-description">{feature.description}</p>
-                    <div className="feature-badge">{feature.badge}</div>
+                    <div className="feature-badge">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 12 12"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <g clip-path="url(#clip0_1_1569)">
+                          <path
+                            d="M5.76255 1.14745C5.78446 1.10318 5.81831 1.06591 5.86027 1.03986C5.90224 1.01381 5.95065 1 6.00005 1C6.04944 1 6.09785 1.01381 6.13982 1.03986C6.18178 1.06591 6.21563 1.10318 6.23755 1.14745L7.39255 3.48695C7.46863 3.64093 7.58095 3.77415 7.71986 3.87517C7.85876 3.9762 8.02011 4.042 8.19004 4.06695L10.773 4.44495C10.822 4.45204 10.868 4.47268 10.9058 4.50455C10.9436 4.53641 10.9718 4.57822 10.9871 4.62525C11.0023 4.67228 11.0042 4.72265 10.9923 4.77066C10.9805 4.81868 10.9555 4.86242 10.92 4.89695L9.05205 6.71595C8.92885 6.836 8.83668 6.98419 8.78346 7.14776C8.73024 7.31133 8.71758 7.48539 8.74655 7.65495L9.18755 10.2249C9.19619 10.2739 9.1909 10.3242 9.17229 10.3703C9.15369 10.4163 9.12251 10.4563 9.08232 10.4854C9.04212 10.5146 8.99453 10.5319 8.94498 10.5354C8.89542 10.5388 8.84589 10.5283 8.80205 10.5049L6.49305 9.29095C6.3409 9.21106 6.17164 9.16932 5.9998 9.16932C5.82796 9.16932 5.65869 9.21106 5.50655 9.29095L3.19805 10.5049C3.15421 10.5282 3.10474 10.5386 3.05527 10.5351C3.0058 10.5316 2.9583 10.5142 2.91819 10.4851C2.87808 10.4559 2.84696 10.416 2.82837 10.3701C2.80979 10.3241 2.80447 10.2738 2.81305 10.2249L3.25355 7.65545C3.28264 7.48581 3.27004 7.31165 3.21681 7.14797C3.16359 6.98429 3.07135 6.83602 2.94805 6.71595L1.08005 4.89745C1.04434 4.86296 1.01904 4.81914 1.00703 4.77098C0.995011 4.72282 0.996764 4.67226 1.01208 4.62504C1.02741 4.57783 1.05568 4.53587 1.09368 4.50394C1.13169 4.47201 1.1779 4.4514 1.22705 4.44445L3.80955 4.06695C3.97967 4.0422 4.14124 3.97648 4.28034 3.87544C4.41943 3.77441 4.5319 3.64108 4.60805 3.48695L5.76255 1.14745Z"
+                            stroke="#155DFC"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </g>
+                        <defs>
+                          <clipPath id="clip0_1_1569">
+                            <rect width="12" height="12" fill="white" />
+                          </clipPath>
+                        </defs>
+                      </svg>
+                      <span style={{ marginLeft: 6 }}>{feature.badge}</span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div
-            className="scroll-down-indicator"
-            onClick={() => scrollToSection(4)}
-          >
-            <DownOutlined />
-          </div>
         </div>
       </section>
 
-      {/* 第四部分：开始体验 */}
-      <section id="section-4" className="full-section">
-        <div className="section-content">
-          <Title level={3}>开始使用</Title>
-          <Text>准备好体验智能阅卷系统了吗？立即登录开始使用。</Text>
+      {/* 第四部分：使用流程和开启智能阅卷新时代 */}
+      <section
+        id="section-4"
+        className="full-section"
+        style={{ display: "flex", flexDirection: "column", height: "100vh" }}
+      >
+        {/* 使用流程部分 - 上半部分 */}
+        <div
+          className="section-content"
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 0,
+          }}
+        >
+          <div style={{ textAlign: "center", width: "100%" }}>
+            <h2
+              style={{
+                fontSize: "36px",
+                fontWeight: "bold",
+                marginBottom: "16px",
+                color: "#1E2939",
+              }}
+            >
+              使用流程
+            </h2>
+            <p
+              style={{
+                fontSize: "20px",
+                color: "#4A5565",
+                marginBottom: "64px",
+              }}
+            >
+              简单四步，轻松完成智能阅卷
+            </p>
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                maxWidth: "1000px",
+                width: "100%",
+                margin: "0 auto",
+              }}
+            >
+              {/* 步骤1 */}
+              <div
+                style={{ textAlign: "center", width: "25%", padding: "0 10px" }}
+              >
+                <div
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(to right, #155DFC, #00a63e)",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    margin: "0 auto 16px",
+                  }}
+                >
+                  01
+                </div>
+                <h4
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    marginBottom: "8px",
+                    color: "#111827",
+                  }}
+                >
+                  创建考试
+                </h4>
+                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                  设置考试信息和题目
+                </p>
+              </div>
+
+              {/* 步骤2 */}
+              <div
+                style={{ textAlign: "center", width: "25%", padding: "0 10px" }}
+              >
+                <div
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(to right, #155DFC, #00a63e)",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    margin: "0 auto 16px",
+                  }}
+                >
+                  02
+                </div>
+                <h4
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    marginBottom: "8px",
+                    color: "#111827",
+                  }}
+                >
+                  上传试卷
+                </h4>
+                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                  扫描或拍照上传试卷
+                </p>
+              </div>
+
+              {/* 步骤3 */}
+              <div
+                style={{ textAlign: "center", width: "25%", padding: "0 10px" }}
+              >
+                <div
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(to right, #155DFC, #00a63e)",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    margin: "0 auto 16px",
+                  }}
+                >
+                  03
+                </div>
+                <h4
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    marginBottom: "8px",
+                    color: "#111827",
+                  }}
+                >
+                  AI批改
+                </h4>
+                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                  智能识别并自动批改
+                </p>
+              </div>
+
+              {/* 步骤4 */}
+              <div
+                style={{ textAlign: "center", width: "25%", padding: "0 10px" }}
+              >
+                <div
+                  style={{
+                    width: "80px",
+                    height: "80px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(to right, #155DFC, #00a63e)",
+                    color: "white",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "24px",
+                    fontWeight: "bold",
+                    margin: "0 auto 16px",
+                  }}
+                >
+                  04
+                </div>
+                <h4
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: "600",
+                    marginBottom: "8px",
+                    color: "#111827",
+                  }}
+                >
+                  生成报告
+                </h4>
+                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                  查看详细分析报告
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 开启智能阅卷新时代部分 - 下半部分 */}
+        <div
+          style={{
+            background: "linear-gradient(to right, #155DFC, #00a63e)",
+            width: "100%",
+            padding: "60px 0",
+            textAlign: "center",
+            color: "white",
+            minHeight: "300px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "36px",
+              fontWeight: "bold",
+              marginBottom: "16px",
+            }}
+          >
+            开启智能阅卷新时代
+          </h2>
+          <p
+            style={{
+              fontSize: "18px",
+              marginBottom: "40px",
+              maxWidth: "600px",
+              margin: "0 auto 40px",
+            }}
+          >
+            加入我们，体验AI技术为教育带来的革命性变化
+          </p>
           <Button
             type="primary"
             size="large"
-            className="start-button"
+            style={{
+              background: "white",
+              color: "#155DFC",
+              border: "none",
+              padding: "12px 36px",
+              fontSize: "18px",
+              fontWeight: "500",
+              "&:hover": {
+                background: "#f0f6ff",
+              },
+            }}
             onClick={onShowLogin}
           >
-            登录系统
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <g clip-path="url(#clip0_1_1665)">
+                <path
+                  d="M14.534 6.66666C14.8385 8.16086 14.6215 9.71427 13.9192 11.0679C13.217 12.4214 12.0719 13.4934 10.675 14.1049C9.2781 14.7164 7.71376 14.8305 6.24287 14.4282C4.77199 14.026 3.48347 13.1316 2.59219 11.8943C1.70091 10.657 1.26075 9.15148 1.34511 7.62892C1.42948 6.10635 2.03326 4.65872 3.05577 3.52744C4.07829 2.39616 5.45773 1.64961 6.96405 1.4123C8.47037 1.17498 10.0125 1.46123 11.3333 2.22333"
+                  stroke="#155DFC"
+                  stroke-width="1.33333"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+                <path
+                  d="M6 7.33341L8 9.33341L14.6667 2.66675"
+                  stroke="#155DFC"
+                  stroke-width="1.33333"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </g>
+              <defs>
+                <clipPath id="clip0_1_1665">
+                  <rect width="16" height="16" fill="white" />
+                </clipPath>
+              </defs>
+            </svg>
+            立即开始使用
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3.33337 8H12.6667"
+                stroke="#155DFC"
+                stroke-width="1.33333"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <path
+                d="M8 3.33325L12.6667 7.99992L8 12.6666"
+                stroke="#155DFC"
+                stroke-width="1.33333"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
           </Button>
         </div>
       </section>

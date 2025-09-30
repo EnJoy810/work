@@ -1,18 +1,14 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import {
-  Typography,
-  Upload,
-  Button,
-  Card,
-} from "antd";
-import { useMessageService } from '../../components/common/message';
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { Typography, Upload, Button, Card } from "antd";
+import { useMessageService } from "../../components/common/message";
 import {
   UploadOutlined,
   FileTextOutlined,
   FileProtectOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
+import request from "../../utils/request";
 import "./styles/home.css";
 
 const { Title, Paragraph } = Typography;
@@ -24,8 +20,19 @@ const { Dragger } = Upload;
  */
 const UploadAnswerSheet = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [answerSheetFile, setAnswerSheetFile] = useState(null);
+  const [gradingId, setGradingId] = useState(null);
   const { showSuccess, showError, showInfo } = useMessageService();
+
+  // 从URL参数中获取grading_id - 使用react-router-dom标准方法
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const gradingIdFromParams = searchParams.get("grading_id");
+    if (gradingIdFromParams) {
+      setGradingId(gradingIdFromParams);
+    }
+  }, [location]);
 
   // 处理上传答题卡
   const handleUploadAnswerSheet = () => {
@@ -35,39 +42,39 @@ const UploadAnswerSheet = () => {
       return;
     }
 
+    // 检查是否有grading_id
+    if (!gradingId) {
+      showError("缺少评分ID，请从正确的页面进入");
+      return;
+    }
+     
+
     // 创建FormData对象
     const formData = new FormData();
+    formData.append("student_papers", answerSheetFile);
+    formData.append("grading_id", gradingId);
+    
+    console.log("上传答题卡数据: 已准备FormData");
+    console.log("grading_id:", gradingId);  
+    
+    // 直接使用request.post方法调用/grading/grade接口，确保能传递多个参数
+    request.post("/grading/grade", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      }
+    })
+      .then(() => {
+        showSuccess("答题卡上传成功，请等候评分完成");
+        // 重置状态
+        setAnswerSheetFile(null);
+        // 跳转到首页
+        navigate("/");
+      })
+      .catch(error => {
+        console.error("答题卡上传失败:", error);
+        showError("答题卡上传失败，请重试");
+      });
 
-    // 添加文件数据
-    formData.append("answerSheetFile", answerSheetFile);
-
-      console.log("上传答题卡数据: 已准备FormData");
-
-      // 模拟提交到后端接口
-      // 实际项目中替换为真实的API调用
-      // 示例：
-      // fetch('/api/answer-sheet/upload', {
-      //   method: 'POST',
-      //   body: formData,
-      // })
-      // .then(response => response.json())
-      // .then(data => {
-      //   console.log('提交成功:', data);
-      //   showSuccess('答题卡上传成功');
-      //   navigate(`/dashboard`);
-      // })
-      // .catch(error => {
-      //   console.error('提交失败:', error);
-      //   showError('答题卡上传失败，请重试');
-      // });
-
-      showSuccess("答题卡上传成功");
-
-      // 重置状态
-      setAnswerSheetFile(null);
-
-      // 跳转到首页
-      navigate("/");
   };
 
   // 答题卡上传配置
@@ -98,11 +105,15 @@ const UploadAnswerSheet = () => {
     onDrop(e) {
       console.log("Dropped files", e.dataTransfer.files);
     },
-    fileList: answerSheetFile ? [{
-      uid: "answerSheet-1",
-      name: answerSheetFile.name,
-      status: "done",
-    }] : [],
+    fileList: answerSheetFile
+      ? [
+          {
+            uid: "answerSheet-1",
+            name: answerSheetFile.name,
+            status: "done",
+          },
+        ]
+      : [],
     // 隐藏上传按钮，只使用拖拽区域
     showUploadList: true,
   };
@@ -128,8 +139,7 @@ const UploadAnswerSheet = () => {
         <Button onClick={handleBack}>返回首页</Button>
       </div>
 
-      <div style={{ width: '100%' }}>
-
+      <div style={{ width: "100%" }}>
         {/* 答题卡上传部分 */}
         <Card
           style={{
@@ -146,7 +156,9 @@ const UploadAnswerSheet = () => {
               alignItems: "center",
             }}
           >
-            <FileTextOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
+            <FileTextOutlined
+              style={{ marginRight: "8px", color: "#1890ff" }}
+            />
             答题卡文件
           </Title>
 
