@@ -19,6 +19,7 @@
   justify-content: center;
   position: relative;
   overflow: hidden;
+  background: linear-gradient(135deg, #f0f6ff, #fff);
 }
 
 /* 第一部分：欢迎页面 */
@@ -26,6 +27,30 @@
   /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
   background-color: #fff;
   position: relative;
+}
+
+.green-circle {
+  position: absolute;
+  width: 256px;
+  height: 256px;
+  left: 444px;
+  top: 25%;
+  background: #bedbff;
+  opacity: 0.39;
+  filter: blur(24px);
+  border-radius: 3px;
+}
+
+.blue-circle {
+  position: absolute;
+  width: 384px;
+  height: 384px;
+  right: 544px;
+  bottom: -30%;
+  background: #b9f8cf;
+  opacity: 0.31;
+  filter: blur(24px);
+  border-radius: 3px;
 }
 
 .welcome-section::before {
@@ -42,9 +67,65 @@
 .welcome-content {
   text-align: center;
   padding: 40px;
-  max-width: 1200px;
+  max-width: 800px;
   position: relative;
   z-index: 1;
+  opacity: 0;
+  transform: translateY(50px);
+  animation: fadeInUp 1s ease forwards;
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 为子元素添加不同的动画延迟 */
+.welcome-badge {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease forwards 0.2s;
+}
+
+.welcome-title {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease forwards 0.4s;
+}
+
+.welcome-subtitle {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease forwards 0.6s;
+}
+
+.welcome-description {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease forwards 0.8s;
+}
+
+.welcome-buttons {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease forwards 1s;
+}
+
+.welcome-stats {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: fadeInUp 0.8s ease forwards 1.2s;
+}
+
+.scroll-down-indicator {
+  opacity: 0;
+  animation: fadeInUp 0.8s ease forwards 1.5s;
 }
 
 .welcome-badge {
@@ -62,10 +143,10 @@
 }
 
 .welcome-title {
-  font-size: 56px;
+  font-size: 66px;
   font-weight: 700;
   /* color: #1890ff; */
-  background: linear-gradient(to right, #007FC9, #00988A);
+  background: linear-gradient(to right, #155dfc, #00a63e);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 16px;
@@ -74,7 +155,7 @@
 
 .welcome-subtitle {
   font-size: 24px;
-  color: oklch(.446 .03 256.802);
+  color: oklch(0.446 0.03 256.802);
   margin-bottom: 32px;
   font-weight: 500;
 }
@@ -82,7 +163,7 @@
 .welcome-description {
   font-size: 17px;
   font-weight: 500;
-  color: oklch(.551 .027 264.364);
+  color: oklch(0.551 0.027 264.364);
   line-height: 1.8;
   max-width: 700px;
   margin: 0 auto 40px;
@@ -99,34 +180,36 @@
 }
 
 .experience-button {
-  padding: 12px 36px;
-  font-size: 16px;
-  font-weight: 500;
-  background: #1890ff;
+  padding: 12px 26px;
+  font-size: 18px;
+  font-weight: 600;
   border: none;
   transition: all 0.3s ease;
+  background: linear-gradient(to right, #155dfc, #1447e6);
 }
 
 .experience-button:hover {
-  background: #40a9ff !important;
+  background: #053bde !important;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(24, 144, 255, 0.3);
 }
 
 .learn-more-button {
   padding: 12px 36px;
-  font-size: 16px;
+  font-size: 18px;
   background: rgba(255, 255, 255, 0.9);
-  color: #1890ff;
-  border-color: #1890ff;
+  color: #00a63e;
+  border-color: #00a63e;
   transition: all 0.3s ease;
+  border-width: 2px;
+  font-weight: bold;
 }
 
 .learn-more-button:hover {
-  background: #fff !important;
+  color: #026326;
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(24, 144, 255, 0.1);
-  border-color: #40a9ff !important;
+  border-color: #026326 !important;
 }
 
 /* 统计数据 */
@@ -140,29 +223,30 @@
 }
 
 .stat-number {
+  min-width: 140px;
   display: block;
-  font-size: 32px;
+  font-size: 34px;
   font-weight: 700;
-  color: #1890ff;
-  margin-bottom: 8px;
+  color: #155dfc;
+  /* margin-bottom: 8px; */
   letter-spacing: -0.5px;
 }
 
 .stat-label {
   display: block;
-  font-size: 14px;
-  color: #666;
+  font-size: 16px;
+  color: #4a5565;
 }
 
 /* 滚动指示器 */
 .scroll-down-indicator {
   position: absolute;
-  bottom: 40px;
+  bottom: 0px;
   left: 50%;
   transform: translateX(-50%);
   cursor: pointer;
   animation: bounce 2s infinite;
-  color: #1890ff;
+  color: #99a1af;
   font-size: 24px;
   transition: all 0.3s ease;
 }
