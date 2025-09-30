@@ -812,6 +812,9 @@ const LoginShowcase = ({ onShowLogin }) => {
                 fontWeight: "bold",
                 marginBottom: "16px",
                 color: "#1E2939",
+                opacity: 0,
+                transform: "translateY(50px)",
+                transition: "opacity 1s ease, transform 1s ease"
               }}
             >
               使用流程
@@ -822,6 +825,9 @@ const LoginShowcase = ({ onShowLogin }) => {
                 fontSize: "20px",
                 color: "#4A5565",
                 marginBottom: "64px",
+                opacity: 0,
+                transform: "translateY(50px)",
+                transition: "opacity 1s ease 0.2s, transform 1s ease 0.2s"
               }}
             >
               简单四步，轻松完成智能阅卷
@@ -863,11 +869,14 @@ const LoginShowcase = ({ onShowLogin }) => {
                     fontWeight: "600",
                     marginBottom: "8px",
                     color: "#111827",
+                    opacity: 0,
+                    transform: "translateY(50px)",
+                    transition: "opacity 1s ease 0.4s, transform 1s ease 0.4s"
                   }}
                 >
                   创建考试
                 </h4>
-                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280" }}>
+                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280", opacity: 0, transform: "translateY(50px)", transition: "opacity 1s ease 0.6s, transform 1s ease 0.6s" }}>
                   设置考试信息和题目
                 </p>
               </div>
@@ -900,11 +909,14 @@ const LoginShowcase = ({ onShowLogin }) => {
                     fontWeight: "600",
                     marginBottom: "8px",
                     color: "#111827",
+                    opacity: 0,
+                    transform: "translateY(50px)",
+                    transition: "opacity 1s ease 0.6s, transform 1s ease 0.6s"
                   }}
                 >
                   上传试卷
                 </h4>
-                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280" }}>
+                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280", opacity: 0, transform: "translateY(50px)", transition: "opacity 1s ease 0.8s, transform 1s ease 0.8s" }}>
                   扫描或拍照上传试卷
                 </p>
               </div>
@@ -937,11 +949,14 @@ const LoginShowcase = ({ onShowLogin }) => {
                     fontWeight: "600",
                     marginBottom: "8px",
                     color: "#111827",
+                    opacity: 0,
+                    transform: "translateY(50px)",
+                    transition: "opacity 1s ease 0.8s, transform 1s ease 0.8s"
                   }}
                 >
                   AI批改
                 </h4>
-                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280" }}>
+                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280", opacity: 0, transform: "translateY(50px)", transition: "opacity 1s ease 1s, transform 1s ease 1s" }}>
                   智能识别并自动批改
                 </p>
               </div>
@@ -974,11 +989,14 @@ const LoginShowcase = ({ onShowLogin }) => {
                     fontWeight: "600",
                     marginBottom: "8px",
                     color: "#111827",
+                    opacity: 0,
+                    transform: "translateY(50px)",
+                    transition: "opacity 1s ease 1s, transform 1s ease 1s"
                   }}
                 >
                   生成报告
                 </h4>
-                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280" }}>
+                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280", opacity: 0, transform: "translateY(50px)", transition: "opacity 1s ease 1.2s, transform 1s ease 1.2s" }}>
                   查看详细分析报告
                 </p>
               </div>
@@ -1007,6 +1025,9 @@ const LoginShowcase = ({ onShowLogin }) => {
                 fontSize: "36px",
                 fontWeight: "bold",
                 marginBottom: "16px",
+                opacity: 0,
+                transform: "translateY(50px)",
+                transition: "opacity 1s ease 1.2s, transform 1s ease 1.2s"
               }}
             >
               开启智能阅卷新时代
@@ -1018,6 +1039,9 @@ const LoginShowcase = ({ onShowLogin }) => {
                 marginBottom: "40px",
                 maxWidth: "600px",
                 margin: "0 auto 40px",
+                opacity: 0,
+                transform: "translateY(50px)",
+                transition: "opacity 1s ease 1.4s, transform 1s ease 1.4s"
               }}
             >
               加入我们，体验AI技术为教育带来的革命性变化
@@ -1033,9 +1057,9 @@ const LoginShowcase = ({ onShowLogin }) => {
                 padding: "12px 36px",
                 fontSize: "18px",
                 fontWeight: "500",
-                "&:hover": {
-                  background: "#f0f6ff",
-                },
+                opacity: 0,
+                transform: "translateY(50px)",
+                transition: "opacity 1s ease 1.6s, transform 1s ease 1.6s"
               }}
               onClick={onShowLogin}
             >

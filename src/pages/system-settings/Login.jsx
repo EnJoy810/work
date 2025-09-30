@@ -27,9 +27,9 @@ const Login = () => {
     setShowLoginForm(true);
     // 滚动到登录表单区域
     setTimeout(() => {
-      const loginSection = document.getElementById('login-section');
+      const loginSection = document.getElementById("login-section");
       if (loginSection) {
-        loginSection.scrollIntoView({ behavior: 'smooth' });
+        loginSection.scrollIntoView({ behavior: "smooth" });
       }
     }, 100);
   };
@@ -87,14 +87,13 @@ const Login = () => {
   return (
     <div className="login-with-showcase-container">
       {/* 导览部分 - 仅在未显示登录表单时显示 */}
-      {!showLoginForm && (
-        <LoginShowcase onShowLogin={handleShowLoginForm} />
-      )}
+      {!showLoginForm && <LoginShowcase onShowLogin={handleShowLoginForm} />}
 
       {/* 登录表单部分 */}
       {showLoginForm && (
         <div id="login-section" className="login-container">
           <Card
+            size="small"
             title={
               <div
                 style={{
@@ -124,7 +123,7 @@ const Login = () => {
             className="login-card"
             variant="outlined"
             styles={{
-              header: { backgroundColor: "#fff" },
+              header: { backgroundColor: "#fff", padding: 0 },
               body: { padding: "10px 0" },
             }}
           >
