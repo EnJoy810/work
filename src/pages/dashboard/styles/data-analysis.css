@@ -10,6 +10,9 @@
   background-color: #fff;
   padding: 16px 24px;
   border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .statistics-row {

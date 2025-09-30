@@ -1,0 +1,24 @@
+/* ExamCard组件样式 */
+.exam-card-transition-container {
+  position: relative;
+  height: 24px;
+  overflow: hidden;
+}
+
+.exam-card-transition-item {
+  color: #2761f3;
+  transform: translateY(100%);
+  opacity: 0;
+  animation: slideUp 0.5s ease-out forwards;
+}
+
+@keyframes slideUp {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

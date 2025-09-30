@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Button } from "antd";
 import {
   UploadOutlined,
@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 import ScoreRulesModal from "./ScoreRulesModal";
 import { formatDate } from "../../../utils/tools";
+import "../styles/ExamCard.css";
 
 /**
  * 考试卡片组件
@@ -18,6 +19,19 @@ import { formatDate } from "../../../utils/tools";
 const ExamCard = ({ exam, navigate }) => {
   // 控制评分细则弹窗的显示状态
   const [scoreRulesModalVisible, setScoreRulesModalVisible] = useState(false);
+  // 控制评分过程显示的状态
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+
+  // 评分过程步骤
+  const scoreProcessSteps = [
+    "正在解析试卷结构...",
+    "识别学生信息和答题卡...",
+    "正在进行客观题自动评分...",
+    "正在进行主观题智能分析...",
+    "生成初步评分结果...",
+    "验证评分准确性...",
+    // "优化最终评分结果...",
+  ];
 
   // 打开评分细则弹窗
   const showScoreRulesModal = () => {
@@ -28,6 +42,20 @@ const ExamCard = ({ exam, navigate }) => {
   const handleScoreRulesModalClose = () => {
     setScoreRulesModalVisible(false);
   };
+
+  // 评分过程自动切换效果
+  useEffect(() => {
+    if (exam.status === "PROCESSING") {
+      const timer = setInterval(() => {
+        setCurrentStepIndex((prevIndex) =>
+          prevIndex === scoreProcessSteps.length - 1 ? 0 : prevIndex + 1
+        );
+      }, 5000); // 每5秒切换一次
+
+      return () => clearInterval(timer);
+    }
+  }, [exam.status, scoreProcessSteps.length]);
+
   // 时间格式化函数：从utils/tools.js导入的公共方法
 
   // 根据状态获取对应的图标样式
@@ -72,16 +100,37 @@ const ExamCard = ({ exam, navigate }) => {
         );
       case "PROCESSING":
         return (
-          <span
-            className="gray-status-badge"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-            }}
-          >
-            <BarChartOutlined style={{ ...iconStyles, color: "#8c8c8c" }} />
-            <span style={textStyles}>ai评分修改中</span>
-          </span>
+          <>
+            <span
+              className="gray-status-badge"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                marginRight: 30,
+              }}
+            >
+              <BarChartOutlined style={{ ...iconStyles, color: "#8c8c8c" }} />
+              <span style={textStyles}>ai评分修改中</span>
+            </span>
+            <div
+              style={{
+                display: "inline-flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+                alignSelf: "center",
+              }}
+            >
+              {/* 评分过程动态展示 - 使用外部样式 */}
+              <div className="exam-card-transition-container">
+                <div
+                  key={currentStepIndex}
+                  className="exam-card-transition-item"
+                >
+                  {scoreProcessSteps[currentStepIndex]}
+                </div>
+              </div>
+            </div>
+          </>
         );
       case "COMPLETED":
         return (
@@ -146,6 +195,8 @@ const ExamCard = ({ exam, navigate }) => {
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
           {/* 已完成状态显示查看评分细则、查看评分过程和数据分析 */}
+          {/* 完成显示数据分析 */}
+
           {(exam.status === "READY" ||
             exam.status === "PROCESSING" ||
             exam.status === "COMPLETED") && (
@@ -165,7 +216,9 @@ const ExamCard = ({ exam, navigate }) => {
               <Button
                 type="primary"
                 onClick={() => {
-                  navigate(`/upload-answer-sheet?grading_id=${exam.grading_id}`);
+                  navigate(
+                    `/upload-answer-sheet?grading_id=${exam.grading_id}`
+                  );
                 }}
                 icon={<UploadOutlined />}
               >
@@ -174,19 +227,17 @@ const ExamCard = ({ exam, navigate }) => {
             </>
           )}
 
-          {/* 完成显示数据分析 */}
-          {exam.status === "PROCESSING" ||
-            (exam.status === "COMPLETED" && (
-              <Button
-                type="default"
-                icon={<ClockCircleOutlined />}
-                onClick={() => {
-                  navigate(`/score-process?examId=${exam.id}`);
-                }}
-              >
-                查看评分过程
-              </Button>
-            ))}
+          {/* {exam.status === "COMPLETED" && (
+            <Button
+              type="default"
+              icon={<ClockCircleOutlined />}
+              onClick={() => {
+                navigate(`/score-process?examId=${exam.id}`);
+              }}
+            >
+              查看评分过程
+            </Button>
+          )} */}
 
           {/* 完成显示数据分析 */}
           {exam.status === "COMPLETED" && (
@@ -194,7 +245,7 @@ const ExamCard = ({ exam, navigate }) => {
               type="default"
               icon={<BarChartOutlined />}
               onClick={() => {
-                navigate(`/data-analysis?examId=${exam.id}`);
+                navigate(`/data-analysis?grading_id=${exam.grading_id}`);
               }}
             >
               数据分析
