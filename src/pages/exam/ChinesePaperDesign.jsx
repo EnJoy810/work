@@ -371,7 +371,6 @@ const ChinesePaperDesign = () => {
               <Form.Item
                 name="hasNote"
                 valuePropName="checked"
-                initialValue={true}
               >
                 <Checkbox>显示注意事项</Checkbox>
               </Form.Item>

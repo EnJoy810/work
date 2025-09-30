@@ -1,0 +1,346 @@
+/* 登录与导览容器 */
+.login-with-showcase-container {
+  width: 100%;
+  min-height: 100vh;
+}
+
+/* 导览部分容器 */
+.showcase-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+/* 全屏部分基础样式 */
+.full-section {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 第一部分：欢迎页面 */
+.welcome-section {
+  /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
+  background-color: #fff;
+  position: relative;
+}
+
+.welcome-section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: url("data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICAgIDxnIGZpbGw9Im5vbmUiIGZpbGwtcnVsZT0iZXZlbm9kZCI+CiAgICAgICAgPGcgZmlsbD0iI2ZmZiIgZmlsbC1vcGFjaXR5PSIwLjMiPgogICAgICAgICAgICA8cGF0aCBkPSJNMzYgMzRjMC0yLjItMS44LTQtNC00cy00IDEuOC00IDQgMS44IDQgNCA0IDQtMS44IDQtNHptMCAwYzAtMS4yLTEuOC0yLTQtMnMtNCAwLjgtNCAyIDAuOCAyIDIgMiAyLTAuOCAyLTJ6TTEyIDEyYzAtMi4yLTEuOC00LTQtNHMtNCAxLjgtNCA0IDEuOCA0IDQgNCA0LTEuOCA0LTR6bTAgMGMwLTEuMi0xLjgtMi00LTJzLTQgMC44LTQgMiAwLjggMiAyIDIgMi0wLjggMi0yek0yNCA0NmMwLTIuMi0xLjgtNC00LTRzLTQgMS44LTQgNCAxLjggNCA0IDQgNC0xLjggNC00ek0yNCAyNGMwLTIuMi0xLjgtNC00LTRzLTQgMS44LTQgNCAxLjggNCA0IDQgNC0xLjggNC00ek0yNCAzMGMwLTEuMi0xLjgtMi00LTJzLTQgMC44LTQgMiAwLjggMiAyIDIgMi0wLjggMi0yek00OCAzMGMwLTEuMi0xLjgtMi00LTJzLTQgMC44LTQgMiAwLjggMiAyIDIgMi0wLjggMi0yek00OCA0NmMwLTIuMi0xLjgtNC00LTRzLTQgMS44LTQgNCAxLjggNCA0IDQgNC0xLjggNC00eiIvPgogICAgICAgIDwvZz4KICAgIDwvZz4KPC9zdmc+");
+  opacity: 0.2;
+}
+
+.welcome-content {
+  text-align: center;
+  padding: 40px;
+  max-width: 1200px;
+  position: relative;
+  z-index: 1;
+}
+
+.welcome-badge {
+  display: inline-block;
+  padding: 8px 20px;
+  background: #eff6ff;
+  border-radius: 8px;
+  font-size: 14px;
+  color: oklch(0.546 0.245 262.881);
+  margin-bottom: 24px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  font-weight: bold;
+  border: 1px solid oklch(0.882 0.059 254.128);
+}
+
+.welcome-title {
+  font-size: 56px;
+  font-weight: 700;
+  /* color: #1890ff; */
+  background: linear-gradient(to right, #007FC9, #00988A);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 16px;
+  letter-spacing: -1px;
+}
+
+.welcome-subtitle {
+  font-size: 24px;
+  color: oklch(.446 .03 256.802);
+  margin-bottom: 32px;
+  font-weight: 500;
+}
+
+.welcome-description {
+  font-size: 17px;
+  font-weight: 500;
+  color: oklch(.551 .027 264.364);
+  line-height: 1.8;
+  max-width: 700px;
+  margin: 0 auto 40px;
+  max-width: 400px;
+  text-align: center;
+}
+
+.welcome-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 60px;
+  flex-wrap: wrap;
+}
+
+.experience-button {
+  padding: 12px 36px;
+  font-size: 16px;
+  font-weight: 500;
+  background: #1890ff;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.experience-button:hover {
+  background: #40a9ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.3);
+}
+
+.learn-more-button {
+  padding: 12px 36px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #1890ff;
+  border-color: #1890ff;
+  transition: all 0.3s ease;
+}
+
+.learn-more-button:hover {
+  background: #fff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.1);
+  border-color: #40a9ff !important;
+}
+
+/* 统计数据 */
+.welcome-stats {
+  margin-bottom: 40px;
+}
+
+.stat-item {
+  text-align: center;
+  padding: 16px;
+}
+
+.stat-number {
+  display: block;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1890ff;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 14px;
+  color: #666;
+}
+
+/* 滚动指示器 */
+.scroll-down-indicator {
+  position: absolute;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  cursor: pointer;
+  animation: bounce 2s infinite;
+  color: #1890ff;
+  font-size: 24px;
+  transition: all 0.3s ease;
+}
+
+.scroll-down-indicator:hover {
+  color: #40a9ff;
+  transform: translateX(-50%) translateY(-5px);
+}
+
+@keyframes bounce {
+  0%,
+  20%,
+  50%,
+  80%,
+  100% {
+    transform: translateY(0) translateX(-50%);
+  }
+  40% {
+    transform: translateY(-20px) translateX(-50%);
+  }
+  60% {
+    transform: translateY(-10px) translateX(-50%);
+  }
+}
+
+/* 其他部分的通用样式 */
+#section-2,
+#section-3,
+#section-4 {
+  background: #fff;
+}
+
+.section-content {
+  text-align: center;
+  padding: 40px;
+  max-width: 800px;
+  margin: 0 auto;
+  position: relative;
+}
+
+.section-content .ant-typography {
+  margin-bottom: 32px;
+}
+
+#section-4 .section-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.start-button {
+  margin-top: 40px;
+  padding: 12px 36px;
+  font-size: 18px;
+  font-weight: 500;
+  background: #1890ff;
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.start-button:hover {
+  background: #40a9ff !important;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(24, 144, 255, 0.3);
+}
+
+/* 登录表单样式 */
+.login-container {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 450px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.login-card .ant-card-head {
+  padding: 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.login-card .ant-card-body {
+  padding: 32px;
+}
+
+.login-button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .welcome-title {
+    font-size: 40px;
+  }
+
+  .welcome-subtitle {
+    font-size: 20px;
+  }
+
+  .welcome-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .experience-button,
+  .learn-more-button {
+    width: 280px;
+    max-width: 100%;
+  }
+
+  .welcome-stats .ant-row {
+    margin: 0 -10px;
+  }
+
+  .welcome-stats .ant-col {
+    padding: 0 10px;
+  }
+
+  .stat-number {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-title {
+    font-size: 32px;
+  }
+
+  .welcome-subtitle {
+    font-size: 18px;
+  }
+
+  .welcome-description {
+    font-size: 14px;
+  }
+
+  .experience-button,
+  .learn-more-button {
+    width: 100%;
+    max-width: 260px;
+    padding: 10px 24px;
+    font-size: 14px;
+  }
+
+  .stat-number {
+    font-size: 20px;
+  }
+
+  .stat-label {
+    font-size: 12px;
+  }
+
+  .login-card {
+    margin: 0 10px;
+  }
+
+  .login-card .ant-card-body {
+    padding: 24px;
+  }
+}
+
+/* 过渡动画 */
+.showcase-container,
+.login-container {
+  transition: all 0.5s ease;
+}

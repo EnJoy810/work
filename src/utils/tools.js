@@ -503,7 +503,7 @@ export const splitBlankQuestion = (
           }
         }
       } else {
-        console.log("q 行", q.linesPerQuestion);
+        // console.log("q 行", q.linesPerQuestion);
         const lineCount = q.linesPerQuestion || 1;
         totalLines += lineCount;
         if (totalLines > remainingLines) {
@@ -534,6 +534,13 @@ export const splitBlankQuestion = (
       console.log("分割的小题下标", subSplitIndex);
       const currentPageData = question.questions.slice(0, splitIndex);
       const nextPageData = question.questions.slice(splitIndex);
+      console.log(
+        "未分割处理前 当页的数据",
+        question,
+        currentPageData,
+        "下一页数据",
+        nextPageData
+      );
 
       if (
         question.fillType === "long" &&
@@ -601,17 +608,21 @@ export const splitBlankQuestion = (
             "rightSubFirstPart 小题右部分",
             rightSubFirstPart
           );
+          console.log("question 小题来的 ", question, currentPageData);
           firstPart = {
             ...question,
             originQuestions: question.questions,
-            questions: currentPageData,
+            questions: [{ ...splitData, subQuestions: leftSubFirstPart }], // 只有当前条数据
           };
 
           secondPart = {
             ...question,
             originQuestions: question.questions,
             sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
-            questions: nextPageData,
+            questions: [
+              { ...splitData, subQuestions: rightSubFirstPart },
+              ...question.questions.slice(splitIndex + 1),
+            ], // 只有当前条数据,
           };
         } else {
           // todo

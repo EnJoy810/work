@@ -7,6 +7,7 @@ import {
   BarChartOutlined,
 } from "@ant-design/icons";
 import ScoreRulesModal from "./ScoreRulesModal";
+import { formatDate } from "../../../utils/tools";
 
 /**
  * 考试卡片组件
@@ -27,8 +28,10 @@ const ExamCard = ({ exam, navigate }) => {
   const handleScoreRulesModalClose = () => {
     setScoreRulesModalVisible(false);
   };
+  // 时间格式化函数：从utils/tools.js导入的公共方法
+
   // 根据状态获取对应的图标样式
-  const getStatusIcon = (status, statusText) => {
+  const getStatusIcon = (status) => {
     const iconStyles = {
       marginRight: "6px",
       fontSize: "13px",
@@ -41,7 +44,7 @@ const ExamCard = ({ exam, navigate }) => {
     };
 
     switch (status) {
-      case "pending":
+      case "PENDING":
         return (
           <span
             className="dark-status-badge"
@@ -51,10 +54,10 @@ const ExamCard = ({ exam, navigate }) => {
             }}
           >
             <ClockCircleOutlined style={{ ...iconStyles, color: "#1890ff" }} />
-            <span style={textStyles}>{statusText}</span>
+            <span style={textStyles}>评分细则生成中</span>
           </span>
         );
-      case "completed":
+      case "READY":
         return (
           <span
             className="gray-status-badge"
@@ -64,10 +67,10 @@ const ExamCard = ({ exam, navigate }) => {
             }}
           >
             <FileTextOutlined style={{ ...iconStyles, color: "#52c41a" }} />
-            <span style={textStyles}>{statusText}</span>
+            <span style={textStyles}>已生成评分细则</span>
           </span>
         );
-      case "upcoming":
+      case "PROCESSING":
         return (
           <span
             className="gray-status-badge"
@@ -77,10 +80,10 @@ const ExamCard = ({ exam, navigate }) => {
             }}
           >
             <BarChartOutlined style={{ ...iconStyles, color: "#8c8c8c" }} />
-            <span style={textStyles}>{statusText}</span>
+            <span style={textStyles}>ai评分修改中</span>
           </span>
         );
-      case "processing":
+      case "COMPLETED":
         return (
           <span
             className="gray-status-badge"
@@ -90,22 +93,11 @@ const ExamCard = ({ exam, navigate }) => {
             }}
           >
             <UploadOutlined style={{ ...iconStyles, color: "#faad14" }} />
-            <span style={textStyles}>{statusText}</span>
+            <span style={textStyles}>已完成</span>
           </span>
         );
       default:
-        return (
-          <span
-            className="dark-status-badge"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-            }}
-          >
-            <BarChartOutlined style={{ ...iconStyles, color: "#8c8c8c" }} />
-            <span style={textStyles}>{statusText}</span>
-          </span>
-        );
+        return null;
     }
   };
 
@@ -128,14 +120,14 @@ const ExamCard = ({ exam, navigate }) => {
           <div style={{ display: "flex", alignItems: "center" }}>
             <span
               style={{
-                fontSize: "18px",
+                fontSize: "20px",
                 fontWeight: "bold",
                 marginRight: "12px",
               }}
             >
-              {exam.name}
+              {exam.paper_title}
             </span>
-            {getStatusIcon(exam.status, exam.statusText)}
+            {getStatusIcon(exam.status)}
           </div>
           <div
             style={{
@@ -144,29 +136,15 @@ const ExamCard = ({ exam, navigate }) => {
               color: "#666",
             }}
           >
-            学科: {exam.subject} 年级: {exam.grade} 总分:
-            {exam.totalScore}分 创建时间: {exam.createTime}
+            <span>班级id：  {exam.class_id}</span> 
+            <span style={{ marginLeft: "20px" }}>创建时间: {formatDate(exam.created_time)}</span>
+            {/* 学科: {exam.subject} 年级: {exam.grade} 总分:
+            {exam.totalScore}分 创建时间: {exam.createTime} */}
           </div>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
-          {/* 根据状态显示不同按钮 */}
-          {/* 待开始、待审核、待上线状态显示上传答题卡 */}
-          {(exam.status === "upcoming" ||
-            exam.status === "pending" ||
-            exam.status === "processing") && (
-            <Button
-              type="primary"
-              onClick={() => {
-                navigate("/upload-answer-sheet");
-              }}
-              icon={<UploadOutlined />}
-            >
-              上传答题卡
-            </Button>
-          )}
-
           {/* 已完成状态显示查看评分细则、查看评分过程和数据分析 */}
-          {exam.status === "completed" && (
+          {exam.status === "READY" && (
             <>
               <Button
                 type="default"
@@ -175,7 +153,21 @@ const ExamCard = ({ exam, navigate }) => {
               >
                 查看评分细则
               </Button>
+              <Button
+                type="primary"
+                onClick={() => {
+                  navigate("/upload-answer-sheet");
+                }}
+                icon={<UploadOutlined />}
+              >
+                上传答题卡
+              </Button>
+            </>
+          )}
 
+          {/* 完成显示数据分析 */}
+          {exam.status === "PROCESSING" ||
+            (exam.status === "COMPLETED" && (
               <Button
                 type="default"
                 icon={<ClockCircleOutlined />}
@@ -185,21 +177,10 @@ const ExamCard = ({ exam, navigate }) => {
               >
                 查看评分过程
               </Button>
+            ))}
 
-              <Button
-                type="default"
-                icon={<BarChartOutlined />}
-                onClick={() => {
-                  navigate(`/data-analysis?examId=${exam.id}`);
-                }}
-              >
-                数据分析
-              </Button>
-            </>
-          )}
-
-          {/* 处理中状态也显示数据分析 */}
-          {exam.status === "processing" && (
+          {/* 完成显示数据分析 */}
+          {exam.status === "COMPLETED" && (
             <Button
               type="default"
               icon={<BarChartOutlined />}

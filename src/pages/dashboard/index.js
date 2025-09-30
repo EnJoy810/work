@@ -10,5 +10,5 @@ export default {
   CreateExam,
   UploadAnswerSheet,
   ScoreProcess,
-  DataAnalysis
+  DataAnalysis,
 };

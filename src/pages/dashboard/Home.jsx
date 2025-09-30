@@ -9,6 +9,7 @@ import {
   Badge,
   Progress,
   List,
+  Spin,
 } from "antd";
 import {
   FileTextOutlined,
@@ -22,6 +23,8 @@ import {
   BarChartOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import request from "../../utils/request";
 import "./styles/home.css";
 import ExamCard from "./components/ExamCard";
 
@@ -29,64 +32,26 @@ const { Title, Text } = Typography;
 
 const Home = () => {
   const navigate = useNavigate();
-  // 模拟数据 - 近期考试
-  const recentExams = [
-    {
-      id: 1,
-      name: "高二数学上学期期中考试",
-      subject: "数学",
-      grade: "高二",
-      totalScore: 150,
-      createTime: "2025-09-08",
-      progress: { current: 45, total: 60 },
-      status: "pending",
-      statusText: "待审核",
-    },
-    {
-      id: 2,
-      name: "高一物理第三章测试",
-      subject: "物理",
-      grade: "高一",
-      totalScore: 100,
-      createTime: "2025-09-06",
-      progress: { current: 100, total: 100 },
-      status: "completed",
-      statusText: "已完成",
-    },
-    {
-      id: 3,
-      name: "高三语文模拟考试",
-      subject: "语文",
-      grade: "高三",
-      totalScore: 150,
-      createTime: "2025-09-05",
-      progress: { current: 0, total: 80 },
-      status: "pending",
-      statusText: "待审核",
-    },
-    {
-      id: 4,
-      name: "高三英语模拟考试",
-      subject: "英语",
-      grade: "高三",
-      totalScore: 150,
-      createTime: "2025-09-10",
-      progress: { current: 0, total: 100 },
-      status: "upcoming",
-      statusText: "待开始",
-    },
-    {
-      id: 5,
-      name: "高一语文作文批改",
-      subject: "语文",
-      grade: "高一",
-      totalScore: 100,
-      createTime: "2025-09-15",
-      progress: { current: 28, total: 35 },
-      status: "processing",
-      statusText: "待上线",
-    },
-  ];
+  const [recentExams, setRecentExams] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 获取考试列表数据
+  useEffect(() => {
+    const fetchExamList = async () => {
+      try {
+        setLoading(true);
+        const response = await request.get("/grading/grading/list");
+        setRecentExams(response.data || []);
+      } catch (error) {
+        console.error("获取考试列表失败:", error);
+        // 在实际应用中可以添加错误提示
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchExamList();
+  }, []);
 
   // 获取今天的日期并格式化为中文格式
   const getCurrentDate = () => {
@@ -170,17 +135,20 @@ const Home = () => {
       {/* 近期考试列表 */}
       <div className="recent-exams-list">
         <Title level={4}>近期考试</Title>
-        <List
-          dataSource={recentExams}
-          renderItem={(exam) => (
-            <List.Item style={{ border: "none" }}  className="recent-exam-item">
-              <ExamCard
-                exam={exam}
-                navigate={navigate}
-              />
-            </List.Item>
-          )}
-        />
+        <Spin spinning={loading}>
+          <List
+            dataSource={recentExams}
+            renderItem={(exam) => (
+              <List.Item
+                style={{ border: "none" }}
+                className="recent-exam-item"
+              >
+                <ExamCard exam={exam} navigate={navigate} />
+              </List.Item>
+            )}
+            locale={{ emptyText: loading ? "" : "暂无考试数据" }}
+          />
+        </Spin>
       </div>
     </div>
   );
