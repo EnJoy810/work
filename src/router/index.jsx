@@ -4,9 +4,10 @@ import pages from "../pages";
 import { ProtectedRoute, LoginPage } from "./ProtectedRoutes.jsx";
 
 // 解构获取各个页面组件
-const { Home, CreateExam, UploadAnswerSheet, ScoreProcess, DataAnalysis } = pages.dashboard;
+const { Home, CreateExam, UploadAnswerSheet, ScoreProcess, DataAnalysis } =
+  pages.dashboard;
 const { UserList } = pages.studentManagement;
-const { NotFound } = pages;
+const { NotFound, FeatureUnderDevelopment } = pages;
 const { MessageDemo } = pages.systemSettings;
 const {
   ExamPaperDesign,
@@ -35,6 +36,10 @@ const router = createBrowserRouter([
         index: true,
         element: <Home />,
       },
+      { path: "coming-soon", element: <FeatureUnderDevelopment /> },
+      { path: "exams", element: <FeatureUnderDevelopment /> },
+      { path: "questions", element: <FeatureUnderDevelopment /> },
+      { path: "settings", element: <FeatureUnderDevelopment /> },
       {
         path: "users",
         element: <UserList />,

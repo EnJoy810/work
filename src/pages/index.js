@@ -5,6 +5,7 @@ import questionBank from './question-bank';
 import studentManagement from './student-management';
 import systemSettings from './system-settings';
 import NotFound from './NotFound';
+import FeatureUnderDevelopment from './FeatureUnderDevelopment';
 
 export default {
   dashboard,
@@ -12,5 +13,6 @@ export default {
   questionBank,
   studentManagement,
   systemSettings,
-  NotFound
+  NotFound,
+  FeatureUnderDevelopment
 };
