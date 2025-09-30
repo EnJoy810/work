@@ -196,7 +196,6 @@ const ExamCard = ({ exam, navigate }) => {
         <div style={{ display: "flex", gap: "8px" }}>
           {/* 已完成状态显示查看评分细则、查看评分过程和数据分析 */}
           {/* 完成显示数据分析 */}
-
           {(exam.status === "READY" ||
             exam.status === "PROCESSING" ||
             exam.status === "COMPLETED") && (

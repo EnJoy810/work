@@ -154,10 +154,11 @@ const DataAnalysis = () => {
         </Title>
         <Button onClick={() => navigate(-1)}>返回首页</Button>
       </div>
+      
 
       {/* 统计卡片 */}
       <Row gutter={16} className="statistics-row">
-        <Col span={6} offset={6}>
+        <Col span={12}>
           <Card>
             <Statistic
               title="平均分"
@@ -167,7 +168,7 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col span={12}>
           <Card>
             <Statistic
               title="最高分"
