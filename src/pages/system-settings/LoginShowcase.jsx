@@ -6,7 +6,7 @@ import {
   RightOutlined,
   DownOutlined,
 } from "@ant-design/icons";
-import XLabSvg from "../../assets/X-Lab.svg";
+import XLabSvg from "../../assets/Badge.svg";
 
 const { Title, Text } = Typography;
 
@@ -27,6 +27,8 @@ const LoginShowcase = ({ onShowLogin }) => {
   const [isSection2Visible, setIsSection2Visible] = useState(false);
   // 状态用于跟踪第三部分是否已进入视图
   const [isSection3Visible, setIsSection3Visible] = useState(false);
+  // 状态用于跟踪第四部分是否已进入视图
+  const [isSection4Visible, setIsSection4Visible] = useState(false);
 
   useEffect(() => {
     // 创建Intersection Observer实例
@@ -86,6 +88,37 @@ const LoginShowcase = ({ onShowLogin }) => {
     return () => {
       if (section3) {
         observer.unobserve(section3);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    // 创建Intersection Observer实例
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // 当元素进入视图时，设置isSection4Visible为true
+        if (entry.isIntersecting) {
+          setIsSection4Visible(true);
+          // 只需要观察一次
+          observer.unobserve(entry.target);
+        }
+      },
+      {
+        // 当元素的10%进入视图时触发
+        threshold: 0.1,
+      }
+    );
+
+    // 获取第四部分元素并开始观察
+    const section4 = document.getElementById("section-4");
+    if (section4) {
+      observer.observe(section4);
+    }
+
+    // 组件卸载时停止观察
+    return () => {
+      if (section4) {
+        observer.unobserve(section4);
       }
     };
   }, []);
@@ -773,6 +806,7 @@ const LoginShowcase = ({ onShowLogin }) => {
         >
           <div style={{ textAlign: "center", width: "100%" }}>
             <h2
+              className={`${isSection4Visible ? "fade-in-up" : ""}`}
               style={{
                 fontSize: "36px",
                 fontWeight: "bold",
@@ -783,6 +817,7 @@ const LoginShowcase = ({ onShowLogin }) => {
               使用流程
             </h2>
             <p
+              className={`${isSection4Visible ? "fade-in-up" : ""}`}
               style={{
                 fontSize: "20px",
                 color: "#4A5565",
@@ -822,6 +857,7 @@ const LoginShowcase = ({ onShowLogin }) => {
                   01
                 </div>
                 <h4
+                  className={`${isSection4Visible ? "fade-in-up" : ""}`}
                   style={{
                     fontSize: "18px",
                     fontWeight: "600",
@@ -831,7 +867,7 @@ const LoginShowcase = ({ onShowLogin }) => {
                 >
                   创建考试
                 </h4>
-                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280" }}>
                   设置考试信息和题目
                 </p>
               </div>
@@ -858,6 +894,7 @@ const LoginShowcase = ({ onShowLogin }) => {
                   02
                 </div>
                 <h4
+                  className={`${isSection4Visible ? "fade-in-up" : ""}`}
                   style={{
                     fontSize: "18px",
                     fontWeight: "600",
@@ -867,7 +904,7 @@ const LoginShowcase = ({ onShowLogin }) => {
                 >
                   上传试卷
                 </h4>
-                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280" }}>
                   扫描或拍照上传试卷
                 </p>
               </div>
@@ -894,6 +931,7 @@ const LoginShowcase = ({ onShowLogin }) => {
                   03
                 </div>
                 <h4
+                  className={`${isSection4Visible ? "fade-in-up" : ""}`}
                   style={{
                     fontSize: "18px",
                     fontWeight: "600",
@@ -903,7 +941,7 @@ const LoginShowcase = ({ onShowLogin }) => {
                 >
                   AI批改
                 </h4>
-                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280" }}>
                   智能识别并自动批改
                 </p>
               </div>
@@ -930,6 +968,7 @@ const LoginShowcase = ({ onShowLogin }) => {
                   04
                 </div>
                 <h4
+                  className={`${isSection4Visible ? "fade-in-up" : ""}`}
                   style={{
                     fontSize: "18px",
                     fontWeight: "600",
@@ -939,7 +978,7 @@ const LoginShowcase = ({ onShowLogin }) => {
                 >
                   生成报告
                 </h4>
-                <p style={{ fontSize: "14px", color: "#6b7280" }}>
+                <p className={`${isSection4Visible ? "fade-in-up" : ""}`} style={{ fontSize: "14px", color: "#6b7280" }}>
                   查看详细分析报告
                 </p>
               </div>
@@ -963,40 +1002,43 @@ const LoginShowcase = ({ onShowLogin }) => {
           }}
         >
           <h2
-            style={{
-              fontSize: "36px",
-              fontWeight: "bold",
-              marginBottom: "16px",
-            }}
-          >
-            开启智能阅卷新时代
-          </h2>
+              className={`${isSection4Visible ? "fade-in-up" : ""}`}
+              style={{
+                fontSize: "36px",
+                fontWeight: "bold",
+                marginBottom: "16px",
+              }}
+            >
+              开启智能阅卷新时代
+            </h2>
           <p
-            style={{
-              fontSize: "18px",
-              marginBottom: "40px",
-              maxWidth: "600px",
-              margin: "0 auto 40px",
-            }}
-          >
-            加入我们，体验AI技术为教育带来的革命性变化
-          </p>
+              className={`${isSection4Visible ? "fade-in-up" : ""}`}
+              style={{
+                fontSize: "18px",
+                marginBottom: "40px",
+                maxWidth: "600px",
+                margin: "0 auto 40px",
+              }}
+            >
+              加入我们，体验AI技术为教育带来的革命性变化
+            </p>
           <Button
-            type="primary"
-            size="large"
-            style={{
-              background: "white",
-              color: "#155DFC",
-              border: "none",
-              padding: "12px 36px",
-              fontSize: "18px",
-              fontWeight: "500",
-              "&:hover": {
-                background: "#f0f6ff",
-              },
-            }}
-            onClick={onShowLogin}
-          >
+              className={`${isSection4Visible ? "fade-in-up" : ""}`}
+              type="primary"
+              size="large"
+              style={{
+                background: "white",
+                color: "#155DFC",
+                border: "none",
+                padding: "12px 36px",
+                fontSize: "18px",
+                fontWeight: "500",
+                "&:hover": {
+                  background: "#f0f6ff",
+                },
+              }}
+              onClick={onShowLogin}
+            >
             <svg
               width="16"
               height="16"
