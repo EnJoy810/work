@@ -5,5 +5,19 @@
 }
 
 .card-hover:hover {
-  background-color: #f5f5f6;
+  background-color: color-mix(in oklab, #e9ebef 50%, transparent);
+}
+
+.dark-status-badge {
+  background-color: #001529;
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 10px;
+}
+
+.gray-status-badge {
+  background-color: #e9ebef;
+  color: #000;
+  padding: 4px 8px;
+  border-radius: 10px;
 }

@@ -1,6 +1,6 @@
 import axios from "axios";
 import { store } from "../store";
-import { message } from 'antd';
+import { message } from "antd";
 
 // 创建axios实例
 const request = axios.create({
@@ -33,13 +33,14 @@ request.interceptors.response.use(
     // 根据后端接口规范处理响应数据
     const res = response.data;
     console.log("res--->", res);
-    if (res.code !== "200" && res.code !== 0) {
+    if (res.code !== "200") {
       // 处理错误情况
-    console.error("请求错误:", res.message || "未知错误");
-    // 使用antd的message组件显示错误提示
-    message.error(res.message || "请求错误，请稍后重试");
-    
-    return Promise.reject(new Error(res.message || "未知错误"));
+      console.error("请求错误:", res.message);
+      // 使用antd的message组件显示错误提示
+      if (res.message) {
+        message.error(res.message);
+      }
+      return Promise.reject(new Error(res.message));
     }
     return res;
   },

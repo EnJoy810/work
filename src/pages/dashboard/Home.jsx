@@ -99,22 +99,6 @@ const Home = () => {
     return `今天是${year}年${month}月${day}日星期${weekday}`;
   };
 
-  // 根据状态获取对应的徽章样式
-  const getStatusBadge = (status, statusText) => {
-    switch (status) {
-      case "pending":
-        return <Badge status="processing" text={statusText} />;
-      case "completed":
-        return <Badge status="success" text={statusText} />;
-      case "upcoming":
-        return <Badge status="default" text={statusText} />;
-      case "processing":
-        return <Badge status="warning" text={statusText} />;
-      default:
-        return <Badge status="default" text={statusText} />;
-    }
-  };
-
   return (
     <div style={{ padding: "20px" }}>
       {/* 顶部欢迎信息 */}
@@ -189,11 +173,10 @@ const Home = () => {
         <List
           dataSource={recentExams}
           renderItem={(exam) => (
-            <List.Item style={{ border: "none" }}>
+            <List.Item style={{ border: "none" }}  className="recent-exam-item">
               <ExamCard
                 exam={exam}
                 navigate={navigate}
-                getStatusBadge={getStatusBadge}
               />
             </List.Item>
           )}

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Card, Button, Badge } from "antd";
+import React, { useState } from "react";
+import { Card, Button } from "antd";
 import {
   UploadOutlined,
   FileTextOutlined,
@@ -13,9 +13,8 @@ import ScoreRulesModal from "./ScoreRulesModal";
  * @param {Object} props
  * @param {Object} props.exam - 考试数据
  * @param {Function} props.navigate - 路由导航函数
- * @param {Function} props.getStatusBadge - 获取状态徽章的函数
  */
-const ExamCard = ({ exam, navigate, getStatusBadge }) => {
+const ExamCard = ({ exam, navigate }) => {
   // 控制评分细则弹窗的显示状态
   const [scoreRulesModalVisible, setScoreRulesModalVisible] = useState(false);
 
@@ -28,10 +27,95 @@ const ExamCard = ({ exam, navigate, getStatusBadge }) => {
   const handleScoreRulesModalClose = () => {
     setScoreRulesModalVisible(false);
   };
+  // 根据状态获取对应的图标样式
+  const getStatusIcon = (status, statusText) => {
+    const iconStyles = {
+      marginRight: "6px",
+      fontSize: "13px",
+      verticalAlign: "middle",
+    };
+
+    const textStyles = {
+      fontSize: "13px",
+      verticalAlign: "middle",
+    };
+
+    switch (status) {
+      case "pending":
+        return (
+          <span
+            className="dark-status-badge"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            <ClockCircleOutlined style={{ ...iconStyles, color: "#1890ff" }} />
+            <span style={textStyles}>{statusText}</span>
+          </span>
+        );
+      case "completed":
+        return (
+          <span
+            className="gray-status-badge"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            <FileTextOutlined style={{ ...iconStyles, color: "#52c41a" }} />
+            <span style={textStyles}>{statusText}</span>
+          </span>
+        );
+      case "upcoming":
+        return (
+          <span
+            className="gray-status-badge"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            <BarChartOutlined style={{ ...iconStyles, color: "#8c8c8c" }} />
+            <span style={textStyles}>{statusText}</span>
+          </span>
+        );
+      case "processing":
+        return (
+          <span
+            className="gray-status-badge"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            <UploadOutlined style={{ ...iconStyles, color: "#faad14" }} />
+            <span style={textStyles}>{statusText}</span>
+          </span>
+        );
+      default:
+        return (
+          <span
+            className="dark-status-badge"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            <BarChartOutlined style={{ ...iconStyles, color: "#8c8c8c" }} />
+            <span style={textStyles}>{statusText}</span>
+          </span>
+        );
+    }
+  };
 
   // 渲染考试卡片内容
   const cardContent = (
-    <Card style={{ width: "100%" }} className="card-hover" hoverable>
+    <Card
+      style={{ width: "100%", borderColor: "rgb(206, 204, 204)" }}
+      className="card-hover"
+      hoverable
+    >
       <div
         style={{
           display: "flex",
@@ -51,7 +135,7 @@ const ExamCard = ({ exam, navigate, getStatusBadge }) => {
             >
               {exam.name}
             </span>
-            {getStatusBadge(exam.status, exam.statusText)}
+            {getStatusIcon(exam.status, exam.statusText)}
           </div>
           <div
             style={{
@@ -134,7 +218,7 @@ const ExamCard = ({ exam, navigate, getStatusBadge }) => {
   return (
     <>
       {cardContent}
-      
+
       {scoreRulesModalVisible && (
         <ScoreRulesModal
           visible={scoreRulesModalVisible}

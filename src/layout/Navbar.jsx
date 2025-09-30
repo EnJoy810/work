@@ -105,7 +105,7 @@ const Navbar = () => {
       style={{
         padding: 0,
         background: "#fff",
-        boxShadow: "0 1px 4px rgba(0,21,41,0.08)",
+        boxShadow: "0 1px 4px rgba(0,21,41,0.28)",
         position: "fixed",
         top: 0,
         left: 0,
