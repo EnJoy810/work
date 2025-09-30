@@ -277,14 +277,147 @@
 #section-3,
 #section-4 {
   background: #fff;
+  position: relative;
+  overflow: hidden;
 }
 
 .section-content {
   text-align: center;
   padding: 40px;
-  max-width: 800px;
+  max-width: 1200px;
   margin: 0 auto;
   position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 第二部分：合作院校样式 */
+.partner-schools-content {
+  opacity: 0;
+  animation: fadeInUp 1s ease forwards;
+  text-align: center;
+}
+
+.partner-schools-title {
+  margin-top: 20px;
+  font-size: 40px;
+  font-weight: bold;
+  color: #1E2939;
+  margin-bottom: 16px;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 1s ease, transform 1s ease;
+}
+
+.partner-schools-subtitle {
+  font-size: 20px;
+  color: #4A5565;
+  margin-bottom: 48px;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 1s ease 0.2s, transform 1s ease 0.2s;
+}
+
+.schools-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-bottom: 60px;
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 1s ease 0.4s, transform 1s ease 0.4s;
+}
+
+.school-card {
+  background: white;
+  border-radius: 12px;
+  padding: 22px 24px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  /* border: 1px solid #6A7282; */
+  opacity: 0;
+  transform: translateY(50px);
+  transition: all 0.3s ease;
+}
+
+.school-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  transform: translateY(-2px);
+}
+
+.school-card.highlighted {
+  border-color: #155dfc;
+  box-shadow: 0 0 0 1px rgba(21, 93, 252, 0.2), 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* 滚动显示动画类 */
+.fade-in-up {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+/* 学校卡片的延迟动画 */
+.schools-grid > .school-card:nth-child(1) {
+  transition: opacity 1s ease 0.6s, transform 1s ease 0.6s;
+}
+
+.schools-grid > .school-card:nth-child(2) {
+  transition: opacity 1s ease 0.8s, transform 1s ease 0.8s;
+}
+
+.schools-grid > .school-card:nth-child(3) {
+  transition: opacity 1s ease 1.0s, transform 1s ease 1.0s;
+}
+
+.schools-grid > .school-card:nth-child(4) {
+  transition: opacity 1s ease 1.2s, transform 1s ease 1.2s;
+}
+
+.schools-grid > .school-card:nth-child(5) {
+  transition: opacity 1s ease 1.4s, transform 1s ease 1.4s;
+}
+
+.schools-grid > .school-card:nth-child(6) {
+  transition: opacity 1s ease 1.6s, transform 1s ease 1.6s;
+}
+
+.schools-grid > .school-card:nth-child(7) {
+  transition: opacity 1s ease 1.8s, transform 1s ease 1.8s;
+}
+
+.schools-grid > .school-card:nth-child(8) {
+  transition: opacity 1s ease 2.0s, transform 1s ease 2.0s;
+}
+
+.school-icon {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.school-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 8px;
+}
+
+.school-type {
+  font-size: 14px;
+  font-weight: bold;
+  color: #030213;
+  background-color: #ECEFF2;
+  padding: 2px 8px;
+  border-radius: 12px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+
+.school-location {
+  font-size: 14px;
+  color: #6b7280;
 }
 
 .section-content .ant-typography {

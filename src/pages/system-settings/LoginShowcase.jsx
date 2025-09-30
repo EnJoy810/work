@@ -1,10 +1,6 @@
 import { Typography, Row, Col, Button } from "antd";
-import {
-  StarOutlined,
-  BookOutlined,
-  RightOutlined,
-  DownOutlined,
-} from "@ant-design/icons";
+import { useState, useEffect } from 'react';
+import { StarOutlined, BookOutlined, RightOutlined, DownOutlined, } from "@ant-design/icons";
 
 const { Title, Text } = Typography;
 
@@ -20,6 +16,40 @@ const LoginShowcase = ({ onShowLogin }) => {
       section.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  // 状态用于跟踪第二部分是否已进入视图
+  const [isSection2Visible, setIsSection2Visible] = useState(false);
+
+  useEffect(() => {
+    // 创建Intersection Observer实例
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // 当元素进入视图时，设置isSection2Visible为true
+        if (entry.isIntersecting) {
+          setIsSection2Visible(true);
+          // 只需要观察一次
+          observer.unobserve(entry.target);
+        }
+      },
+      {
+        // 当元素的10%进入视图时触发
+        threshold: 0.1
+      }
+    );
+
+    // 获取第二部分元素并开始观察
+    const section2 = document.getElementById('section-2');
+    if (section2) {
+      observer.observe(section2);
+    }
+
+    // 组件卸载时停止观察
+    return () => {
+      if (section2) {
+        observer.unobserve(section2);
+      }
+    };
+  }, []);
 
   return (
     <div className="showcase-container">
@@ -158,16 +188,149 @@ const LoginShowcase = ({ onShowLogin }) => {
         </div>
       </section>
 
-      {/* 第二部分：产品介绍 */}
+      {/* 第二部分：合作院校 */}
       <section id="section-2" className="full-section">
         <div className="section-content">
-          <Title level={3}>产品介绍</Title>
-          <Text>这里是产品介绍内容...</Text>
-          <div
-            className="scroll-down-indicator"
-            onClick={() => scrollToSection(3)}
-          >
-            <DownOutlined />
+          <div className="partner-schools-content">
+            <h2 className={`partner-schools-title ${isSection2Visible ? 'fade-in-up' : ''}`}>合作院校</h2>
+            <p className={`partner-schools-subtitle ${isSection2Visible ? 'fade-in-up' : ''}`}>全国重点大学的信任之选</p>
+            <div className={`schools-grid ${isSection2Visible ? 'fade-in-up' : ''}`}>
+              {[
+                {
+                  name: "清华大学附属中学",
+                  type: "985高校附中",
+                  location: "北京",
+                },
+                {
+                  name: "复旦大学附属中学",
+                  type: "985高校附中",
+                  location: "上海",
+                },
+                {
+                  name: "浙江大学附属中学",
+                  type: "985高校附中",
+                  location: "杭州",
+                },
+                {
+                  name: "中国人民大学附属中学",
+                  type: "985高校附中",
+                  location: "北京",
+                },
+                {
+                  name: "华东师范大学第二附属中学",
+                  type: "211高校附中",
+                  location: "上海",
+                },
+                {
+                  name: "西北工业大学附属中学",
+                  type: "985高校附中",
+                  location: "西安",
+                },
+                {
+                  name: "哈尔滨工业大学附属中学",
+                  type: "985高校附中",
+                  location: "哈尔滨",
+                },
+                {
+                  name: "大连理工大学附属高中",
+                  type: "985高校附中",
+                  location: "大连",
+                },
+              ].map((school, index) => (
+                <div key={index} className={`school-card ${isSection2Visible ? 'fade-in-up' : ''}`}>
+                  <div className="school-icon">
+                    <svg
+                      width="48"
+                      height="48"
+                      viewBox="0 0 48 48"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M24 20H24.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M24 28H24.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M24 12H24.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M32 20H32.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M32 28H32.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M32 12H32.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M16 20H16.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M16 28H16.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M16 12H16.02"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M18 44V38C18 37.4696 18.2107 36.9609 18.5858 36.5858C18.9609 36.2107 19.4696 36 20 36H28C28.5304 36 29.0391 36.2107 29.4142 36.5858C29.7893 36.9609 30 37.4696 30 38V44"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                      <path
+                        d="M36 4H12C9.79086 4 8 5.79086 8 8V40C8 42.2091 9.79086 44 12 44H36C38.2091 44 40 42.2091 40 40V8C40 5.79086 38.2091 4 36 4Z"
+                        stroke="#155DFC"
+                        stroke-width="4"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      />
+                    </svg>
+                  </div>
+                  <h4 className="school-name">{school.name}</h4>
+                  <p className="school-type">{school.type}</p>
+                  <p className="school-location">{school.location}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
