@@ -11,6 +11,7 @@ import {
   Radio,
 } from "antd";
 import { useMessageService } from "../../components/common/message";
+import request from "../../utils/request";
 import {
   UploadOutlined,
   FileTextOutlined,
@@ -18,6 +19,7 @@ import {
   PlusOutlined,
   FileProtectOutlined,
   FileOutlined,
+  SendOutlined,
 } from "@ant-design/icons";
 import "./styles/home.css";
 
@@ -80,53 +82,29 @@ const CreateExam = () => {
         const formData = new FormData();
 
         // 添加考试信息
-        formData.append("name", values.examName);
-        formData.append("subject", values.examSubject);
+        formData.append("subject", values.examName);
+        formData.append("paperTitle", values.examSubject);
 
         // 添加文件数据
-        formData.append("paperFile", paperFile);
-        formData.append("answerFile", answerFile);
+        formData.append("originPaper", paperFile);
+        formData.append("standardAnswer", answerFile);
 
         console.log("创建新考试数据: 已准备FormData");
-        // 输出FormData内容
-        // console.log("FormData内容:");
-        // const formDataEntries = {};
-        // formData.forEach((value, key) => {
-        //   if (value instanceof File) {
-        //     formDataEntries[key] = `File: ${value.name} (${value.size} bytes, type: ${value.type})`;
-        //   } else {
-        //     formDataEntries[key] = value;
-        //   }
-        // });
-        // console.log(formDataEntries);
 
-        // 模拟提交到后端接口
-        // 实际项目中替换为真实的API调用
-        // 示例：
-        // fetch('/api/exams/create', {
-        //   method: 'POST',
-        //   body: formData,
-        // })
-        // .then(response => response.json())
-        // .then(data => {
-        //   console.log('提交成功:', data);
-        //   message.success('考试创建成功');
-        //   navigate(`/exam/${data.examId}`);
-        // })
-        // .catch(error => {
-        //   console.error('提交失败:', error);
-        //   message.error('考试创建失败，请重试');
-        // });
-
-        showSuccess("考试创建成功");
-
-        // 重置状态
-        setPaperFile(null);
-        setAnswerFile(null);
-        form.resetFields();
-
-        // 跳转到考试列表或详情页
-        // navigate("/dashboard");
+        // 提交到后端接口
+        request.post("/grading/exam/create", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+          .then(() => {
+            showSuccess("考试创建成功");
+            navigate("/"); // 返回首页
+          })
+          .catch((error) => {
+            console.error("考试创建失败:", error);
+            showError("考试创建失败，请重试");
+          });
       })
       .catch((info) => {
         console.log("表单验证失败:", info);
@@ -256,6 +234,17 @@ const CreateExam = () => {
           borderRadius: "20px",
         }}
       >
+        <Title
+          level={5}
+          style={{
+            marginBottom: "16px",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <SendOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
+          选择创建新考试的方式
+        </Title>
         <div style={{ padding: "16px" }}>
           <div
             style={{
@@ -293,16 +282,6 @@ const CreateExam = () => {
                 选择已有考试
               </Radio.Button>
             </Radio.Group>
-          </div>
-          <div
-            style={{
-              marginTop: "16px",
-              textAlign: "center",
-              fontSize: "16px",
-              color: "#595959",
-            }}
-          >
-            选择创建新考试的方式
           </div>
         </div>
       </Card>
@@ -576,10 +555,16 @@ const CreateExam = () => {
             filterOption={(input, option) =>
               (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
             }
-            options={existingExams.length > 0 ? [{
-              value: existingExams[0].id,
-              label: existingExams[0].name,
-            }] : []}
+            options={
+              existingExams.length > 0
+                ? [
+                    {
+                      value: existingExams[0].id,
+                      label: existingExams[0].name,
+                    },
+                  ]
+                : []
+            }
           />
 
           <div style={{ display: "flex", justifyContent: "end" }}>
@@ -590,7 +575,7 @@ const CreateExam = () => {
               style={{ width: "200px", height: "48px", fontSize: "16px" }}
               icon={<FileOutlined />}
             >
-              选择此考试
+              选择此考试创建
             </Button>
           </div>
         </Card>
