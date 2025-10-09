@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Typography,
@@ -39,28 +39,32 @@ const CreateExam = () => {
 
   // 考试创建类型：新建或选择已有
   const [examType, setExamType] = useState("new"); // 'new' 或 'existing'
-  // 模拟已有考试数据
-  const [existingExams] = useState([
-    {
-      id: "1",
-      name: "2023-2024学年第一学期期中考试",
-      subject: "语文",
-      date: "2023-11-15",
-    },
-    {
-      id: "2",
-      name: "2023-2024学年第一学期期末考试",
-      subject: "语文",
-      date: "2024-01-10",
-    },
-    {
-      id: "3",
-      name: "2024-2025学年第一学期第一次月考",
-      subject: "语文",
-      date: "2024-09-25",
-    },
-  ]);
+  // 从API获取的已有考试数据
+  const [existingExams, setExistingExams] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [selectedExamId, setSelectedExamId] = useState(null);
+
+  // 从API获取考试列表
+  useEffect(() => {
+    const fetchExams = async () => {
+      setIsLoading(true);
+      try {
+        const response = await request.get("/grading/exam/list");
+        // 假设API返回的数据结构与现有数据结构一致
+        setExistingExams(response.data || []);
+      } catch (error) {
+        console.error("获取考试列表失败:", error);
+        showError("获取考试列表失败，请稍后重试");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // 当选择"选择已有考试"时才获取数据
+    if (examType === "existing") {
+      fetchExams();
+    }
+  }, [examType, showError]);
 
   // 处理创建新考试
   const handleCreateExam = () => {
@@ -92,11 +96,12 @@ const CreateExam = () => {
         console.log("创建新考试数据: 已准备FormData");
 
         // 提交到后端接口
-        request.post("/grading/exam/create", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
+        request
+          .post("/grading/exam/create", formData, {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          })
           .then(() => {
             showSuccess("考试创建成功");
             navigate("/"); // 返回首页
@@ -201,12 +206,22 @@ const CreateExam = () => {
     }
 
     const selectedExam = existingExams.find(
-      (exam) => exam.id === selectedExamId
+      (exam) => exam.exam_id === selectedExamId
     );
     if (selectedExam) {
-      showSuccess(`已选择考试：${selectedExam.name}`);
-      // 实际项目中这里应该跳转到考试详情页或使用该考试
-      // navigate(`/exam-paper-design/chinese`);
+      // 调用接口根据exam_id创建考试信息
+      request.post("/grading/create-grading", {
+        exam_id: selectedExamId
+      })
+        .then(() => {
+          showSuccess(`已成功创建考试：${selectedExam.title}`);
+          // 创建成功后返回首页
+          navigate("/");
+        })
+        .catch((error) => {
+          console.error("创建考试失败:", error);
+          showError("创建考试失败，请重试");
+        });
     }
   };
 
@@ -545,39 +560,63 @@ const CreateExam = () => {
             已有考试列表
           </Title>
 
-          <Select
-            placeholder="请选择已有考试"
-            style={{ width: "100%", marginBottom: "24px" }}
-            value={selectedExamId}
-            onChange={setSelectedExamId}
-            showSearch
-            optionFilterProp="children"
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
-            options={
-              existingExams.length > 0
-                ? [
-                    {
-                      value: existingExams[0].id,
-                      label: existingExams[0].name,
-                    },
-                  ]
-                : []
-            }
-          />
+          {isLoading ? (
+            <div style={{ textAlign: "center", padding: "40px 0" }}>
+              <Typography.Text type="secondary">
+                正在加载考试列表...
+              </Typography.Text>
+            </div>
+          ) : (
+            <>
+              <Select
+                placeholder="请选择已有考试"
+                style={{ width: "100%", marginBottom: "24px" }}
+                value={selectedExamId}
+                onChange={setSelectedExamId}
+                showSearch
+                optionFilterProp="children"
+                filterOption={(input, option) =>
+                  (option?.label ?? "")
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+                options={
+                  existingExams.length > 0
+                    ? existingExams.map((exam) => ({
+                        value: exam.exam_id,
+                        label: exam.title,
+                      }))
+                    : []
+                }
+              />
 
-          <div style={{ display: "flex", justifyContent: "end" }}>
-            <Button
-              type="primary"
-              size="large"
-              onClick={handleSelectExistingExam}
-              style={{ width: "200px", height: "48px", fontSize: "16px" }}
-              icon={<FileOutlined />}
-            >
-              选择此考试创建
-            </Button>
-          </div>
+              {existingExams.length === 0 && !isLoading && (
+                <Typography.Text
+                  type="secondary"
+                  style={{
+                    display: "block",
+                    textAlign: "center",
+                    marginBottom: "24px",
+                  }}
+                >
+                  暂无已有考试
+                </Typography.Text>
+              )}
+
+              <div style={{ display: "flex", justifyContent: "end" }}>
+                <Button
+                  type="primary"
+                  size="large"
+                  onClick={handleSelectExistingExam}
+                  disabled={!selectedExamId}
+                  style={{ width: "200px", height: "48px", fontSize: "16px" }}
+                  icon={<FileOutlined />}
+                >
+                  选择此考试创建
+                </Button>
+              </div>
+            </>
+          )}
         </Card>
       )}
     </div>
