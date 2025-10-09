@@ -1,11 +1,12 @@
 import axios from "axios";
 import { store } from "../store";
 import { message } from "antd";
+import { clearUserInfo } from "../store/slices/userSlice";
 
 // 创建axios实例
 const request = axios.create({
   baseURL: "/api", // 默认API基础路径
-  timeout: 10000,
+  timeout: 30000, // 超时时间 30s
   headers: {
     "Content-Type": "application/json",
   },
@@ -50,8 +51,12 @@ request.interceptors.response.use(
     if (error.response) {
       switch (error.response.status) {
         case 401:
-          // 未授权，跳转到登录页
+          // 未授权，清除用户信息并跳转到登录页
           console.error("未授权，请重新登录");
+          
+          // 清除用户登录信息和token
+          store.dispatch(clearUserInfo());
+          
           // 跳转到登录页
           window.location.href = "/login";
           break;
