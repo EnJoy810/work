@@ -107,45 +107,51 @@ const AnswerSheetRenderer = forwardRef(
     // 存储题目位置信息的状态
     const [questionPositions, setQuestionPositions] = useState({});
 
-    // 使用useCallback缓存位置更新函数，避免不必要的重新渲染
-    const handleQuestionPositionUpdate = useCallback(
-      (identifier, positionInfo) => {
-        // 处理长填空题的位置信息
-        if (positionInfo.type === "longFillPositions" && positionInfo.positionsInfo) {
-          // 只存储位置信息，不修改原题目数据
-          setQuestionPositions((prev) => ({
-            ...prev,
-            [identifier]: positionInfo
-          }));
-        } 
-        // 处理短填空题的位置信息
-        else if (positionInfo.type === "shortFillPositions" && positionInfo.shortFillPositionsInfo) {
-          // 只存储位置信息，不修改原题目数据
-          setQuestionPositions((prev) => ({
-            ...prev,
-            [identifier]: positionInfo
-          }));
-        } 
-        else {
-          // 处理普通位置更新
+    // 创建一个缓存对象，用于存储不同pageIndex的位置更新函数
+    const positionUpdateFunctions = useRef({});
+
+    // 确保获取特定pageIndex的位置更新函数
+    const getPositionUpdateFunction = useCallback((pageIndex) => {
+      // 如果还没有为这个pageIndex创建函数，则创建一个
+      if (!positionUpdateFunctions.current[pageIndex]) {
+        positionUpdateFunctions.current[pageIndex] = (identifier, positionInfo) => {
+          // 创建包含pageIndex的新位置信息
+          const positionInfoWithPage = {
+            ...positionInfo,
+            pageIndex: pageIndex + 1
+          };
+          
+          // 更新位置信息
           setQuestionPositions((prev) => {
-            // 只有当位置信息真正改变时才更新状态
+            // 获取当前位置信息
             const currentPosition = prev[identifier];
-            if (
-              currentPosition &&
-              JSON.stringify(currentPosition) === JSON.stringify(positionInfo)
-            ) {
-              return prev; // 位置信息没有变化，返回原对象
+            
+            // 检查是否有真正的变化（排除pageIndex的变化）
+            const isPositionChanged = !currentPosition || 
+              JSON.stringify({
+                ...currentPosition,
+                pageIndex: undefined
+              }) !== JSON.stringify({
+                ...positionInfo,
+                pageIndex: undefined
+              });
+            
+            // 如果位置信息没有真正变化，且当前已经有pageIndex，则不更新
+            if (!isPositionChanged && currentPosition?.pageIndex) {
+              return prev;
             }
+            
+            // 更新位置信息
             return {
               ...prev,
-              [identifier]: positionInfo,
+              [identifier]: positionInfoWithPage
             };
           });
-        }
-      },
-      [] // 空依赖数组，避免因为依赖项变化导致函数重新创建
-    );
+        };
+      }
+      
+      return positionUpdateFunctions.current[pageIndex];
+    }, []); // 空依赖数组，确保函数引用稳定
 
     // 如果父组件提供了获取位置信息的回调，则调用它
     // 但避免频繁调用导致无限循环
@@ -744,7 +750,7 @@ const AnswerSheetRenderer = forwardRef(
                       <ObjectiveQuestionsRenderer
                         objectiveItem={questionItem}
                         pageRef={pageRefs.current[pageIndex]}
-                        onPositionUpdate={handleQuestionPositionUpdate}
+                        onPositionUpdate={getPositionUpdateFunction(pageIndex)}
                       />
                     </QuestionWrapper>
                   );
@@ -759,7 +765,7 @@ const AnswerSheetRenderer = forwardRef(
                       <SubjectiveQuestionsRenderer
                         questions={questionItem}
                         pageIndex={pageIndex}
-                        onPositionUpdate={handleQuestionPositionUpdate}
+                        onPositionUpdate={getPositionUpdateFunction(pageIndex)}
                         pageRef={pageRefs.current[pageIndex]}
                       />
                     </QuestionWrapper>
