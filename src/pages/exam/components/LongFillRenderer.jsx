@@ -7,11 +7,11 @@ import { calculateElementPosition } from "../../../utils/tools";
  */
 const LongFillRenderer = React.forwardRef(({ questions, pageRef, onPositionUpdate }, ref) => {
   const { questions: subQuestions, sliceQuestion } = questions;
-  console.log(
-    "subQuestions 长填空渲染",
-    questions,
-    questions.showSubQuestionScore
-  );
+  // console.log(
+  //   "subQuestions 长填空渲染",
+  //   questions,
+  //   questions.showSubQuestionScore
+  // );
 
   // 创建ref集合用于存储每个小题的DOM元素引用
   const questionItemRefs = useRef({});
@@ -47,7 +47,7 @@ const LongFillRenderer = React.forwardRef(({ questions, pageRef, onPositionUpdat
       });
     }
   });
-  console.log("processedQuestions 长填空渲染", processedQuestions);
+  // console.log("processedQuestions 长填空渲染", processedQuestions);
 
   // 为每个小题计算位置并收集更新信息
   useEffect(() => {

@@ -73,6 +73,12 @@ const Login = () => {
         // 跳转到首页
         navigate("/");
       } catch (apiError) {
+        // dispatch(
+        //   setUserInfo({
+        //     userInfo: {},
+        //     token: "111",
+        //   })
+        // );
         console.warn("登录请求失败:", apiError);
         // 如果API请求失败，使用模拟数据
       }

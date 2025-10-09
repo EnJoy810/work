@@ -9,7 +9,7 @@ import LongFillRenderer from "./LongFillRenderer";
  */
 const SubjectiveQuestionsRenderer = React.forwardRef(
   ({ questions, onPositionUpdate, pageRef }, ref) => {
-    console.log("questions 非选择题渲染组件", questions);
+    // console.log("questions 非选择题渲染组件", questions);
     const { questionNumber, content, fillType } = questions;
     const multipleChoiceItem = (questions.questions || []).find(
       (q) => q.isMultipleChoice
