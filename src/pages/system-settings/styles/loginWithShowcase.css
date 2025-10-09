@@ -736,17 +736,18 @@
   /* 合作院校标题调整 */
   .partner-schools-title,
   .core-features-title {
-    font-size: 32px;
+    font-size: 28px;
+    margin-bottom: 0;
+  }
+
+  .school-name {
+    font-size: 16px;
   }
 
   .partner-schools-subtitle,
   .core-features-subtitle {
-    font-size: 18px;
+    font-size: 16px;
     margin-bottom: 12px;
-  }
-
-  .core-features-title {
-    margin-bottom: 0;
   }
 
   /* 功能卡片网格改为单列 */
@@ -769,12 +770,12 @@
 
   /* 功能卡片调整 */
   .feature-card {
-    padding: 20px;
+    padding: 10px 20px;
     gap: 16px;
   }
 
   .feature-title {
-    font-size: 20px;
+    font-size: 18px;
   }
 
   .feature-description {
