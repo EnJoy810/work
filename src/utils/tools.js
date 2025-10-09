@@ -284,16 +284,16 @@ export const calculateElementPosition = (element, referenceElement) => {
 
   // 计算相对位置（相对于参考元素的左上角）
   const relativeLeft = parseFloat(
-    (elementRect.left - referenceRect.left).toFixed(2)
+    (elementRect.left - referenceRect.left - pagePoint).toFixed(2)
   );
   const relativeTop = parseFloat(
-    (elementRect.top - referenceRect.top).toFixed(2)
+    (elementRect.top - referenceRect.top - pagePoint).toFixed(2)
   );
   const relativeRight = parseFloat(
-    (referenceRect.right - elementRect.right).toFixed(2)
+    (referenceRect.right - elementRect.right - pagePoint).toFixed(2)
   );
   const relativeBottom = parseFloat(
-    (referenceRect.bottom - elementRect.bottom).toFixed(2)
+    (referenceRect.bottom - elementRect.bottom - pagePoint).toFixed(2)
   );
 
   const realWidth = pageWidth - 2 * pagePoint;
