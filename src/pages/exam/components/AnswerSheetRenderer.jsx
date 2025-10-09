@@ -10,8 +10,8 @@ import { EditOutlined } from "@ant-design/icons";
 import SealingLine from "./SealingLine";
 import { Button, Modal } from "antd";
 import ExamInfoModal from "./ExamInfoModal";
-import ObjectiveQuestionsRenderer from "./ObjectiveQuestionsRenderer";
-import SubjectiveQuestionsRenderer from "./SubjectiveQuestionsRenderer";
+import ObjectiveQuestionsRenderer from "./ObjectiveQuestionsRenderer"; // 选择题
+import SubjectiveQuestionsRenderer from "./SubjectiveQuestionsRenderer"; // 非选择题
 import QuestionWrapper from "./QuestionWrapper";
 import ObjectiveQuestionModal from "./ObjectiveQuestionModal";
 import BlankQuestionModal from "./BlankQuestionModal";

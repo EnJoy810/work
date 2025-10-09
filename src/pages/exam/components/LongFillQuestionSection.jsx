@@ -45,31 +45,37 @@ const LongFillQuestionSection = ({
 
   // 添加小题
   const addSubQuestion = (questionId) => {
-    const newSubQuestion = {
-      id: generateQuestionId('sub', Date.now()),
-      totalLines: 1, // 默认1行
-      pointsPerLine: 2, // 默认2分
-      lines: [
-        {
-          id: generateBlankId(questionId, Date.now()),
-          points: 2,
-        }
-      ],
-    };
+      // 找到对应的题目，计算新小题的序号
+      const question = questions.find((q) => q.id === questionId);
+      const currentSubQuestionsCount = question?.subQuestions?.length || 0;
+      const newSubQuestionNumber = currentSubQuestionsCount + 1;
+      
+      const newSubQuestion = {
+        id: generateQuestionId('sub', Date.now()),
+        number: newSubQuestionNumber, // 保存小题序号
+        totalLines: 1, // 默认1行
+        pointsPerLine: 2, // 默认2分
+        lines: [
+          {
+            id: generateBlankId(questionId, Date.now()),
+            points: 2,
+          }
+        ],
+      };
 
-    // 将新小题添加到父级question对象的subQuestions数组中
-    setQuestions(
-      questions.map((q) =>
-        q.id === questionId 
-          ? {
-              ...q, 
-              isAddSubQuestionClicked: true,
-              subQuestions: [...(q.subQuestions || []), newSubQuestion]
-            } 
-          : q
-      )
-    );
-  };
+      // 将新小题添加到父级question对象的subQuestions数组中
+      setQuestions(
+        questions.map((q) =>
+          q.id === questionId 
+            ? {
+                ...q, 
+                isAddSubQuestionClicked: true,
+                subQuestions: [...(q.subQuestions || []), newSubQuestion]
+              } 
+            : q
+        )
+      );
+    };
 
   // 移除小题
   const removeSubQuestion = (questionId, subQuestionId) => {
@@ -408,7 +414,7 @@ const LongFillQuestionSection = ({
                 >
                   {question.isAddSubQuestionClicked && question.subQuestions ? (
                     <div>
-                      {question.subQuestions.map((subQuestion, index) => (
+                      {question.subQuestions.map((subQuestion) => (
                         <div
                           key={subQuestion.id}
                           style={{
@@ -428,7 +434,7 @@ const LongFillQuestionSection = ({
                             }}
                           >
                             <span style={{ fontWeight: 500 }}>
-                              第{index + 1}小题：
+                              第{subQuestion.number}小题：
                             </span>
 
                             <span>行数：</span>
