@@ -25,6 +25,9 @@ const ObjectiveQuestionsRenderer = ({
   // 创建ref集合用于存储每个小题的DOM元素引用
   const questionItemRefs = useRef({});
 
+  // 创建ref集合用于存储每个选项的DOM元素引用
+  const optionRefs = useRef({});
+
   // 使用useEffect在组件渲染后获取尺寸和位置信息
   // 移除questions依赖，避免位置信息更新导致的无限循环渲染
   // 用于存储上一次的位置信息，避免不必要的更新
@@ -73,10 +76,27 @@ const ObjectiveQuestionsRenderer = ({
             questionType: "smallObjective",
           };
 
+          // 计算每个选项的位置信息
+          const optionsCount = question.optionsCount || 4;
+          const options = ["A", "B", "C", "D", "E", "F"].slice(0, optionsCount);
+          const optionPositions = {};
+
+          options.forEach((option) => {
+            const optionRef = optionRefs.current[`${question.id}_${option}`];
+            if (optionRef) {
+              const optionPosition = calculateElementPosition(
+                optionRef,
+                pageRef
+              );
+              optionPositions[option] = optionPosition;
+            }
+          });
+
           // 返回包含位置信息的新question对象，而不是直接修改原对象
           return {
             ...question,
             questionPositionInfo: extendedPositionInfo,
+            optionPositions: optionPositions, // 存储选项位置信息，以A、B、C、D、E、F为键
           };
         }
         return question;
@@ -155,7 +175,6 @@ const ObjectiveQuestionsRenderer = ({
               return (
                 <div
                   key={question.id || questionIndex}
-                  ref={(el) => (questionItemRefs.current[question.id] = el)}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -176,10 +195,15 @@ const ObjectiveQuestionsRenderer = ({
                       display: "flex",
                       gap: "3px",
                     }}
+                    className="smallObjectiveOptions"
+                    ref={(el) => (questionItemRefs.current[question.id] = el)}
                   >
                     {options.map((option) => (
                       <div
                         key={option}
+                        ref={(el) =>
+                          (optionRefs.current[`${question.id}_${option}`] = el)
+                        }
                         style={{
                           width: "20px",
                           height: "13px",

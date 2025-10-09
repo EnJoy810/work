@@ -86,12 +86,12 @@ const Navbar = () => {
       label: "题库",
       path: "/questions",
     },
-    {
-      key: "4",
-      icon: <UserAddOutlined />,
-      label: "学生管理",
-      path: "/users",
-    },
+    // {
+    //   key: "4",
+    //   icon: <UserAddOutlined />,
+    //   label: "学生管理",
+    //   path: "/users",
+    // },
     {
       key: "5",
       icon: <SettingOutlined />,

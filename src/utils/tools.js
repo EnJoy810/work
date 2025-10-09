@@ -275,12 +275,12 @@ export const calculateElementPosition = (element, referenceElement) => {
   }
   // console.log("referenceRect 左", elementRect.left, referenceRect.left);
   // console.log("referenceRect ", elementRect, referenceRect);
-  console.log(
-    "elementRect 当前元素===>",
-    elementRect,
-    "referenceRect 参考元素 --->",
-    referenceRect
-  );
+  // console.log(
+  //   "elementRect 当前元素===>",
+  //   elementRect,
+  //   "referenceRect 参考元素 --->",
+  //   referenceRect
+  // );
 
   // 计算相对位置（相对于参考元素的左上角）
   const relativeLeft = parseFloat(
