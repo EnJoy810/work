@@ -29,6 +29,9 @@ const LoginShowcase = ({ onShowLogin }) => {
   const [isSection3Visible, setIsSection3Visible] = useState(false);
   // 状态用于跟踪第四部分是否已进入视图
   const [isSection4Visible, setIsSection4Visible] = useState(false);
+  
+  // 状态用于跟踪当前是否为移动端
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 1024);
 
   useEffect(() => {
     // 创建Intersection Observer实例
@@ -120,6 +123,21 @@ const LoginShowcase = ({ onShowLogin }) => {
       if (section4) {
         observer.unobserve(section4);
       }
+    };
+  }, []);
+
+  // 监听窗口尺寸变化
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 1024);
+    };
+
+    // 添加事件监听器
+    window.addEventListener('resize', handleResize);
+    
+    // 组件卸载时移除事件监听器
+    return () => {
+      window.removeEventListener('resize', handleResize);
     };
   }, []);
 
@@ -291,10 +309,9 @@ const LoginShowcase = ({ onShowLogin }) => {
               全国重点大学的信任之选
             </p>
             <div
-              className={`schools-grid ${
-                isSection2Visible ? "fade-in-up" : ""
-              }`}
+              className={`schools-grid ${isSection2Visible ? "fade-in-up" : ""}`}
             >
+              {/* 定义学校数据 */}
               {[
                 {
                   name: "清华大学附属中学",
@@ -336,12 +353,15 @@ const LoginShowcase = ({ onShowLogin }) => {
                   type: "985高校附中",
                   location: "大连",
                 },
-              ].map((school, index) => (
+              ]
+              /* 根据当前设备尺寸动态显示学校数据 */
+              .filter((_, index) => {
+                return isMobile ? index < 6 : true;
+              })
+              .map((school, index) => (
                 <div
                   key={index}
-                  className={`school-card ${
-                    isSection2Visible ? "fade-in-up" : ""
-                  }`}
+                  className={`school-card ${isSection2Visible ? "fade-in-up" : ""}`}
                 >
                   <div className="school-icon">
                     <svg

@@ -146,7 +146,6 @@
   /* background: #eff6ff; */
 }
 
-
 .welcome-badge {
   display: inline-block;
   padding: 8px 20px;
@@ -623,7 +622,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #EFF6FE 0%, #F0FAF8 100%);
+  background: linear-gradient(135deg, #eff6fe 0%, #f0faf8 100%);
   padding: 20px;
 }
 
@@ -652,37 +651,239 @@
   font-weight: 500;
 }
 
-/* 响应式设计 */
-@media (max-width: 768px) {
+/* 响应式设计 - 添加媒体查询适配移动设备 */
+
+/* 平板设备 (768px - 1024px) */
+@media (max-width: 1024px) {
+  /* 欢迎页面标题和副标题 */
   .welcome-title {
-    font-size: 40px;
+    font-size: 48px;
   }
 
   .welcome-subtitle {
     font-size: 20px;
   }
 
-  .welcome-buttons {
-    flex-direction: column;
-    align-items: center;
+  .welcome-description {
+    font-size: 16px;
   }
 
+  .core-features-title {
+    margin-top: 0;
+  }
+
+  /* 合作院校网格改为3列 */
+  .schools-grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+
+  /* 按钮尺寸调整 */
   .experience-button,
   .learn-more-button {
-    width: 280px;
+    font-size: 16px;
+    padding: 10px 20px;
+  }
+
+  /* 学校图标大小调整 */
+  .school-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+/* 手机设备 (小于768px) */
+@media (max-width: 768px) {
+  .section-content {
+    padding: 10px 20px;
+  }
+  /* 欢迎页面布局调整 */
+  .welcome-content {
+    padding: 20px;
+    max-width: 90%;
+  }
+
+  /* 标题和副标题字体大小调整 */
+  .welcome-title {
+    font-size: 36px;
+    line-height: 1.2;
+  }
+
+  .welcome-subtitle {
+    font-size: 18px;
+    margin-bottom: 24px;
+  }
+
+  .welcome-description {
+    font-size: 15px;
+    margin-bottom: 30px;
     max-width: 100%;
   }
 
-  .welcome-stats .ant-row {
-    margin: 0 -10px;
+  /* 按钮容器改为垂直排列 */
+  .welcome-buttons {
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 40px;
   }
 
-  .welcome-stats .ant-col {
-    padding: 0 10px;
-  }
-
+  /* 统计数字减小 */
   .stat-number {
-    font-size: 24px;
+    font-size: 28px;
+    min-width: auto;
+  }
+
+  /* 合作院校标题调整 */
+  .partner-schools-title,
+  .core-features-title {
+    font-size: 32px;
+  }
+
+  .partner-schools-subtitle,
+  .core-features-subtitle {
+    font-size: 18px;
+    margin-bottom: 12px;
+  }
+
+  .core-features-title {
+    margin-bottom: 0;
+  }
+
+  /* 功能卡片网格改为单列 */
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* 合作院校网格改为每行显示两个 */
+  .schools-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-bottom: 40px;
+  }
+
+  /* 卡片内边距调整 */
+  .school-card {
+    padding: 16px 20px;
+  }
+
+  /* 功能卡片调整 */
+  .feature-card {
+    padding: 20px;
+    gap: 16px;
+  }
+
+  .feature-title {
+    font-size: 20px;
+  }
+
+  .feature-description {
+    font-size: 15px;
+  }
+
+  /* 第四部分内容容器宽度调整 */
+  #section-4 .section-content {
+    width: 100%;
+    padding: 0;
+  }
+
+  /* 移除或调整装饰性圆形 */
+  .green-circle,
+  .blue-circle {
+    width: 150px;
+    height: 150px;
+  }
+
+  .green-circle {
+    left: 10%;
+    top: 30%;
+  }
+
+  .blue-circle {
+    right: 10%;
+    bottom: -20%;
+  }
+
+  .school-icon {
+    margin-bottom: 14px;
+  }
+}
+
+/* 小屏幕手机 (小于480px) */
+@media (max-width: 480px) {
+  /* 进一步调整标题大小 */
+  .welcome-title {
+    font-size: 30px;
+  }
+
+  .welcome-subtitle {
+    font-size: 16px;
+  }
+
+  /* 按钮尺寸进一步减小 */
+  .experience-button,
+  .learn-more-button {
+    font-size: 15px;
+    padding: 9px 18px;
+  }
+
+  /* 移除装饰性圆形 */
+  .green-circle,
+  .blue-circle {
+    display: none;
+  }
+
+  /* 滚动指示器位置调整 */
+  .scroll-down-indicator {
+    bottom: 20px;
+    font-size: 20px;
+  }
+
+  /* 学校图标大小调整 */
+  .school-icon svg {
+    width: 32px;
+    height: 32px;
+    margin-bottom: 10px;
+  }
+}
+
+/* 修复动画效果在小屏幕上的显示 */
+@media (max-width: 768px) {
+  /* 简化动画效果，提高性能 */
+  .welcome-badge,
+  .welcome-title,
+  .welcome-subtitle,
+  .welcome-description,
+  .welcome-buttons,
+  .welcome-stats,
+  .scroll-down-indicator,
+  .welcome-logo {
+    animation-duration: 0.6s;
+  }
+
+  /* 调整延迟，使动画更流畅 */
+  .welcome-badge {
+    animation-delay: 0.1s;
+  }
+
+  .welcome-title {
+    animation-delay: 0.2s;
+  }
+
+  .welcome-subtitle {
+    animation-delay: 0.3s;
+  }
+
+  .welcome-description {
+    animation-delay: 0.4s;
+  }
+
+  .welcome-buttons {
+    animation-delay: 0.5s;
+  }
+
+  .welcome-stats {
+    animation-delay: 0.6s;
   }
 }
 
@@ -702,7 +903,7 @@
   .experience-button,
   .learn-more-button {
     width: 100%;
-    max-width: 260px;
+    /* max-width: 260px; */
     padding: 10px 24px;
     font-size: 14px;
   }
