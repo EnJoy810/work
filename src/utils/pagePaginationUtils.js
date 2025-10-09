@@ -5,7 +5,7 @@ import {
   PAGE_MARGIN,
   PAGE_CONTENT_HEIGHT,
   PAGE_POINT,
-} from './constants';
+} from "./constants";
 
 // 计算题目高度
 // 根据题目类型返回计算的高度
@@ -167,6 +167,7 @@ export const splitBlankQuestion = (
             subTotalLines,
             remainingLines
           );
+          // debugger;
 
           if (subTotalLines >= remainingLines) {
             splitIndex = i; // 最后一行最后一小题的下标
@@ -304,9 +305,21 @@ export const splitBlankQuestion = (
             questions: [...question.questions.slice(splitIndex + 1)], // 只有当前条数据,
           };
         } else {
+          firstPart = {
+            ...question,
+            originQuestions: question.questions,
+            questions: [...currentPageData],
+          };
+
+          secondPart = {
+            ...question,
+            originQuestions: question.questions,
+            sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+            questions: [...nextPageData],
+          };
           // const leftSubFirstPart = splitData.subQuestions.slice(
           //   0,
-          //   subSplitIndex
+          //   subSplitIndex + 1
           // );
           // const rightSubFirstPart = splitData.subQuestions.slice(subSplitIndex);
           // console.log(
@@ -315,19 +328,31 @@ export const splitBlankQuestion = (
           //   "rightSubFirstPart 小题右部分",
           //   rightSubFirstPart
           // );
-          // todo
-          firstPart = {
-            ...question,
-            originQuestions: question.questions,
-            questions: currentPageData,
-          };
+          // // todo
+          // firstPart = {
+          //   ...question,
+          //   originQuestions: question.questions,
+          //   questions: [
+          //     ...question.questions.slice(0, splitIndex),
+          //     {
+          //       ...splitData,
+          //       subQuestions: leftSubFirstPart,
+          //     },
+          //   ],
+          // };
 
-          secondPart = {
-            ...question,
-            originQuestions: question.questions,
-            sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
-            questions: nextPageData,
-          };
+          // secondPart = {
+          //   ...question,
+          //   originQuestions: question.questions,
+          //   sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+          //   questions: [
+          //     {
+          //       ...splitData,
+          //       subQuestions: rightSubFirstPart,
+          //     },
+          //     ...question.questions.slice(splitIndex + 1),
+          //   ],
+          // };
         }
       } else {
         firstPart = {

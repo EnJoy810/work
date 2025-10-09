@@ -12,6 +12,7 @@ import ObjectiveQuestionModal from "./components/ObjectiveQuestionModal";
 import BlankQuestionModal from "./components/BlankQuestionModal";
 import WordQuestionModal from "./components/WordQuestionModal";
 import AnswerSheetRenderer from "./components/AnswerSheetRenderer";
+import SaveTemplateModal from "./components/SaveTemplateModal";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setPreviewData } from "../../store/slices/previewSlice";
@@ -42,6 +43,10 @@ const ChinesePaperDesign = () => {
   const [questionPositions, setQuestionPositions] = useState({});
   // 用于引用AnswerSheetRenderer组件
   const answerSheetRef = useRef(null);
+
+  // 保存模板相关状态
+  const [saveTemplateModalVisible, setSaveTemplateModalVisible] =
+    useState(false);
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -114,7 +119,7 @@ const ChinesePaperDesign = () => {
                 JSON.stringify(prevPositions[key])
             ) {
               updatedPositions[key] = positionInfo;
-              console.log(`更新位置信息: ${key}`);
+              console.log(`更新位置信息: ${key}`, "位置数据", positionInfo);
             }
           }
         });
@@ -251,6 +256,39 @@ const ChinesePaperDesign = () => {
     setModalVisible(false);
   };
 
+  // 显示保存模板弹窗
+  const showSaveTemplateModal = () => {
+    setSaveTemplateModalVisible(true);
+  };
+
+  // 关闭保存模板弹窗
+  const closeSaveTemplateModal = () => {
+    setSaveTemplateModalVisible(false);
+  };
+
+  // 处理保存模板
+  const handleSaveTemplate = (templateName) => {
+    if (questions.length === 0) {
+      showInfo("当前试卷中没有题目，无法保存为模板");
+      return;
+    }
+
+    // 准备模板数据
+    const templateData = {
+      name: templateName,
+      questions: questions,
+      basicInfo: formValues,
+    };
+
+    // 模拟保存模板的API请求
+    // 在实际应用中，这里应该调用后端API来保存模板
+    setTimeout(() => {
+      console.log("保存的模板数据：", templateData);
+      showInfo(`模板"${templateName}"保存成功`);
+      closeSaveTemplateModal();
+    }, 500);
+  };
+
   // 关闭填空题弹窗
   const closeBlankQuestionModal = () => {
     setBlankQuestionModalVisible(false);
@@ -368,10 +406,7 @@ const ChinesePaperDesign = () => {
               >
                 <Checkbox>显示密封线</Checkbox>
               </Form.Item> */}
-              <Form.Item
-                name="hasNote"
-                valuePropName="checked"
-              >
+              <Form.Item name="hasNote" valuePropName="checked">
                 <Checkbox>显示注意事项</Checkbox>
               </Form.Item>
             </Form>
@@ -431,6 +466,15 @@ const ChinesePaperDesign = () => {
               预览
             </Button>
           </div>
+          <div style={{ padding: "6px" }}>
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={showSaveTemplateModal}
+              block
+            >
+              保存为模板
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -462,6 +506,16 @@ const ChinesePaperDesign = () => {
           initialData={wordQuestionValues}
         />
       ) : null}
+
+      {/* 保存模板弹窗 - 使用自包含组件 */}
+      {saveTemplateModalVisible && (
+        <SaveTemplateModal
+          visible={saveTemplateModalVisible}
+          onCancel={closeSaveTemplateModal}
+          onSuccess={handleSaveTemplate}
+          questions={questions}
+        />
+      )}
     </>
   );
 };
