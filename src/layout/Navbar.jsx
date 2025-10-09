@@ -192,7 +192,7 @@ const Navbar = () => {
                 marginLeft: 8,
                 color: "#000",
                 marginRight: 8,
-                fontSize: isMobile ? 16 : 22,
+                fontSize: isMobile ? 15 : 22,
                 fontWeight: "bold",
               }}
             >

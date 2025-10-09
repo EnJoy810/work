@@ -857,9 +857,11 @@
   .welcome-description,
   .welcome-buttons,
   .welcome-stats,
-  .scroll-down-indicator,
   .welcome-logo {
-    animation-duration: 0.6s;
+    animation-duration: 0.8s;
+  }
+  .scroll-down-indicator {
+    animation-duration: 1.8s;
   }
 
   /* 调整延迟，使动画更流畅 */
