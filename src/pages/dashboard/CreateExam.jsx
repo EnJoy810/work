@@ -210,9 +210,10 @@ const CreateExam = () => {
     );
     if (selectedExam) {
       // 调用接口根据exam_id创建考试信息
-      request.post("/grading/create-grading", {
-        exam_id: selectedExamId
-      })
+      request
+        .post("/grading/create-grading?exam_id=" + selectedExamId, {
+          // exam_id: selectedExamId,
+        })
         .then(() => {
           showSuccess(`已成功创建考试：${selectedExam.title}`);
           // 创建成功后返回首页
