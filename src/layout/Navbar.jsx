@@ -10,6 +10,7 @@ import {
   LogoutOutlined,
   DownOutlined,
 } from "@ant-design/icons";
+import { APP_VERSION } from '../utils/appConfig';
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Layout, Menu, Dropdown, Avatar } from "antd";
 import { useMessageService } from "../components/common/message";
@@ -41,6 +42,10 @@ const Navbar = () => {
     },
     {
       type: "divider",
+    },
+    {
+      key: "version",
+      label: `版本号：${APP_VERSION}`,
     },
     {
       key: "logout",

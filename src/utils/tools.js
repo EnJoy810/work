@@ -1,6 +1,5 @@
 import CryptoJS from 'crypto-js';
 
-// 格式化时间
 // 密码加密（使用SHA-256算法）
 export const encryptPassword = (password) => {
   try {
@@ -16,6 +15,7 @@ export const encryptPassword = (password) => {
   }
 };
 
+// 格式化时间
 export const formatDate = (date, format = "YYYY-MM-DD HH:mm:ss") => {
   if (!date) return "";
 
