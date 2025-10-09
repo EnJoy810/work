@@ -25,6 +25,7 @@ const WordQuestionRenderer = ({
     pageWidth = 841,
     pageHeight = 1189,
     pageMargin = 20,
+    pagePoint = 10, // 添加pagePoint定义，默认值与pageMargin相同
     topBottomMargin = 20,
   } = pageConfig;
 
@@ -62,8 +63,8 @@ const WordQuestionRenderer = ({
         <div
           style={{
             position: "absolute",
-            top: `${pageMargin}px`,
-            left: `${pageMargin}px`,
+            top: `${pagePoint}px`,
+            left: `${pagePoint}px`,
             width: "10px",
             height: "10px",
             backgroundColor: "black",
@@ -72,8 +73,8 @@ const WordQuestionRenderer = ({
         <div
           style={{
             position: "absolute",
-            top: `${pageMargin}px`,
-            right: `${pageMargin}px`,
+            top: `${pagePoint}px`,
+            right: `${pagePoint}px`,
             width: "10px",
             height: "10px",
             backgroundColor: "black",
@@ -82,8 +83,8 @@ const WordQuestionRenderer = ({
         <div
           style={{
             position: "absolute",
-            bottom: `${pageMargin}px`,
-            left: `${pageMargin}px`,
+            bottom: `${pagePoint}px`,
+            left: `${pagePoint}px`,
             width: "10px",
             height: "10px",
             backgroundColor: "black",
@@ -92,8 +93,8 @@ const WordQuestionRenderer = ({
         <div
           style={{
             position: "absolute",
-            bottom: `${pageMargin}px`,
-            right: `${pageMargin}px`,
+            bottom: `${pagePoint}px`,
+            right: `${pagePoint}px`,
             width: "10px",
             height: "10px",
             backgroundColor: "black",
@@ -149,7 +150,7 @@ const WordQuestionRenderer = ({
                           style={{
                             width: "32px",
                             height: "32px",
-                            border: "1px solid #ccc",
+                            border: "1px solid #000",
                             textAlign: "center",
                             verticalAlign: "middle",
                             fontSize: "12px",

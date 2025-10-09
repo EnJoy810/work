@@ -844,6 +844,7 @@ const AnswerSheetRenderer = forwardRef(
                 pageWidth,
                 pageHeight,
                 pageMargin,
+                pagePoint, // 传递pagePoint到WordQuestionRenderer
                 topBottomMargin,
               }}
               totalPages={pageCount}
