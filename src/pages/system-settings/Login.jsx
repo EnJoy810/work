@@ -45,7 +45,7 @@ const Login = () => {
       const encryptedValues = { ...values };
       try {
         // 调用公共的密码加密函数
-        encryptedValues.password = await encryptPassword(values.password);
+        encryptedValues.password = encryptPassword(values.password);
       } catch (cryptoError) {
         console.warn("密码加密失败，使用原始密码:", cryptoError);
         // 加密失败时使用原始密码

@@ -1,16 +1,13 @@
+import CryptoJS from 'crypto-js';
+
 // 格式化时间
 // 密码加密（使用SHA-256算法）
-export const encryptPassword = async (password) => {
+export const encryptPassword = (password) => {
   try {
-    // 使用SHA-256算法加密密码
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hash = await crypto.subtle.digest("SHA-256", data);
-    // 将ArrayBuffer转换为十六进制字符串
-    const hashArray = Array.from(new Uint8Array(hash));
-    const hashHex = hashArray
-      .map((b) => b.toString(16).padStart(2, "0"))
-      .join("");
+    // 使用crypto-js库进行SHA-256加密
+    const hash = CryptoJS.SHA256(password);
+    // 将加密结果转换为十六进制字符串
+    const hashHex = hash.toString(CryptoJS.enc.Hex);
     return hashHex;
   } catch (cryptoError) {
     console.warn("密码加密失败:", cryptoError);

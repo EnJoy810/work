@@ -83,11 +83,11 @@ const CreateExam = () => {
 
         // 添加考试信息
         formData.append("subject", values.examSubject);
-        formData.append("paperTitle", values.examName);
+        formData.append("paper_title", values.examName);
 
         // 添加文件数据
-        formData.append("originPaper", paperFile);
-        formData.append("standardAnswer", answerFile);
+        formData.append("origin_paper", paperFile);
+        formData.append("standard_answer", answerFile);
 
         console.log("创建新考试数据: 已准备FormData");
 
