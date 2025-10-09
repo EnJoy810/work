@@ -11,6 +11,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  transition: all 0.3s ease;
 }
 
 .nav-bar-header .menu-item:hover {
@@ -37,8 +38,48 @@
   align-items: center;
   cursor: pointer;
   color: #030213;
+  transition: all 0.3s ease;
 }
 
 .nav-bar-header .user-drop:hover {
   background-color: #e9ebef;
+}
+
+/* 移动端菜单按钮样式 */
+.nav-bar-header .mobile-menu-button {
+  display: none;
+}
+
+/* 移动端左侧菜单样式 */
+.mobile-menu-container {
+  padding: 16px 0;
+}
+
+.mobile-menu-item {
+  transition: all 0.3s ease;
+}
+
+.mobile-menu-item:hover {
+  background-color: #f0f0f0 !important;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .nav-bar-header .mobile-menu-button {
+    display: block;
+  }
+  
+  .nav-bar-header .logo-container {
+    padding: 0 16px;
+    flex: 1;
+  }
+  
+  .nav-bar-header .logo-container span {
+    font-size: 16px;
+  }
+  
+  .nav-bar-header .user-drop {
+    margin-right: 16px;
+    margin-left: auto;
+  }
 }

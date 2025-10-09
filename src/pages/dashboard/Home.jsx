@@ -24,6 +24,7 @@ import {
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import request from "../../utils/request";
 import "./styles/home.css";
 import ExamCard from "./components/ExamCard";
@@ -34,6 +35,7 @@ const Home = () => {
   const navigate = useNavigate();
   const [recentExams, setRecentExams] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { userInfo } = useSelector((state) => state.user);
 
   // 获取考试列表数据
   useEffect(() => {
@@ -77,7 +79,7 @@ const Home = () => {
       >
         <div>
           <Title level={3} style={{ margin: 0 }}>
-            欢迎回来，李老师
+            欢迎回来，{userInfo?.username || '老师'}
           </Title>
           <Text type="secondary">{getCurrentDate()}</Text>
         </div>

@@ -1,4 +1,4 @@
-import CryptoJS from 'crypto-js';
+import CryptoJS from "crypto-js";
 
 // 密码加密（使用SHA-256算法）
 export const encryptPassword = (password) => {
@@ -229,15 +229,15 @@ import {
   calculatePageContentHeight,
   splitBlankQuestion,
   processPageQuestions,
-  calculateQuestionsPagination
-} from './pagePaginationUtils';
+  calculateQuestionsPagination,
+} from "./pagePaginationUtils";
 
 export {
   calculateQuestionHeight,
   calculatePageContentHeight,
   splitBlankQuestion,
   processPageQuestions,
-  calculateQuestionsPagination
+  calculateQuestionsPagination,
 };
 
 // 计算元素相对于参考元素的位置信息
@@ -275,6 +275,12 @@ export const calculateElementPosition = (element, referenceElement) => {
   }
   // console.log("referenceRect 左", elementRect.left, referenceRect.left);
   // console.log("referenceRect ", elementRect, referenceRect);
+  console.log(
+    "elementRect 当前元素===>",
+    elementRect,
+    "referenceRect 参考元素 --->",
+    referenceRect
+  );
 
   // 计算相对位置（相对于参考元素的左上角）
   const relativeLeft = parseFloat(
@@ -298,7 +304,7 @@ export const calculateElementPosition = (element, referenceElement) => {
   const rightPercent = parseFloat((relativeRight / realWidth).toFixed(4));
   const topPercent = parseFloat((relativeTop / realHeight).toFixed(4));
   const bottomPercent = parseFloat((relativeBottom / realHeight).toFixed(4));
-
+  // debugger;
   return {
     real: {
       width: parseFloat(elementRect.width.toFixed(2)),

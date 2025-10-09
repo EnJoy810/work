@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   HomeOutlined,
   UserOutlined,
@@ -9,10 +9,12 @@ import {
   ToolOutlined,
   LogoutOutlined,
   DownOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from "@ant-design/icons";
 import { APP_VERSION } from '../utils/appConfig';
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Layout, Menu, Dropdown, Avatar } from "antd";
+import { Layout, Menu, Dropdown, Avatar, Drawer } from "antd";
 import { useMessageService } from "../components/common/message";
 import { useSelector, useDispatch } from "react-redux";
 import { clearUserInfo } from "../store/slices/userSlice";
@@ -27,6 +29,9 @@ const Navbar = () => {
   const { userInfo } = useSelector((state) => state.user);
   const { showSuccess } = useMessageService();
   const location = useLocation();
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isTablet, setIsTablet] = useState(window.innerWidth > 768 && window.innerWidth <= 1024);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // 用户菜单配置
   const userMenuItems = [
@@ -104,6 +109,32 @@ const Navbar = () => {
     }
   };
 
+  // 监听窗口尺寸变化
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+      setIsTablet(window.innerWidth > 768 && window.innerWidth <= 1024);
+      if (window.innerWidth > 768) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
+  // 切换侧边菜单显示状态
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
+  // 关闭侧边菜单
+  const closeMenu = () => {
+    setIsMenuOpen(false);
+  };
+
   return (
     <Header
       className="nav-bar-header"
@@ -123,12 +154,28 @@ const Navbar = () => {
           display: "flex",
           alignItems: "center",
           height: "100%",
-          // width: "90%",
-          // margin: "0 auto",
         }}
       >
+        {/* 移动端菜单按钮 */}
+        {isMobile && (
+          <button
+            className="mobile-menu-button"
+            onClick={toggleMenu}
+            style={{
+              background: "none",
+              border: "none",
+              padding: "0 16px",
+              color: "#000",
+              fontSize: "20px",
+              cursor: "pointer",
+            }}
+          >
+            {isMenuOpen ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+          </button>
+        )}
         {/* 左侧：系统标题 */}
         <div
+          className="logo-container"
           style={{
             display: "flex",
             alignItems: "center",
@@ -139,48 +186,52 @@ const Navbar = () => {
           }}
         >
           <LogoIcon fontSize={18} />
-          <span
+          {!isTablet && (
+            <span
+              style={{
+                marginLeft: 8,
+                color: "#000",
+                marginRight: 8,
+                fontSize: isMobile ? 16 : 22,
+                fontWeight: "bold",
+              }}
+            >
+              清境智能 在线阅卷系统
+            </span>
+          )}
+        </div>
+
+        {/* 桌面端顶部菜单 */}
+        {!isMobile && (
+          <div
             style={{
-              marginLeft: 8,
-              color: "#000",
-              marginRight: 8,
-              fontSize: 22,
-              fontWeight: "bold",
+              flex: 1,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
             }}
           >
-            清境智能 在线阅卷系统
-          </span>
-        </div>
+            {menuList.map((item) => {
+              // 判断当前路由是否匹配菜单项的路径
+              const isActive =
+                location.pathname === item.path ||
+                (item.path !== "/" &&
+                  location.pathname.startsWith(item.path + "/"));
 
-        {/* 中间：顶部菜单 - 占据剩余空间并居中展示 */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          {menuList.map((item) => {
-            // 判断当前路由是否匹配菜单项的路径
-            const isActive =
-              location.pathname === item.path ||
-              (item.path !== "/" &&
-                location.pathname.startsWith(item.path + "/"));
-
-            return (
-              <Link
-                key={item.key}
-                to={item.path}
-                className={`menu-item ${isActive ? "active" : ""}`}
-                style={{ textDecoration: "none" }}
-              >
-                {item.icon}
-                <span className="menu-item-label">{item.label}</span>
-              </Link>
-            );
-          })}
-        </div>
+              return (
+                <Link
+                  key={item.key}
+                  to={item.path}
+                  className={`menu-item ${isActive ? "active" : ""}`}
+                  style={{ textDecoration: "none" }}
+                >
+                  {item.icon}
+                  <span className="menu-item-label">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        )}
 
         {/* 右侧：用户信息 */}
         <Dropdown
@@ -199,6 +250,50 @@ const Navbar = () => {
           </div>
         </Dropdown>
       </div>
+
+      {/* 移动端左侧抽屉菜单 */}
+      <Drawer
+        title="菜单导航"
+        placement="left"
+        onClose={closeMenu}
+        open={isMenuOpen && isMobile}
+        width={250}
+        style={{
+          zIndex: 1000,
+        }}
+      >
+        <div className="mobile-menu-container">
+          {menuList.map((item) => {
+            // 判断当前路由是否匹配菜单项的路径
+            const isActive =
+              location.pathname === item.path ||
+              (item.path !== "/" &&
+                location.pathname.startsWith(item.path + "/"));
+
+            return (
+              <Link
+                key={item.key}
+                to={item.path}
+                onClick={closeMenu}
+                className={`mobile-menu-item ${isActive ? "active" : ""}`}
+                style={{
+                  textDecoration: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "12px 16px",
+                  marginBottom: "8px",
+                  borderRadius: "6px",
+                  color: isActive ? "#fff" : "#000",
+                  backgroundColor: isActive ? "#001529" : "transparent",
+                }}
+              >
+                {item.icon}
+                <span style={{ marginLeft: 12 }}>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </Drawer>
     </Header>
   );
 };

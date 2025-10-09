@@ -278,7 +278,7 @@ const ObjectiveQuestionModal = ({
     if (isEditMode && !isInitialDataLoaded) {
       return;
     }
-    console.log("根据segments更新questions");
+    // console.log("根据segments更新questions");
 
     // 如果questions数组为空，直接使用生成的数据初始化
     if (questions.length === 0 && segments && segments.length > 0) {

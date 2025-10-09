@@ -163,6 +163,7 @@ const ExamCard = ({ exam, navigate }) => {
           justifyContent: "space-between",
           alignItems: "center",
           marginBottom: "8px",
+          flexWrap: "wrap",
         }}
       >
         <div>
