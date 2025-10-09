@@ -227,7 +227,7 @@ const CreateExam = () => {
   };
 
   return (
-    <div style={{ padding: "24px", width: "60%", margin: "0 auto" }}>
+    <div className="create-exam-container">
       <div
         style={{
           marginBottom: "24px",

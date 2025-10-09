@@ -36,24 +36,46 @@ const Home = () => {
   const [recentExams, setRecentExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const { userInfo } = useSelector((state) => state.user);
+  const [shouldPoll, setShouldPoll] = useState(false);
 
   // 获取考试列表数据
-  useEffect(() => {
-    const fetchExamList = async () => {
-      try {
-        setLoading(true);
-        const response = await request.get("/grading/grading/list");
-        setRecentExams(response.data || []);
-      } catch (error) {
-        console.error("获取考试列表失败:", error);
-        // 在实际应用中可以添加错误提示
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchExamList = async () => {
+    try {
+      setLoading(true);
+      const response = await request.get("/grading/grading/list");
+      const exams = response.data || [];
+      setRecentExams(exams);
+      // 检查是否有PENDING或PROCESSING状态的考试
+      const hasPendingOrProcessingExams = exams.some(exam => exam.status === "PENDING" || exam.status === "PROCESSING");
+      setShouldPoll(hasPendingOrProcessingExams);
+    } catch (error) {
+      console.error("获取考试列表失败:", error);
+      // 在实际应用中可以添加错误提示
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchExamList();
   }, []);
+
+  // 当shouldPoll为true时，每2分钟获取一次数据
+  useEffect(() => {
+    let intervalId = null;
+    
+    if (shouldPoll) {
+      intervalId = setInterval(() => {
+        fetchExamList();
+      }, 120000); // 120000毫秒 = 2分钟
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [shouldPoll]);
 
   // 获取今天的日期并格式化为中文格式
   const getCurrentDate = () => {
@@ -67,7 +89,7 @@ const Home = () => {
   };
 
   return (
-    <div style={{ padding: "20px" }}>
+    <div className="home-container">
       {/* 顶部欢迎信息 */}
       <div
         style={{

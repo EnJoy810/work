@@ -4,6 +4,35 @@
   border-radius: 20px;
 }
 
+.home-container {
+  padding: 20px 20px;
+}
+
+.upload-sheet-container,
+.create-exam-container {
+  width: 60%;
+  padding: 24px 24px;
+  margin: 0 auto;
+}
+
+/* 手机端屏幕减小padding */
+@media (max-width: 768px) {
+  .recent-exams-list {
+    padding: 10px 10px;
+  }
+
+  .home-container {
+    padding: 0;
+  }
+
+  /* 手机端屏幕使上传答题卡容器宽度为100% */
+  .upload-sheet-container,
+  .create-exam-container {
+    width: 100%;
+    padding: 12px 12px;
+  }
+}
+
 .card-hover:hover {
   background-color: color-mix(in oklab, #e9ebef 50%, transparent);
 }

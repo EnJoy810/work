@@ -196,7 +196,7 @@ const DataAnalysis = () => {
 
       {/* 统计卡片 - 第一行 */}
       <Row gutter={16} className="statistics-row" style={{ marginBottom: 16 }}>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6}>
           <Card>
             <Statistic
               title="平均分"
@@ -206,7 +206,7 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6}>
           <Card>
             <Statistic
               title="最高分"
@@ -216,7 +216,7 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6}>
           <Card>
             <Statistic
               title="最低分"
@@ -226,7 +226,7 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
-        <Col span={6}>
+        <Col xs={12} sm={12} md={6}>
           <Card>
             <Statistic
               title="中位数"
@@ -240,7 +240,7 @@ const DataAnalysis = () => {
 
       {/* 统计卡片 - 第二行（比率统计） */}
       <Row gutter={16} className="statistics-row" style={{ marginBottom: 16 }}>
-        <Col span={8}>
+        <Col xs={12} sm={12} md={8}>
           <Card>
             <Statistic
               title="优秀率（≥80%）"
@@ -250,7 +250,7 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={12} sm={12} md={8}>
           <Card>
             <Statistic
               title="及格率（≥60%）"
@@ -260,7 +260,7 @@ const DataAnalysis = () => {
             />
           </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={12} sm={12} md={8}>
           <Card>
             <Statistic
               title="低分率（<40%）"

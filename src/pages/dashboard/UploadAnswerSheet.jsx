@@ -47,22 +47,22 @@ const UploadAnswerSheet = () => {
       showError("缺少评分ID，请从正确的页面进入");
       return;
     }
-     
 
     // 创建FormData对象
     const formData = new FormData();
     formData.append("student_papers", answerSheetFile);
     formData.append("grading_id", gradingId);
-    
+
     console.log("上传答题卡数据: 已准备FormData");
-    console.log("grading_id:", gradingId);  
-    
+    console.log("grading_id:", gradingId);
+
     // 直接使用request.post方法调用/grading/grade接口，确保能传递多个参数
-    request.post("/grading/grade", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      }
-    })
+    request
+      .post("/grading/grade", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
       .then(() => {
         showSuccess("答题卡上传成功，请等候评分完成");
         // 重置状态
@@ -70,11 +70,10 @@ const UploadAnswerSheet = () => {
         // 跳转到首页
         navigate("/");
       })
-      .catch(error => {
+      .catch((error) => {
         console.error("答题卡上传失败:", error);
         showError("答题卡上传失败，请重试");
       });
-
   };
 
   // 答题卡上传配置
@@ -124,7 +123,7 @@ const UploadAnswerSheet = () => {
   };
 
   return (
-    <div style={{ padding: "24px", width: "60%", margin: "0 auto" }}>
+    <div className="upload-sheet-container">
       <div
         style={{
           marginBottom: "24px",

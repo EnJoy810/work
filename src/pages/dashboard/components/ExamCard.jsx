@@ -188,7 +188,7 @@ const ExamCard = ({ exam, navigate }) => {
           >
             <span>班级id： {exam.class_id}</span>
             <span style={{ marginLeft: "20px" }}>
-              创建时间: {formatDate(exam.created_time)}
+              创建时间: {formatDate(exam.created_time, "YYYY-MM-DD")}
             </span>
             {/* 学科: {exam.subject} 年级: {exam.grade} 总分:
             {exam.totalScore}分 创建时间: {exam.createTime} */}
