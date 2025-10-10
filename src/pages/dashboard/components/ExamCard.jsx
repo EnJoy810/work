@@ -241,15 +241,27 @@ const ExamCard = ({ exam, navigate }) => {
 
           {/* 完成显示数据分析 */}
           {exam.status === "COMPLETED" && (
-            <Button
-              type="default"
-              icon={<BarChartOutlined />}
-              onClick={() => {
-                navigate(`/data-analysis?grading_id=${exam.grading_id}`);
-              }}
-            >
-              数据分析
-            </Button>
+            <>
+              <Button
+                type="default"
+                icon={<BarChartOutlined />}
+                onClick={() => {
+                  navigate(`/data-analysis?grading_id=${exam.grading_id}`);
+                }}
+              >
+                数据分析
+              </Button>
+
+              <Button
+                type="default"
+                icon={<FileTextOutlined />}
+                onClick={() => {
+                  navigate(`/essay-grading?grading_id=${exam.grading_id}`);
+                }}
+              >
+                查看作文批改
+              </Button>
+            </>
           )}
         </div>
       </div>

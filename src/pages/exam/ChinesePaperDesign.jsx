@@ -1,6 +1,5 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Button, Typography, Form, Input, Checkbox, Empty, Space } from "antd";
-import { useRef } from "react";
 import {
   DownloadOutlined,
   EditOutlined,
@@ -18,6 +17,67 @@ import { useNavigate } from "react-router-dom";
 import { setPreviewData } from "../../store/slices/previewSlice";
 import { calculateQuestionsPagination } from "../../utils/tools";
 const { Title } = Typography;
+
+/**
+ * 格式化题目位置数据，转换为以ID为键的对象
+ * @param {Object} positions - 原始题目位置数据
+ * @returns {Object} 以题目ID为键的位置数据对象
+ */
+const formatQuestionPositionsById = (positions) => {
+  if (!positions || typeof positions !== "object") {
+    return {};
+  }
+  const questionObj = {};
+
+  Object.keys(positions).forEach((questionId) => {
+    console.log("questionId", questionId, positions[questionId]);
+    const positionInfo = positions[questionId];
+    // 检查是否是选择题完整数据
+    if (questionId.endsWith("_complete") && positionInfo?.questions) {
+      // 处理选择题中的每个小题
+      positionInfo.questions.forEach((question) => {
+        if (question?.id) {
+          questionObj[question.id] = {
+            id: question.id,
+            questionPositionInfo: question.questionPositionInfo,
+            optionPositions: question.optionPositions,
+          };
+        }
+      });
+    } else if (
+      questionId.endsWith("_longFill") &&
+      positionInfo?.positionsInfo
+    ) {
+      // 处理长填空中的每个小题
+      Object.keys(positionInfo.positionsInfo).forEach((subQuestionId) => {
+        const subPositionInfo = positionInfo.positionsInfo[subQuestionId];
+        questionObj[subQuestionId] = {
+          ...subPositionInfo,
+          id: subQuestionId,
+          pageIndex: positionInfo.pageIndex,
+        };
+      });
+    } else if (questionId && positionInfo?.type === "shortFillPositions") {
+      // 处理短填空中的每个小题
+      Object.keys(positionInfo.shortFillPositionsInfo).forEach(
+        (subQuestionId) => {
+          const subPositionInfo =
+            positionInfo.shortFillPositionsInfo[subQuestionId];
+          questionObj[subQuestionId] = {
+            ...subPositionInfo,
+            id: subQuestionId,
+            pageIndex: positionInfo.pageIndex,
+          };
+        }
+      );
+    } else if (questionId) {
+      // 处理普通题目
+      questionObj[questionId] = positionInfo;
+    }
+    // return acc;
+  });
+  return questionObj;
+};
 
 /**
  * 语文试卷设计页面组件 - 左右布局
@@ -162,11 +222,14 @@ const ChinesePaperDesign = () => {
         // 添加ExamInfoSection的位置信息
         examInfoPosition: examInfoPosition,
         // 添加单独存储的位置数据
+        // 原始位置数据数组
         questionPositions: questionPositions,
+        // 以ID为键的位置数据对象，方便直接根据ID获取
+        questionPositionsById: formatQuestionPositionsById(questionPositions),
       };
 
       console.log("试卷完整数据：", examData);
-
+      // return;
       // 获取所有answer-sheet-page元素的内容
       const answerSheetPages = [];
       const pageElements = document.querySelectorAll(".answer-sheet-page");

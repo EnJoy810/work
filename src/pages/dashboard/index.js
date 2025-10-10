@@ -4,6 +4,7 @@ import CreateExam from './CreateExam';
 import UploadAnswerSheet from './UploadAnswerSheet';
 import ScoreProcess from './ScoreProcess';
 import DataAnalysis from './DataAnalysis';
+import EssayGrading from './EssayGrading';
 
 export default {
   Home,
@@ -11,4 +12,5 @@ export default {
   UploadAnswerSheet,
   ScoreProcess,
   DataAnalysis,
+  EssayGrading,
 };

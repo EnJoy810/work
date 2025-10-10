@@ -1,0 +1,379 @@
+/* 作文批改页面样式 */
+.essay-grading-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.essay-grading-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background: white;
+  /* border-radius: 8px; */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  /* position: sticky;
+  top: 0;
+  z-index: 100; */
+  /* margin: -20px -20px 20px -20px; */
+  /* width: calc(100% + 40px); */
+}
+
+.essay-grading-header h3 {
+  font-size: 18px;
+}
+
+.navigation-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* padding: 12px 16px; */
+  /* background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); */
+  /* border-radius: 8px; */
+  /* color: white; */
+  font-weight: 500;
+  /* box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3); */
+  /* margin-bottom: 16px; */
+}
+
+/* .navigation-controls Button {
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+}
+
+.navigation-controls Button:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.navigation-controls Button:disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.5);
+} */
+
+/* .navigation-controls Button .anticon {
+  color: white;
+} */
+
+.student-navigation {
+  height: 74px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding-top: 0;
+  padding-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.student-navigation h3 {
+  font-size: 18px;
+  margin-bottom: 0;
+}
+
+.essay-grading-content {
+  display: flex;
+  height: 100%;
+  gap: 20px;
+}
+
+/* 左侧面板 - 学生列表 */
+.left-panel {
+  width: 280px;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.student-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.student-item:hover {
+  border-color: #1890ff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
+.student-item.active {
+  border-color: #1890ff;
+  background-color: #e6f7ff;
+}
+
+.student-info .student-name {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.student-info .student-id {
+  font-size: 12px;
+  color: #666;
+}
+
+.student-score-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.student-score {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.status-badge {
+  font-size: 12px;
+}
+
+/* 中间面板 - 作文内容 */
+.center-panel {
+  flex: 1;
+  overflow-y: auto;
+  background-color: #f5f5f5;
+  /* border-radius: 8px; */
+  /* padding: 0 20px; */
+  border-left: 1px solid #a8a8a8;
+  border-right: 1px solid #a8a8a8;
+}
+
+.essay-card {
+  /* height: 100%; */
+  overflow-y: auto;
+  padding: 20px 20px;
+  margin: 0 12px;
+  background-color: #fff;
+  border-radius: 12px;
+  border: 1px solid #a8a8a8;
+}
+
+.essay-title {
+  text-align: center;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.student-info-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  font-size: 14px;
+  color: #666;
+}
+
+.essay-content {
+  line-height: 2;
+  font-size: 16px;
+  text-align: justify;
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 6px;
+  white-space: pre-wrap;
+}
+
+.essay-sentence {
+  position: relative;
+  transition: background-color 0.2s;
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.essay-sentence:hover {
+  background-color: #e6f7ff;
+}
+
+.essay-sentence.highlighted {
+  background-color: #bae7ff;
+  font-weight: 500;
+}
+
+/* 右侧面板 - 评分内容 */
+.right-panel {
+  width: 360px;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding-right: 4px; /* 为滚动条留出空间 */
+}
+
+.scoring-card {
+  height: 100%;
+  overflow-y: auto;
+}
+
+.scoring-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.scoring-header h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.sort-buttons {
+  display: flex;
+  gap: 8px;
+}
+
+.sort-buttons Button {
+  padding: 4px 12px;
+  height: auto;
+}
+
+/* 按句评语 */
+.sentence-comments-section {
+  margin-bottom: 20px;
+}
+
+.sentence-comments-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.sentence-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 300px; /* 设置固定高度 */
+  overflow-y: auto; /* 内容超出时显示滚动条 */
+  padding-right: 4px; /* 为滚动条留出空间 */
+}
+
+.comment-item {
+  padding: 12px;
+  border: 1px solid #e8e8e8;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.comment-item.highlighted {
+  border-color: #1890ff;
+  background-color: #e6f7ff;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-content {
+  font-size: 14px;
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.improvement-suggestion {
+  background-color: #fff7e6;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.improvement-suggestion h5 {
+  margin: 0 0 4px 0;
+  font-size: 12px;
+  color: #fa8c16;
+}
+
+.improvement-suggestion p {
+  margin: 0;
+  font-size: 12px;
+  color: #d46b08;
+}
+
+/* 得分部分 */
+.score-section {
+  height: 70px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.score-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 0;
+}
+
+.score-display {
+  display: flex;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.score-number {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.score-max {
+  font-size: 16px;
+  color: #666;
+  margin-left: 8px;
+}
+
+/* 评价和改进建议 */
+.evaluation-section,
+.improvement-section {
+  margin-bottom: 20px;
+}
+
+.evaluation-section h4,
+.improvement-section h4 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.evaluation-content,
+.improvement-content {
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
