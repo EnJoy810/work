@@ -48,6 +48,7 @@ const QuestionAnalysis = () => {
           stem: "已知函数f(x) = x² + 2x + 1，求函数的性质并分析其图像特点。",
           referenceAnswer:
             "配方：f(x) = (x+1)²，开口向上的抛物线，顶点(-1,0)，对称轴x=-1",
+          isMultipleChoice: false,
         },
         {
           id: 2,
@@ -59,6 +60,7 @@ const QuestionAnalysis = () => {
           stem: "一个质量为2kg的物体从高度为10m的斜面顶端由静止滑下，斜面的倾角为30度，动摩擦因数为0.2。求物体滑到斜面底端时的速度。(g=10m/s²)",
           referenceAnswer:
             "根据能量守恒定律，重力势能转化为动能和克服摩擦力做功：mgh = 1/2 mv² + μmgcosθ·s，其中s=h/sinθ。代入数据计算得v≈11.8m/s。",
+          isMultipleChoice: false,
         },
         {
           id: 3,
@@ -69,6 +71,33 @@ const QuestionAnalysis = () => {
           answerImage: "https://via.placeholder.com/600x400?text=化学题答案",
           stem: "写出氢气与氧气反应生成水的化学方程式，并配平。",
           referenceAnswer: "2H₂ + O₂ = 2H₂O（条件：点燃）",
+          isMultipleChoice: false,
+        },
+        {
+          id: 4,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+        },
+        {
+          id: 5,
+          type: "physics",
+          title: "选择题 - 牛顿定律",
+          score: 5,
+          totalScore: 5,
+          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
+          stem: "牛顿第二定律的表达式是？",
+          referenceAnswer: "F = ma，选项B",
+          isMultipleChoice: true,
+          options: ["F = mv", "F = ma", "F = m/v", "F = m/a"],
+          correctOption: 1,
         },
       ],
     },
@@ -90,6 +119,7 @@ const QuestionAnalysis = () => {
           stem: "已知函数f(x) = x² + 2x + 1，求函数的性质并分析其图像特点。",
           referenceAnswer:
             "配方：f(x) = (x+1)²，开口向上的抛物线，顶点(-1,0)，对称轴x=-1",
+          isMultipleChoice: false,
         },
         {
           id: 2,
@@ -102,6 +132,7 @@ const QuestionAnalysis = () => {
           stem: "一个质量为2kg的物体从高度为10m的斜面顶端由静止滑下，斜面的倾角为30度，动摩擦因数为0.2。求物体滑到斜面底端时的速度。(g=10m/s²)",
           referenceAnswer:
             "根据能量守恒定律，重力势能转化为动能和克服摩擦力做功：mgh = 1/2 mv² + μmgcosθ·s，其中s=h/sinθ。代入数据计算得v≈11.8m/s。",
+          isMultipleChoice: false,
         },
         {
           id: 3,
@@ -113,6 +144,37 @@ const QuestionAnalysis = () => {
             "https://via.placeholder.com/600x400?text=化学题答案-李华",
           stem: "写出氢气与氧气反应生成水的化学方程式，并配平。",
           referenceAnswer: "2H₂ + O₂ = 2H₂O（条件：点燃）",
+          isMultipleChoice: false,
+        },
+        {
+          id: 4,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage:
+            "https://via.placeholder.com/600x400?text=选择题答案-李华",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+          studentAnswer: 0,
+        },
+        {
+          id: 5,
+          type: "physics",
+          title: "选择题 - 牛顿定律",
+          score: 5,
+          totalScore: 5,
+          answerImage:
+            "https://via.placeholder.com/600x400?text=选择题答案-李华",
+          stem: "牛顿第二定律的表达式是？",
+          referenceAnswer: "F = ma，选项B",
+          isMultipleChoice: true,
+          options: ["F = mv", "F = ma", "F = m/v", "F = m/a"],
+          correctOption: 1,
+          studentAnswer: 1,
         },
       ],
     },
@@ -134,6 +196,7 @@ const QuestionAnalysis = () => {
           stem: "已知函数f(x) = x² + 2x + 1，求函数的性质并分析其图像特点。",
           referenceAnswer:
             "配方：f(x) = (x+1)²，开口向上的抛物线，顶点(-1,0)，对称轴x=-1",
+          isMultipleChoice: false,
         },
         {
           id: 2,
@@ -146,6 +209,7 @@ const QuestionAnalysis = () => {
           stem: "一个质量为2kg的物体从高度为10m的斜面顶端由静止滑下，斜面的倾角为30度，动摩擦因数为0.2。求物体滑到斜面底端时的速度。(g=10m/s²)",
           referenceAnswer:
             "根据能量守恒定律，重力势能转化为动能和克服摩擦力做功：mgh = 1/2 mv² + μmgcosθ·s，其中s=h/sinθ。代入数据计算得v≈11.8m/s。",
+          isMultipleChoice: false,
         },
         {
           id: 3,
@@ -157,6 +221,37 @@ const QuestionAnalysis = () => {
             "https://via.placeholder.com/600x400?text=化学题答案-王芳",
           stem: "写出氢气与氧气反应生成水的化学方程式，并配平。",
           referenceAnswer: "2H₂ + O₂ = 2H₂O（条件：点燃）",
+          isMultipleChoice: false,
+        },
+        {
+          id: 4,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage:
+            "https://via.placeholder.com/600x400?text=选择题答案-王芳",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+          studentAnswer: 1,
+        },
+        {
+          id: 5,
+          type: "physics",
+          title: "选择题 - 牛顿定律",
+          score: 0,
+          totalScore: 5,
+          answerImage:
+            "https://via.placeholder.com/600x400?text=选择题答案-王芳",
+          stem: "牛顿第二定律的表达式是？",
+          referenceAnswer: "F = ma，选项B",
+          isMultipleChoice: true,
+          options: ["F = mv", "F = ma", "F = m/v", "F = m/a"],
+          correctOption: 1,
+          studentAnswer: 2,
         },
       ],
     },
@@ -172,6 +267,10 @@ const QuestionAnalysis = () => {
 
   // 评分相关
   const [score, setScore] = useState(currentStudent?.score || 0);
+
+  // 展开折叠状态
+  const [nonChoiceExpanded, setNonChoiceExpanded] = useState(true);
+  const [choiceExpanded, setChoiceExpanded] = useState(true);
 
   const essayContentRef = useRef(null);
 
@@ -251,36 +350,152 @@ const QuestionAnalysis = () => {
                 alignItems: "center",
               }}
             >
-              <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "bold" }}>
+              {/* <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "bold" }}>
                 {currentStudent?.name} - 第{currentQuestion?.id || 1}题
-              </h2>
+              </h2> */}
 
-              {/* 题目序号切换按钮 */}
+              {/* 题目序号切换按钮 - 区分选择题和非选择题 */}
               {currentStudent?.questions && (
-                <div style={{ marginLeft: "16px", display: "flex" }}>
-                  {currentStudent.questions.map((question, index) => (
-                    <span
-                      key={question.id}
-                      onClick={() => setCurrentQuestionIndex(index)}
+                <div
+                  style={{
+                    marginLeft: "16px",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  {/* 选择题组 */}
+                  <div
+                    style={{
+                      marginBottom: "12px",
+                      display: "flex",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div
                       style={{
-                        width: "30px",
-                        height: "30px",
-                        margin: "0 4px",
-                        borderRadius: "4px",
-                        border: "none",
-                        backgroundColor:
-                          index === currentQuestionIndex ? "#000" : "#fff",
-                        color: index === currentQuestionIndex ? "#fff" : "#000",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "flex-end",
+                        marginBottom: "8px",
                         cursor: "pointer",
-                        fontSize: "14px",
-                        fontWeight: "bold",
-                        lineHeight: "30px",
-                        textAlign: "center",
+                        width: 80,
                       }}
+                      onClick={() => setChoiceExpanded(!choiceExpanded)}
                     >
-                      {question.id}
-                    </span>
-                  ))}
+                      <span style={{ marginRight: "8px", fontWeight: "bold" }}>
+                        选择题
+                      </span>
+                      <span>{choiceExpanded ? "▼" : "▶"}</span>
+                    </div>
+                    {choiceExpanded && (
+                      <div style={{ display: "flex", marginLeft: "20px" }}>
+                        {currentStudent.questions
+                          .filter((q) => q.isMultipleChoice)
+                          .map((question, index) => {
+                            const originalIndex =
+                              currentStudent.questions.findIndex(
+                                (q) => q.id === question.id
+                              );
+                            return (
+                              <span
+                                key={question.id}
+                                onClick={() =>
+                                  setCurrentQuestionIndex(originalIndex)
+                                }
+                                style={{
+                                  width: "30px",
+                                  height: "30px",
+                                  margin: "0 4px",
+                                  borderRadius: "4px",
+                                  border: "1px solid #d9d9d9",
+                                  backgroundColor:
+                                    originalIndex === currentQuestionIndex
+                                      ? "oklch(.7 .2 254)"
+                                      : "#fff",
+                                  color:
+                                    originalIndex === currentQuestionIndex
+                                      ? "#fff"
+                                      : "#000",
+                                  cursor: "pointer",
+                                  fontSize: "14px",
+                                  fontWeight: "bold",
+                                  lineHeight: "30px",
+                                  textAlign: "center",
+                                }}
+                              >
+                                {question.id}
+                              </span>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
+                  {/* 非选择题组 */}
+                  <div
+                    style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        marginBottom: "8px",
+                        cursor: "pointer",
+                        justifyContent: "flex-end",
+                        width: 80,
+                      }}
+                      onClick={() => setNonChoiceExpanded(!nonChoiceExpanded)}
+                    >
+                      <span style={{ marginRight: "8px", fontWeight: "bold" }}>
+                        非选择题
+                      </span>
+                      <span>{nonChoiceExpanded ? "▼" : "▶"}</span>
+                    </div>
+                    {nonChoiceExpanded && (
+                      <div style={{ display: "flex", marginLeft: "20px" }}>
+                        {currentStudent.questions
+                          .filter((q) => !q.isMultipleChoice)
+                          .map((question, index) => {
+                            const originalIndex =
+                              currentStudent.questions.findIndex(
+                                (q) => q.id === question.id
+                              );
+                            return (
+                              <span
+                                key={question.id}
+                                onClick={() =>
+                                  setCurrentQuestionIndex(originalIndex)
+                                }
+                                style={{
+                                  width: "30px",
+                                  height: "30px",
+                                  margin: "0 4px",
+                                  borderRadius: "4px",
+                                  border: "1px solid #d9d9d9",
+                                  backgroundColor:
+                                    originalIndex === currentQuestionIndex
+                                      ? "oklch(.7 .2 254)"
+                                      : "#fff",
+                                  color:
+                                    originalIndex === currentQuestionIndex
+                                      ? "#fff"
+                                      : "#000",
+                                  cursor: "pointer",
+                                  fontSize: "14px",
+                                  fontWeight: "bold",
+                                  lineHeight: "30px",
+                                  textAlign: "center",
+                                }}
+                              >
+                                {question.id}
+                              </span>
+                            );
+                          })}
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
