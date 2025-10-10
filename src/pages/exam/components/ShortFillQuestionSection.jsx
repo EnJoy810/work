@@ -35,7 +35,7 @@ const ShortFillQuestionSection = ({
       pointsPerBlank: 2,
       blanks: [
         {
-          id: generateBlankId(questionId, 0),
+          id: generateBlankId(questionId, Date.now()),
           points: 2,
         },
       ],
@@ -114,7 +114,7 @@ const ShortFillQuestionSection = ({
             // 添加新的空
             for (let i = currentLength; i < targetLength; i++) {
               newBlanks.push({
-                id: generateBlankId(updatedQuestion.questionNumber, i),
+                id: generateBlankId(updatedQuestion.questionNumber, Date.now() + i),
                 points: updatedQuestion.pointsPerBlank,
               });
             }
@@ -153,7 +153,7 @@ const ShortFillQuestionSection = ({
                 // 添加新的空，使用当前每空分数
                 for (let i = newBlanks.length; i < targetLength; i++) {
                   newBlanks.push({
-                    id: generateBlankId(sq.questionId, i),
+                    id: generateBlankId(sq.questionId, Date.now() + i),
                     points: sq.pointsPerBlank,
                   });
                 }
@@ -607,7 +607,7 @@ const ShortFillQuestionSection = ({
                                                         i++
                                                       ) {
                                                         newBlanks.push({
-                                                          id: `blank-${Date.now()}-${i}`,
+                                                          id: generateBlankId(sq.questionId, Date.now() + i),
                                                           points:
                                                             sq.pointsPerBlank,
                                                         });
