@@ -5,7 +5,7 @@ import LongFillRenderer from "./LongFillRenderer";
 
 /**
  * 非选择题渲染组件
- * 根据fillType属性决定渲染短填空还是长填空，并统一处理位置计算逻辑
+ * 根据fillType属性决定渲染短填空还是简答题，并统一处理位置计算逻辑
  */
 const SubjectiveQuestionsRenderer = React.forwardRef(
   ({ questions, onPositionUpdate, pageRef }, ref) => {

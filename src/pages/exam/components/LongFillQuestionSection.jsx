@@ -6,7 +6,7 @@ import { generateQuestionId, generateBlankId } from "../../../utils/tools";
 const { Panel } = Collapse;
 
 /**
- * 长填空题组件
+ * 简答题题组件
  * @param {Object} props
  * @param {Array} props.longQuestions - 题目列表（包含子题数据）
  * @param {Function} props.setLongQuestions - 设置题目列表的函数
@@ -14,8 +14,8 @@ const { Panel } = Collapse;
  * @param {Function} props.setLongLineScores - 设置行分数的函数
  * @param {boolean} props.showSubQuestionScore - 是否显示小题分数
  * @param {Function} props.setShowSubQuestionScore - 设置是否显示小题分数的函数
- * @param {Array} props.longFillConfig - 长填空配置
- * @param {Function} props.setLongFillConfig - 设置长填空配置的函数
+ * @param {Array} props.longFillConfig - 简答题配置
+ * @param {Function} props.setLongFillConfig - 设置简答题配置的函数
  */
 const LongFillQuestionSection = ({
   longQuestions: questions, // 重命名属性以匹配组件内部使用
@@ -29,7 +29,7 @@ const LongFillQuestionSection = ({
 }) => {
   const { showInfo } = useMessageService();
 
-  // 处理长填空配置变化
+  // 处理简答题配置变化
   const handleLongFillConfigChange = (id, field, value) => {
     const newConfig = longFillConfig.map((config) =>
       config.id === id ? { ...config, [field]: value } : config
@@ -37,7 +37,7 @@ const LongFillQuestionSection = ({
     setLongFillConfig(newConfig);
   };
 
-  // 移除长填空配置
+  // 移除简答题配置
   const removeLongFillConfig = (id) => {
     const newConfig = longFillConfig.filter((config) => config.id !== id);
     setLongFillConfig(newConfig);
@@ -245,7 +245,7 @@ const LongFillQuestionSection = ({
     return newQuestions;
   };
 
-  // 当长填空配置变化时，根据配置生成或更新题目
+  // 当简答题配置变化时，根据配置生成或更新题目
   useEffect(() => {
     // 清空现有的题目
     setQuestions([]);
@@ -263,7 +263,7 @@ const LongFillQuestionSection = ({
 
   return (
     <>
-      {/* 长填空配置区域 */}
+      {/* 简答题配置区域 */}
       {longFillConfig.map((config) => (
         <div key={config.id} style={{ marginBottom: 16, position: "relative" }}>
           {/* 移除按钮（只有配置数量大于1时显示） */}

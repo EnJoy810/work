@@ -144,7 +144,7 @@ export const splitBlankQuestion = (
       };
     }
   } else if (question.fillType === "long") {
-    // 长填空题 分页 - 只根据行数判断
+    // 简答题题 分页 - 只根据行数判断
     let totalLines = 0;
     let subSplitIndex = -1;
 
@@ -160,10 +160,10 @@ export const splitBlankQuestion = (
           const subQLines = subQ.totalLines || 1;
           subTotalLines += subQLines;
 
-          console.log("subTotalLines 长填空的总行数", subTotalLines);
+          console.log("subTotalLines 简答题的总行数", subTotalLines);
           console.log("剩余 可显示的行数", remainingLines);
           console.log(
-            "subTotalLines 长填空的总行数--->",
+            "subTotalLines 简答题的总行数--->",
             subTotalLines,
             remainingLines
           );
@@ -257,7 +257,7 @@ export const splitBlankQuestion = (
             questions: nextPageData,
           };
         } else {
-          // 长填空
+          // 简答题
           const leftFirstPart = question.questions.slice(0, splitIndex);
           const rightFirstPart = [
             {

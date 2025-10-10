@@ -48,7 +48,7 @@ const formatQuestionPositionsById = (positions) => {
       questionId.endsWith("_longFill") &&
       positionInfo?.positionsInfo
     ) {
-      // 处理长填空中的每个小题
+      // 处理简答题中的每个小题
       Object.keys(positionInfo.positionsInfo).forEach((subQuestionId) => {
         const subPositionInfo = positionInfo.positionsInfo[subQuestionId];
         questionObj[subQuestionId] = {

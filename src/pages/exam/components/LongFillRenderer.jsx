@@ -2,14 +2,14 @@ import React, { useRef, useEffect } from "react";
 import { calculateElementPosition } from "../../../utils/tools";
 
 /**
- * 长填空渲染组件
- * 负责渲染长填空题的多行布局
+ * 简答题渲染组件
+ * 负责渲染简答题题的多行布局
  */
 const LongFillRenderer = React.forwardRef(
   ({ questions, pageRef, onPositionUpdate }, ref) => {
     const { questions: subQuestions, sliceQuestion } = questions;
     // console.log(
-    //   "subQuestions 长填空渲染",
+    //   "subQuestions 简答题渲染",
     //   questions,
     //   questions.showSubQuestionScore
     // );
@@ -48,7 +48,7 @@ const LongFillRenderer = React.forwardRef(
         });
       }
     });
-    // console.log("processedQuestions 长填空渲染", processedQuestions);
+    // console.log("processedQuestions 简答题渲染", processedQuestions);
 
     // 为每个小题计算位置并收集更新信息
     useEffect(() => {
@@ -188,7 +188,7 @@ const LongFillRenderer = React.forwardRef(
 
     return (
       <div ref={ref} className="long-fill-wrap">
-        {/* 长填空题多行区域 */}
+        {/* 简答题题多行区域 */}
         {renderLongFillQuestions()}
       </div>
     );

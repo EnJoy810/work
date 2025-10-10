@@ -87,7 +87,7 @@ const BlankQuestionModal = ({
   ];
   const [questionContent, setQuestionContent] = useState("");
 
-  // 选择的填空类型：短填空或长填空
+  // 选择的填空类型：短填空或简答题
   const [fillType, setFillType] = useState("short");
 
   // 每行显示的空数
@@ -110,7 +110,7 @@ const BlankQuestionModal = ({
   // 生成的题目列表
   const [questions, setQuestions] = useState([]);
 
-  // 长填空配置
+  // 简答题配置
   const [longFillConfig, setLongFillConfig] = useState([
     {
       id: 1,
@@ -121,10 +121,10 @@ const BlankQuestionModal = ({
     },
   ]);
 
-  // 长填空生成的题目列表
+  // 简答题生成的题目列表
   const [longQuestions, setLongQuestions] = useState([]);
 
-  // 长填空行分数状态
+  // 简答题行分数状态
   const [longLineScores, setLongLineScores] = useState({}); // 存储每行分数的状态
 
   // 生成大写的一到二十选项
@@ -292,7 +292,7 @@ const BlankQuestionModal = ({
           setBlanksPerLine(initialData.blanksPerLine);
         }
       } else {
-        // 回填长填空
+        // 回填简答题
         if (
           initialData.longFillConfig &&
           Array.isArray(initialData.longFillConfig)
@@ -355,7 +355,7 @@ const BlankQuestionModal = ({
             });
           }
 
-          // 检查长填空的endQuestion
+          // 检查简答题的endQuestion
           if (q.longFillConfig && Array.isArray(q.longFillConfig)) {
             q.longFillConfig.forEach((config) => {
               if (config.endQuestion) {
@@ -391,7 +391,7 @@ const BlankQuestionModal = ({
         },
       ]);
 
-      // 设置长填空的startQuestion为相同的值
+      // 设置简答题的startQuestion为相同的值
       setLongFillConfig([
         {
           id: 1,
@@ -478,7 +478,7 @@ const BlankQuestionModal = ({
       submitData.totalBlanksPerQuestion = totalBlanksPerQuestion;
       submitData.totalLines = totalLines;
     } else {
-      // 长填空数据
+      // 简答题数据
       submitData.questions = longQuestions;
       submitData.longFillConfig = longFillConfig.map((config) => ({
         startQuestion: config.startQuestion,
@@ -488,7 +488,7 @@ const BlankQuestionModal = ({
       }));
       submitData.showSubQuestionScore = showSubQuestionScore;
       console.log("longQuestions", longQuestions);
-      // 长填空的总行数 = 题目数量 × 每道题行数
+      // 简答题的总行数 = 题目数量 × 每道题行数
       let totalLines = 0;
       longQuestions.forEach((q) => {
         // 小题
@@ -619,7 +619,7 @@ const BlankQuestionModal = ({
           },
           {
             key: "long",
-            label: "长填空",
+            label: "简答题",
             children: (
               <LongFillQuestionSection
                 longFillConfig={longFillConfig}
