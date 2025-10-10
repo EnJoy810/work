@@ -4,7 +4,7 @@ import pages from "../pages";
 import { ProtectedRoute, LoginPage } from "./ProtectedRoutes.jsx";
 
 // 解构获取各个页面组件
-const { Home, CreateExam, UploadAnswerSheet, ScoreProcess, DataAnalysis, EssayGrading } = pages.dashboard;
+const { Home, CreateExam, UploadAnswerSheet, ScoreProcess, DataAnalysis, EssayGrading, QuestionAnalysis } = pages.dashboard;
 const { UserList } = pages.studentManagement;
 const { NotFound, FeatureUnderDevelopment } = pages;
 const { MessageDemo } = pages.systemSettings;
@@ -40,6 +40,7 @@ const router = createBrowserRouter([
       { path: "questions", element: <FeatureUnderDevelopment /> },
       { path: "settings", element: <FeatureUnderDevelopment /> },
       { path: "essay-grading", element: <EssayGrading /> },
+      { path: "question-analysis", element: <QuestionAnalysis /> },
       {
         path: "users",
         element: <UserList />,

@@ -1,0 +1,229 @@
+.question-grading-container {
+  height: calc(100vh - 110px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.question-grading-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
+}
+
+.question-grading-header h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.question-grading-content {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  gap: 16px;
+  padding: 0 0 20px 0;
+}
+
+.question-card {
+  /* height: 100%; */
+  overflow-y: auto;
+  padding: 20px 20px;
+  margin: 0 12px;
+  background-color: #fff;
+  border-radius: 12px;
+  border: 1px solid #a8a8a8;
+}
+
+/* 题目序号列表样式 */
+.question-numbers {
+  margin: 16px 0;
+  padding: 12px;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+}
+
+.question-numbers-title {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.question-numbers-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.question-number-btn {
+  min-width: 70px;
+  height: 32px;
+  line-height: 32px;
+  text-align: center;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.question-number-btn:hover {
+  border-color: #1890ff;
+  color: #1890ff;
+}
+
+/* 学生题目序号列表样式 */
+.student-question-numbers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.student-question-number-btn {
+  margin: 2px;
+  padding: 2px 8px;
+  font-size: 12px;
+  height: 24px;
+  min-width: 40px;
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+
+.student-question-number-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.student-question-number-btn.active {
+  background-color: #1890ff;
+  color: white;
+  border-color: #1890ff;
+}
+
+/* 答案图片样式 */
+.answer-image-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  background-color: #fafafa;
+  border-radius: 8px;
+}
+
+.answer-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s;
+}
+
+.answer-image:hover {
+  transform: scale(1.01);
+}
+
+.question-score-info {
+  margin-top: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.question-tabs {
+  display: flex;
+  gap: 8px;
+}
+
+.question-tabs span {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.question-tabs span:hover {
+  background-color: #f0f0f0;
+}
+
+.question-tabs .active-tab {
+  background-color: #1890ff;
+  color: #fff;
+}
+
+.question-info-section {
+  padding: 16px;
+  border-bottom: 1px solid #f0f0f0;
+  background-color: #fafafa;
+}
+
+.question-number {
+  font-size: 14px;
+  color: #1890ff;
+  font-weight: bold;
+}
+
+.question-stem-section,
+.reference-answer-section,
+.scoring-criteria-section {
+  padding: 16px 4px;
+  border-bottom: 1px solid #f0f0f0;
+  overflow-y: auto;
+  max-height: 200px;
+  color: oklch(0.145 0 0);
+}
+
+.question-stem-section h4,
+.reference-answer-section h4,
+.scoring-criteria-section h4 {
+  font-size: 14px;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
+.question-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  background-color: #f5f5f5;
+  border-radius: 6px;
+}
+/* 滚动条样式优化 */
+.student-list::-webkit-scrollbar,
+.student-answer-card::-webkit-scrollbar,
+.question-stem-section::-webkit-scrollbar,
+.reference-answer-section::-webkit-scrollbar,
+.scoring-criteria-section::-webkit-scrollbar {
+  width: 6px;
+}
+
+.student-list::-webkit-scrollbar-track,
+.student-answer-card::-webkit-scrollbar-track,
+.question-stem-section::-webkit-scrollbar-track,
+.reference-answer-section::-webkit-scrollbar-track,
+.scoring-criteria-section::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.student-list::-webkit-scrollbar-thumb,
+.student-answer-card::-webkit-scrollbar-thumb,
+.question-stem-section::-webkit-scrollbar-thumb,
+.reference-answer-section::-webkit-scrollbar-thumb,
+.scoring-criteria-section::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 3px;
+}
+
+.student-list::-webkit-scrollbar-thumb:hover,
+.student-answer-card::-webkit-scrollbar-thumb:hover,
+.question-stem-section::-webkit-scrollbar-thumb:hover,
+.reference-answer-section::-webkit-scrollbar-thumb:hover,
+.scoring-criteria-section::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}

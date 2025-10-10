@@ -5,6 +5,7 @@ import UploadAnswerSheet from './UploadAnswerSheet';
 import ScoreProcess from './ScoreProcess';
 import DataAnalysis from './DataAnalysis';
 import EssayGrading from './EssayGrading';
+import QuestionAnalysis from './QuestionAnalysis';
 
 export default {
   Home,
@@ -13,4 +14,5 @@ export default {
   ScoreProcess,
   DataAnalysis,
   EssayGrading,
+  QuestionAnalysis,
 };

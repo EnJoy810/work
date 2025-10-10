@@ -219,6 +219,8 @@ const ChinesePaperDesign = () => {
         basicInfo: formValues,
         totalQuestions: questions.length,
         questions: questions,
+        // 添加作文数据
+        wordQuestion: wordQuestionValues,
         // 添加ExamInfoSection的位置信息
         examInfoPosition: examInfoPosition,
         // 添加单独存储的位置数据
@@ -339,8 +341,12 @@ const ChinesePaperDesign = () => {
     // 准备模板数据
     const templateData = {
       name: templateName,
-      questions: questions,
-      basicInfo: formValues,
+      questions: JSON.stringify(questions),
+      hasNote: formValues.hasNote,
+      questionPositionsById: JSON.stringify(
+        formatQuestionPositionsById(questionPositions)
+      ),
+      wordQuestionValues: JSON.stringify(wordQuestionValues),
     };
 
     // 模拟保存模板的API请求

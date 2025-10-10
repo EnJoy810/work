@@ -99,7 +99,7 @@
   align-items: center;
   padding: 12px 16px;
   border: 1px solid #e8e8e8;
-  border-radius: 6px;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.3s;
 }
@@ -110,13 +110,14 @@
 }
 
 .student-item.active {
-  border-color: #1890ff;
-  background-color: #e6f7ff;
+  border-color: oklch(.882 .059 254.128);
+  background-color: oklch(.97 .014 254.604);
 }
 
 .student-info .student-name {
   font-weight: 600;
   margin-bottom: 4px;
+  font-size: 18px;
 }
 
 .student-info .student-id {

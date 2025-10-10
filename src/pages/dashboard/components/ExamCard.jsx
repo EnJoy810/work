@@ -261,6 +261,16 @@ const ExamCard = ({ exam, navigate }) => {
               >
                 查看作文批改
               </Button>
+              
+              <Button
+                type="default"
+                icon={<BarChartOutlined />}
+                onClick={() => {
+                  navigate(`/question-analysis?grading_id=${exam.grading_id}`);
+                }}
+              >
+                查看题目分析
+              </Button>
             </>
           )}
         </div>
