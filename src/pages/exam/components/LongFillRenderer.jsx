@@ -130,7 +130,7 @@ const LongFillRenderer = React.forwardRef(
           {/* 第一行包含标题和下划线 */}
           <div
             style={{
-              marginBottom: "10px",
+              // marginBottom: "10px",
               display: "flex",
               alignItems: "center",
             }}
@@ -179,7 +179,7 @@ const LongFillRenderer = React.forwardRef(
             <div
               key={`${question.key}-line-${lineIndex + 1}`}
               style={{
-                marginBottom: "10px",
+                // marginBottom: "10px",
                 borderBottom: "1px solid #000",
                 height: "30px",
                 width: "100%",

@@ -134,7 +134,7 @@ const ShortFillRenderer = React.forwardRef(
                         style={{
                           display: "flex",
                           alignItems: "flex-end",
-                          height: "40px",
+                          height: "30px",
                           marginRight: "5px",
                           visibility:
                             blank.questionNumber || blank.innerQuestionNumber
@@ -159,7 +159,7 @@ const ShortFillRenderer = React.forwardRef(
                           borderBottom: "1px solid #000",
                           flexGrow: 1,
                           minWidth: "50px",
-                          height: "40px",
+                          height: "30px",
                           display: "flex",
                           alignItems: "flex-end",
                         }}

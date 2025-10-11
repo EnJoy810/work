@@ -12,17 +12,17 @@ import {
 export const calculateQuestionHeight = (question) => {
   console.log("计算题目高度 ", question);
   // 题目类型高度常量
-  const objectHeight = 157.3; // 选择题高度
-  const baseShortFirstHeight = 87.33; // 填空题基础高度（包含标题的一行高度）
-  const baseShowFirstHeight = 23.33; // 填空题基础高度，数据分割没有标题的时候
-  const blankLineHeight = 40; // 填空题每行高度
+  const objectHeight = 137.3; // 选择题高度
+  const baseShortFirstHeight = 57.33; // 填空题基础高度（包含标题的一行高度）
+  const baseShowFirstHeight = 3.33; // 填空题基础高度，数据分割没有标题的时候
+  const blankLineHeight = 30; // 填空题每行高度
 
   // 根据题目类型返回对应的高度
   if (question.type === "objective") {
     // 根据选择题数量返回不同的高度
     // 如果是小题数量小于5题，返回对应高度；否则返回默认高度
     const questionCount = question.questions ? question.questions.length : 1;
-    const heights = [0, 85.32, 103.32, 121.32, 141.32];
+    const heights = [0, 65.32, 83.32, 101.32, 119.31];
     if (questionCount < 5) {
       return heights[questionCount] || objectHeight;
     } else {
@@ -87,8 +87,9 @@ export const splitBlankQuestion = (
   remainingHeight = 0
 ) => {
   const titleHeight = 23.99; // 标题高度
-  const questionWrapPadding = 23.33; // 题目包裹间距
-  const lineHeight = 40; // 填空题每行高度
+  // const questionWrapPadding = 23.33; // 题目包裹间距
+  const questionWrapPadding = 3.33; // 题目包裹间距
+  const lineHeight = 30; // 填空题每行高度
   const remainingLines = Math.floor(
     (availableHeight +
       questionHeight +
