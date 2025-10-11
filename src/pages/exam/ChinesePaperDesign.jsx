@@ -5,13 +5,16 @@ import {
   EditOutlined,
   PlusOutlined,
   SaveOutlined,
+  BgColorsOutlined,
 } from "@ant-design/icons";
 import { useMessageService } from "../../components/common/message";
+import request from "../../utils/request";
 import ObjectiveQuestionModal from "./components/ObjectiveQuestionModal";
 import BlankQuestionModal from "./components/BlankQuestionModal";
 import WordQuestionModal from "./components/WordQuestionModal";
 import AnswerSheetRenderer from "./components/AnswerSheetRenderer";
 import SaveTemplateModal from "./components/SaveTemplateModal";
+import TemplateSelectionModal from "./components/TemplateSelectionModal";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { setPreviewData } from "../../store/slices/previewSlice";
@@ -92,10 +95,18 @@ const ChinesePaperDesign = () => {
     useState(false);
   const [wordQuestionValues, setWordQuestionValues] = useState({});
   const [questions, setQuestions] = useState([]);
+
+  // 表单状态
   const [formValues, setFormValues] = useState({
-    hasSealingLine: false,
+    // hasSealingLine: false,
     hasNote: true,
   });
+
+  // 考试相关信息状态
+  const [examSubject, setExamSubject] = useState("语文");
+  const [applicableMajor, setApplicableMajor] = useState("25级高职高考");
+  const [examTime, setExamTime] = useState("150");
+
   // 存储分页后的数据
   const [paginationData, setPaginationData] = useState([]);
   const [totalPages, setTotalPages] = useState(1); // 分页数据
@@ -107,6 +118,56 @@ const ChinesePaperDesign = () => {
   // 保存模板相关状态
   const [saveTemplateModalVisible, setSaveTemplateModalVisible] =
     useState(false);
+
+  // 选择模板相关状态
+  const [templateModalVisible, setTemplateModalVisible] = useState(false);
+
+  // 处理模板选择
+  const handleTemplateSelect = (template) => {
+    console.log("template", template);
+    const examInfo = JSON.parse(template.info) || {};
+    console.log("examInfo", examInfo);
+    const { questions = [], basicInfo = {}, wordQuestion = {} } = examInfo;
+    const { hasNote, examTime, examSubject, applicableMajor, title } =
+      basicInfo;
+
+    // 设置题目
+    if (questions && questions.length > 0) {
+      setQuestions(questions);
+    }
+
+    setWordQuestionValues(wordQuestion);
+    // 设置表单值显示注意事项
+    setFormValues({
+      ...formValues,
+      hasNote,
+    });
+    // 设置答题卡标题
+    if (title && answerSheetRef.current && answerSheetRef.current.setTitle) {
+      answerSheetRef.current.setTitle(title);
+    }
+    // 根据模板设置考试相关信息
+    if (examSubject) {
+      setExamSubject(examSubject);
+    }
+    if (applicableMajor) {
+      setApplicableMajor(applicableMajor);
+    }
+    if (examTime) {
+      setExamTime(examTime);
+    }
+    // 关闭弹窗
+    setTemplateModalVisible(false);
+
+    // 这里可以根据选择的模板更新试卷配置
+    showInfo(`已应用模板：${template.name}`);
+
+    // setWordQuestionValues
+    // setQuestions
+    // setFormValues
+    // 可以根据实际需求实现模板应用的具体逻辑
+    // 例如更新formValues、questions等状态
+  };
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -333,29 +394,57 @@ const ChinesePaperDesign = () => {
 
   // 处理保存模板
   const handleSaveTemplate = (templateName) => {
+    let title = "";
+    if (answerSheetRef.current && answerSheetRef.current.getTitle) {
+      title = answerSheetRef.current.getTitle().trim();
+    }
+
+    if (!title) {
+      showInfo("请先输入答题卡标题");
+      return;
+    }
     if (questions.length === 0) {
       showInfo("当前试卷中没有题目，无法保存为模板");
       return;
     }
-
+    // 获取ExamInfoSection的位置信息
+    let examInfoPosition = null;
+    if (
+      answerSheetRef.current &&
+      answerSheetRef.current.getExamInfoSectionPosition
+    ) {
+      examInfoPosition = answerSheetRef.current.getExamInfoSectionPosition();
+    }
+    const examInfo = {
+      questions: questions,
+      basicInfo: {
+        hasNote: formValues.hasNote,
+        examSubject,
+        applicableMajor,
+        examTime,
+        title,
+      },
+      examInfoPosition,
+      questionPositionsById: formatQuestionPositionsById(questionPositions),
+      wordQuestion: wordQuestionValues,
+    };
     // 准备模板数据
     const templateData = {
       name: templateName,
-      questions: JSON.stringify(questions),
-      hasNote: formValues.hasNote,
-      questionPositionsById: JSON.stringify(
-        formatQuestionPositionsById(questionPositions)
-      ),
-      wordQuestionValues: JSON.stringify(wordQuestionValues),
+      info: JSON.stringify(examInfo),
     };
-
-    // 模拟保存模板的API请求
-    // 在实际应用中，这里应该调用后端API来保存模板
-    setTimeout(() => {
-      console.log("保存的模板数据：", templateData);
-      showInfo(`模板"${templateName}"保存成功`);
-      closeSaveTemplateModal();
-    }, 500);
+    // 调用保存模板的API请求
+    request
+      .post("/grading/answer-sheet/save-template", templateData)
+      .then(() => {
+        console.log("保存的模板数据：", templateData);
+        showInfo(`模板"${templateName}"保存成功`);
+        closeSaveTemplateModal();
+      })
+      .catch((error) => {
+        console.error("保存模板失败：", error);
+        showInfo(`模板"${templateName}"保存失败`);
+      });
   };
 
   // 关闭填空题弹窗
@@ -430,7 +519,7 @@ const ChinesePaperDesign = () => {
             questions={questions}
             paginationData={paginationData}
             totalPages={totalPages}
-            hasSealingLine={formValues.hasSealingLine !== false}
+            // hasSealingLine={formValues.hasSealingLine !== false}
             hasNote={formValues.hasNote !== false}
             wordQuestionValues={wordQuestionValues}
             getQuestionPositions={getQuestionPositions}
@@ -439,6 +528,10 @@ const ChinesePaperDesign = () => {
               setQuestions(updatedQuestions);
             }}
             onWordQuestionAction={onWordQuestionAction}
+            // 传递考试相关信息状态
+            examSubject={examSubject}
+            applicableMajor={applicableMajor}
+            examTime={examTime}
           />
         </div>
 
@@ -460,8 +553,18 @@ const ChinesePaperDesign = () => {
           }}
         >
           {/* 基础信息 */}
+
           <div style={{ marginBottom: "12px", padding: "4px" }}>
+            <Button
+              type="primary"
+              icon={<BgColorsOutlined />}
+              onClick={() => setTemplateModalVisible(true)}
+              style={{ marginBottom: "12px" }}
+            >
+              选择答题卷模板
+            </Button>
             <Title level={5}>基础信息</Title>
+
             <Form
               form={form}
               layout="vertical"
@@ -583,6 +686,15 @@ const ChinesePaperDesign = () => {
           onCancel={closeSaveTemplateModal}
           onSuccess={handleSaveTemplate}
           questions={questions}
+        />
+      )}
+
+      {/* 选择模板弹窗 - 使用自包含组件 */}
+      {templateModalVisible && (
+        <TemplateSelectionModal
+          visible={templateModalVisible}
+          onCancel={() => setTemplateModalVisible(false)}
+          onSelect={handleTemplateSelect}
         />
       )}
     </>

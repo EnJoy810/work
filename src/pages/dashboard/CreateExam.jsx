@@ -43,6 +43,8 @@ const CreateExam = () => {
   const [existingExams, setExistingExams] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedExamId, setSelectedExamId] = useState(null);
+  // 答题卷模板列表
+  const [templateList, setTemplateList] = useState([]);
 
   // 从API获取考试列表
   useEffect(() => {
@@ -66,6 +68,27 @@ const CreateExam = () => {
     }
   }, [examType, showError]);
 
+  // 从API获取答题卷模板列表
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        const response = await request.get(
+          "/grading/answer-sheet-template/list",
+          {
+            limit: 50,
+          }
+        );
+        // 假设API返回的数据结构与预期一致
+        setTemplateList(response.data || []);
+      } catch (error) {
+        console.error("获取答题卷模板列表失败:", error);
+        showError("获取答题卷模板列表失败，请稍后重试");
+      }
+    };
+
+    fetchTemplates();
+  }, [showError]);
+
   // 处理创建新考试
   const handleCreateExam = () => {
     form
@@ -88,7 +111,7 @@ const CreateExam = () => {
         // 添加考试信息
         formData.append("subject", values.examSubject);
         formData.append("paper_title", values.examName);
-        formData.append("template", values.examTemplate);
+        formData.append("answer_sheet_template_id", values.examTemplate);
 
         // 添加文件数据
         formData.append("origin_paper", paperFile);
@@ -97,8 +120,8 @@ const CreateExam = () => {
         console.log("创建新考试数据: 已准备FormData");
 
         // 提交到后端接口
-        request 
-          .post("/grading/exam-grading/create", formData, {
+        request
+          .post("/grading/exam/create", formData, {
             headers: {
               "Content-Type": "multipart/form-data",
             },
@@ -490,8 +513,8 @@ const CreateExam = () => {
               initialValues={{
                 examSubject: "chinese",
               }}
-              labelCol={{ style: { width: '100px' } }}
-              wrapperCol={{ style: { marginLeft: '10px' } }}
+              labelCol={{ style: { width: "100px" } }}
+              wrapperCol={{ style: { marginLeft: "10px" } }}
             >
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <div style={{ width: "48%" }}>
@@ -524,17 +547,19 @@ const CreateExam = () => {
                 </div>
               </div>
               <Form.Item
-                label="答题卷模版"
+                label="答题卷模板"
                 name="examTemplate"
-                rules={[{ required: true, message: "请选择答题卷模版" }]}
+                rules={[{ required: true, message: "请选择答题卷模板" }]}
               >
                 <Select
                   style={{ width: "100%" }}
-                  placeholder="请选择答题卷模版"
+                  placeholder="请选择答题卷模板"
                 >
-                  <Select.Option value="template1">标准模版</Select.Option>
-                  <Select.Option value="template2">A4横向</Select.Option>
-                  <Select.Option value="template3">A4纵向</Select.Option>
+                  {templateList.map((template) => (
+                    <Select.Option key={template.id} value={template.id}>
+                      {template.name}
+                    </Select.Option>
+                  ))}
                 </Select>
               </Form.Item>
             </Form>

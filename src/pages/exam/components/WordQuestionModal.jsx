@@ -31,7 +31,8 @@ const WordQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
         // 编辑模式下，回填数据
         form.setFieldsValue({
           questionNumber: initialData.questionNumber || "一",
-          score: initialData.score || 30,
+          subQuestionNumber: initialData.subQuestionNumber || 1,
+          score: initialData.score || 60,
           minWordCount: initialData.minWordCount || 800,
           totalWordCount: initialData.totalWordCount || 1000
         });
@@ -39,7 +40,8 @@ const WordQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
         // 添加模式下，设置默认值
         form.setFieldsValue({
           questionNumber: "一",
-          score: 30,
+          subQuestionNumber: 1,
+          score: 60,
           minWordCount: 800,
           totalWordCount: 1000
         });
@@ -54,6 +56,7 @@ const WordQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
       const questionData = {
         type: 'word', // 添加题目类型
         questionNumber: values.questionNumber,
+        subQuestionNumber: values.subQuestionNumber,
         score: values.score,
         minWordCount: values.minWordCount,
         totalWordCount: values.totalWordCount
@@ -118,6 +121,20 @@ const WordQuestionModal = ({ visible, onCancel, onSuccess, initialData }) => {
               <Select.Option key={num} value={num}>{num}</Select.Option>
             ))}
           </Select>
+        </Form.Item>
+
+        {/* 小题题号 */}
+        <Form.Item
+          name="subQuestionNumber"
+          label="小题题号"
+          rules={[{ required: true, message: "请输入小题题号" }]}
+        >
+          <InputNumber
+            min={1}
+            max={50}
+            style={{ width: "100%" }}
+            placeholder="请输入小题题号（1-50）"
+          />
         </Form.Item>
 
         {/* 分数、字数最少、总字数各自一行 */}

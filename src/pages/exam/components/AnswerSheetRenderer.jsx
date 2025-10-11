@@ -45,6 +45,9 @@ const AnswerSheetRenderer = forwardRef(
       getQuestionPositions,
       onQuestionsUpdate = () => {}, // 设置为空函数作为默认值
       onWordQuestionAction = () => {}, // 用于处理作文题的编辑和删除操作
+      examSubject: propExamSubject,
+      applicableMajor: propApplicableMajor,
+      examTime: propExamTime,
     },
     ref
   ) => {
@@ -61,9 +64,10 @@ const AnswerSheetRenderer = forwardRef(
     // 创建ExamInfoSection组件的ref
     const examInfoSectionRef = useRef(null);
 
-    // 暴露获取title值和ExamInfoSection位置信息的方法给父组件
+    // 暴露获取title值、修改title值和ExamInfoSection位置信息的方法给父组件
     useImperativeHandle(ref, () => ({
       getTitle: () => title,
+      setTitle: (newTitle) => setTitle(newTitle),
       getExamInfoSectionPosition: () => {
         if (examInfoSectionRef.current) {
           // 使用calculateElementPosition工具函数获取尺寸和位置信息
@@ -84,10 +88,10 @@ const AnswerSheetRenderer = forwardRef(
     // 直接使用props传递的题目列表，不再使用本地状态管理
     // 所有修改操作通过onQuestionsUpdate回调函数通知父组件修改原始数据
 
-    // 考试相关信息状态
-    const [examSubject, setExamSubject] = useState("语文");
-    const [applicableMajor, setApplicableMajor] = useState("25级高职高考");
-    const [examTime, setExamTime] = useState("150");
+    // 考试相关信息状态，使用从父组件传递的props作为默认值
+    const [examSubject, setExamSubject] = useState(propExamSubject || "语文");
+    const [applicableMajor, setApplicableMajor] = useState(propApplicableMajor || "25级高职高考");
+    const [examTime, setExamTime] = useState(propExamTime || "150");
 
     // 弹窗可见性状态
     const [isModalVisible, setIsModalVisible] = useState(false);
