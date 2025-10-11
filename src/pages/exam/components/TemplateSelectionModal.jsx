@@ -62,11 +62,19 @@ const TemplateSelectionModal = ({ visible, onCancel, onSelect }) => {
       okText: "确认",
       cancelText: "取消",
       onOk: () => {
-        // 从模板列表中移除该模板
-        setTemplates((prevTemplates) =>
-          prevTemplates.filter((t) => t.id !== template.id)
-        );
-        showInfo(`模板 "${template.name}" 已删除`);
+        // 调用删除模板的API
+        request
+          .delete(`/grading/answer-sheet-template/${template.id}`)
+          .then(() => {
+            // API调用成功后，从模板列表中移除该模板
+            setTemplates((prevTemplates) =>
+              prevTemplates.filter((t) => t.id !== template.id)
+            );
+            showInfo(`模板 "${template.name}" 已删除`);
+          })
+          .catch((error) => {
+            showError(`删除模板失败：${error.message || '未知错误'}`);
+          });
       },
     });
   };
@@ -112,14 +120,14 @@ const TemplateSelectionModal = ({ visible, onCancel, onSelect }) => {
                 >
                   选择
                 </Button>,
-                // <Button
-                //   danger
-                //   key="delete"
-                //   size="small"
-                //   onClick={() => handleDeleteTemplate(template)}
-                // >
-                //   删除
-                // </Button>,
+                <Button
+                  danger
+                  key="delete"
+                  size="small"
+                  onClick={() => handleDeleteTemplate(template)}
+                >
+                  删除
+                </Button>,
               ]}
             >
               <List.Item.Meta
