@@ -409,14 +409,22 @@ const ObjectiveQuestionModal = ({
       //   }));
       // }
       console.log("initialData", initialData);
+      
+      // 计算所有题目的总分
+      const totalScore = processedQuestions.reduce((sum, question) => {
+        return sum + (question.score || 0);
+      }, 0);
+      
       let successData = {
         questions: processedQuestions,
         totalCount: processedQuestions.length,
+        totalScore: totalScore, // 添加总分字段
         questionNumber: questionNumber,
         questionContent: questionContent,
         isEdit: isEditMode,
         segments: segments,
       };
+      console.log("提交数据", successData);
       if (isEditMode) {
         successData = { ...initialData, ...successData };
       } else {

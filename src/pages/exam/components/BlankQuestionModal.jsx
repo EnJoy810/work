@@ -429,20 +429,11 @@ const BlankQuestionModal = ({
       questionNumber: questionNumber,
       totalCount: totalCount,
       isEdit: isEditMode,
-      // 页面分页信息
-      // pagination: {
-      //   currentPageLines: [], // 当前页面能渲染的行
-      //   nextPageLines: [], // 需要在下一页渲染的行
-      //   lineHeight: 40, // 每行高度40px
-      //   totalLines: 0, // 总行数
-      //   pageCapacity: 0, // 每页容量
-      // },
     };
 
     // 根据填空类型添加对应的数据
     if (fillType === "short") {
       // 短填空数据
-      submitData.questions = questions;
       submitData.shortFillConfig = shortFillConfig.map((config) => ({
         startQuestion: config.startQuestion,
         endQuestion: config.endQuestion,
@@ -458,28 +449,87 @@ const BlankQuestionModal = ({
         0
       );
       let totalBlanks = 0;
+      let totalScore = 0;
+
+      // 整合循环，一次遍历同时计算总空数和总分
       questions.forEach((q) => {
-        // 小题
+        let subQTotalScore = 0; // 小题总分
         if (q.isAddSubQuestionClicked) {
+          // 总空数的计算始终包含所有子题
           q.subQuestions.forEach((subQ) => {
             totalBlanks += subQ.totalBlanks;
           });
+
+          // 分数计算根据是否为多选题决定
+          if (q.isMultipleChoice && q.selectedBlanksCount !== undefined) {
+            // 多选题只计算前selectedBlanksCount道题的分数
+            const limitedSubQuestions = q.subQuestions.slice(
+              0,
+              q.selectedBlanksCount
+            );
+            console.log("limitedSubQuestions", limitedSubQuestions);
+            limitedSubQuestions.forEach((subQ, index) => {
+              if (subQ.blanks && Array.isArray(subQ.blanks)) {
+                const subTotalScore = subQ.blanks.reduce(
+                  (sum, blank) => sum + (blank.points || 0),
+                  0
+                );
+                console.log("subTotalScore 多选题 小题总分", subTotalScore);
+                subQTotalScore += subTotalScore; // question的总分
+                q.totalScore = subQTotalScore; //question的总分
+                q.subQuestions[index].totalScore = subTotalScore; //小题总分
+                totalScore += subTotalScore; // 总分数
+              }
+            });
+          } else {
+            // 非多选题计算所有题的分数
+            q.subQuestions.forEach((subQ) => {
+              if (subQ.blanks && Array.isArray(subQ.blanks)) {
+                const subTotalScore = subQ.blanks.reduce(
+                  (sum, blank) => sum + (blank.points || 0),
+                  0
+                );
+                console.log("subTotalScore 小题总分", subTotalScore);
+                subQTotalScore += subTotalScore; // question的总分
+                q.totalScore = subQTotalScore; //question的总分
+                subQ.totalScore = subTotalScore; //小题总分
+                totalScore += subTotalScore;
+              }
+            });
+          }
         } else {
+          // 计算总空数
           totalBlanks += q.blanksPerQuestion;
+
+          // 计算总分
+          if (q.blanks && Array.isArray(q.blanks)) {
+            const subTotalScore = q.blanks.reduce(
+              (sum, blank) => sum + (blank.points || 0),
+              0
+            );
+            q.totalScore = subTotalScore; //小题总分
+            totalScore += subTotalScore;
+          }
         }
       });
+
       const totalLines = Math.ceil(totalBlanks / blanksPerLine);
+      submitData.questions = questions;
+
       console.log(
         "totalLines 短填空带标题 总行数",
         totalLines,
         "空数",
-        totalBlanks
+        totalBlanks,
+        "总分",
+        totalScore
       );
+      console.log("提交的数据", submitData);
       submitData.totalBlanksPerQuestion = totalBlanksPerQuestion;
       submitData.totalLines = totalLines;
+      submitData.totalScore = totalScore;
     } else {
       // 简答题数据
-      submitData.questions = longQuestions;
       submitData.longFillConfig = longFillConfig.map((config) => ({
         startQuestion: config.startQuestion,
         endQuestion: config.endQuestion,
@@ -490,19 +540,37 @@ const BlankQuestionModal = ({
       console.log("longQuestions", longQuestions);
       // 简答题的总行数 = 题目数量 × 每道题行数
       let totalLines = 0;
+      let totalScore = 0;
       longQuestions.forEach((q) => {
         // 小题
         if (q.isAddSubQuestionClicked) {
+          let subTotalScore = 0; // 小题总分
           q.subQuestions.forEach((subQ) => {
             totalLines += subQ.totalLines;
+            // 根据每行分数计算总分
+            if (subQ.pointsPerLine !== undefined) {
+              subQ.totalScore = subQ.pointsPerLine;
+              subTotalScore += subQ.pointsPerLine;
+              totalScore += subQ.pointsPerLine;
+            }
           });
+          q.totalScore = subTotalScore; //question的总分
         } else {
           totalLines += q.linesPerQuestion;
+          // 根据每行分数计算总分
+          if (q.pointsPerLine !== undefined) {
+            q.totalScore = q.pointsPerLine;
+            totalScore += q.pointsPerLine;
+          }
         }
       });
       // console.log("totalLines 总行数", totalLines);
       submitData.totalLines = totalLines;
+      submitData.totalScore = totalScore;
+      submitData.questions = longQuestions;
     }
+    console.log("提交的数据", submitData);
+    return submitData;
 
     // 如果是编辑模式，保留原有sectionId
     if (isEditMode && initialData && initialData.sectionId) {

@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { Collapse, InputNumber, Button, Select, Checkbox } from "antd";
 import { useMessageService } from "../../../components/common/message";
-import { generateQuestionId, generateBlankId } from "../../../utils/tools";
+import { generateQuestionId } from "../../../utils/tools";
 
 const { Panel } = Collapse;
 
 /**
- * 简答题题组件
+ * 简单题题组件
  * @param {Object} props
  * @param {Array} props.longQuestions - 题目列表（包含子题数据）
  * @param {Function} props.setLongQuestions - 设置题目列表的函数
@@ -14,8 +14,8 @@ const { Panel } = Collapse;
  * @param {Function} props.setLongLineScores - 设置行分数的函数
  * @param {boolean} props.showSubQuestionScore - 是否显示小题分数
  * @param {Function} props.setShowSubQuestionScore - 设置是否显示小题分数的函数
- * @param {Array} props.longFillConfig - 简答题配置
- * @param {Function} props.setLongFillConfig - 设置简答题配置的函数
+ * @param {Array} props.longFillConfig - 简单题配置
+ * @param {Function} props.setLongFillConfig - 设置简单题配置的函数
  */
 const LongFillQuestionSection = ({
   longQuestions: questions, // 重命名属性以匹配组件内部使用
@@ -29,7 +29,7 @@ const LongFillQuestionSection = ({
 }) => {
   const { showInfo } = useMessageService();
 
-  // 处理简答题配置变化
+  // 处理简单题配置变化
   const handleLongFillConfigChange = (id, field, value) => {
     const newConfig = longFillConfig.map((config) =>
       config.id === id ? { ...config, [field]: value } : config
@@ -37,7 +37,7 @@ const LongFillQuestionSection = ({
     setLongFillConfig(newConfig);
   };
 
-  // 移除简答题配置
+  // 移除简单题配置
   const removeLongFillConfig = (id) => {
     const newConfig = longFillConfig.filter((config) => config.id !== id);
     setLongFillConfig(newConfig);
@@ -45,37 +45,31 @@ const LongFillQuestionSection = ({
 
   // 添加小题
   const addSubQuestion = (questionId) => {
-      // 找到对应的题目，计算新小题的序号
-      const question = questions.find((q) => q.id === questionId);
-      const currentSubQuestionsCount = question?.subQuestions?.length || 0;
-      const newSubQuestionNumber = currentSubQuestionsCount + 1;
-      
-      const newSubQuestion = {
-        id: generateQuestionId('sub', Date.now()),
-        number: newSubQuestionNumber, // 保存小题序号
-        totalLines: 1, // 默认1行
-        pointsPerLine: 2, // 默认2分
-        lines: [
-          {
-            id: generateBlankId(questionId, Date.now()),
-            points: 2,
-          }
-        ],
-      };
+    // 找到对应的题目，计算新小题的序号
+    const question = questions.find((q) => q.id === questionId);
+    const currentSubQuestionsCount = question?.subQuestions?.length || 0;
+    const newSubQuestionNumber = currentSubQuestionsCount + 1;
 
-      // 将新小题添加到父级question对象的subQuestions数组中
-      setQuestions(
-        questions.map((q) =>
-          q.id === questionId 
-            ? {
-                ...q, 
-                isAddSubQuestionClicked: true,
-                subQuestions: [...(q.subQuestions || []), newSubQuestion]
-              } 
-            : q
-        )
-      );
+    const newSubQuestion = {
+      id: generateQuestionId("sub", Date.now()),
+      number: newSubQuestionNumber, // 保存小题序号
+      totalLines: 1, // 默认1行
+      pointsPerLine: 2, // 默认2分
     };
+
+    // 将新小题添加到父级question对象的subQuestions数组中
+    setQuestions(
+      questions.map((q) =>
+        q.id === questionId
+          ? {
+              ...q,
+              isAddSubQuestionClicked: true,
+              subQuestions: [...(q.subQuestions || []), newSubQuestion],
+            }
+          : q
+      )
+    );
+  };
 
   // 移除小题
   const removeSubQuestion = (questionId, subQuestionId) => {
@@ -111,6 +105,7 @@ const LongFillQuestionSection = ({
       field === "pointsPerLine" || field === "linesPerQuestion"
         ? parseInt(value)
         : value;
+    console.log("更新题目", questionId, field, numValue, questions);
 
     setQuestions(
       questions.map((q) => {
@@ -118,8 +113,8 @@ const LongFillQuestionSection = ({
           const updatedQuestion = { ...q, [field]: numValue };
 
           // 同步更新总分
-          updatedQuestion.totalScore =
-            updatedQuestion.pointsPerLine * updatedQuestion.linesPerQuestion;
+          // updatedQuestion.totalScore =
+          //   updatedQuestion.pointsPerLine * updatedQuestion.linesPerQuestion;
 
           return updatedQuestion;
         }
@@ -134,47 +129,27 @@ const LongFillQuestionSection = ({
           if (q.id === questionId) {
             // 更新题目自身属性
             const updatedQuestion = { ...q, [field]: numValue };
-            
+
             // 如果有子题，同步更新子题的相应属性
             if (updatedQuestion.subQuestions) {
               if (field === "pointsPerLine") {
-                updatedQuestion.subQuestions = updatedQuestion.subQuestions.map((subQuestion) => ({
-                  ...subQuestion,
-                  pointsPerLine: numValue,
-                  lines: subQuestion.lines.map((line) => ({
-                    ...line,
-                    points: numValue,
-                  })),
-                }));
+                updatedQuestion.subQuestions = updatedQuestion.subQuestions.map(
+                  (subQuestion) => ({
+                    ...subQuestion,
+                    pointsPerLine: numValue,
+                  })
+                );
               } else if (field === "linesPerQuestion") {
                 // 严格按照大题设置的行数更新小题
-                updatedQuestion.subQuestions = updatedQuestion.subQuestions.map((subQuestion) => {
-                  const targetLength = numValue;
-                  const newLines = [...subQuestion.lines];
-
-                  if (targetLength > newLines.length) {
-                    // 添加新的行，使用当前每空分数
-                    for (let i = newLines.length; i < targetLength; i++) {
-                      newLines.push({
-                        id: `blank-${questionId}-${Date.now()}-${i}`, // 直接生成唯一ID，不再使用未定义的函数
-                        points: subQuestion.pointsPerLine,
-                      });
-                    }
-                  } else if (targetLength < newLines.length) {
-                    // 删除多余的行
-                    newLines.splice(targetLength);
-                  }
-
-                  // 确保totalLines和linesPerQuestion保持一致
-                  return {
+                updatedQuestion.subQuestions = updatedQuestion.subQuestions.map(
+                  (subQuestion) => ({
                     ...subQuestion,
-                    totalLines: targetLength,
-                    lines: newLines,
-                  };
-                });
+                    totalLines: numValue,
+                  })
+                );
               }
             }
-            
+
             return updatedQuestion;
           }
           return q;
@@ -197,8 +172,6 @@ const LongFillQuestionSection = ({
       }
     }
   };
-
-
 
   // 批量生成题目
   const generateQuestions = (config) => {
@@ -245,7 +218,7 @@ const LongFillQuestionSection = ({
     return newQuestions;
   };
 
-  // 当简答题配置变化时，根据配置生成或更新题目
+  // 当简单题配置变化时，根据配置生成或更新题目
   useEffect(() => {
     // 清空现有的题目
     setQuestions([]);
@@ -263,7 +236,7 @@ const LongFillQuestionSection = ({
 
   return (
     <>
-      {/* 简答题配置区域 */}
+      {/* 简单题配置区域 */}
       {longFillConfig.map((config) => (
         <div key={config.id} style={{ marginBottom: 16, position: "relative" }}>
           {/* 移除按钮（只有配置数量大于1时显示） */}
@@ -350,19 +323,17 @@ const LongFillQuestionSection = ({
                         }}
                       >
                         <span>题{question.questionNumber}</span>
-                        {question.subQuestions && question.subQuestions.length > 0 && (
-                          <span>
-                            {' '}
-                            总分
-                            {question.subQuestions
-                              .reduce((total, sub) => {
-                                return (
-                                  total + sub.pointsPerLine
-                                );
+                        {question.subQuestions &&
+                          question.subQuestions.length > 0 && (
+                            <span>
+                              {" "}
+                              总分
+                              {question.subQuestions.reduce((total, sub) => {
+                                return total + sub.pointsPerLine;
                               }, 0)}
-                            分
-                          </span>
-                        )}
+                              分
+                            </span>
+                          )}
                       </div>
                     ) : (
                       <div
@@ -477,10 +448,6 @@ const LongFillQuestionSection = ({
                                                 ? {
                                                     ...sub,
                                                     pointsPerLine: value,
-                                                    lines: sub.lines.map((line) => ({
-                                                      ...line,
-                                                      points: value,
-                                                    })),
                                                   }
                                                 : sub
                                           ),
@@ -499,9 +466,7 @@ const LongFillQuestionSection = ({
                                 removeSubQuestion(question.id, subQuestion.id)
                               }
                               type="text"
-                              disabled={
-                                question.subQuestions.length <= 1
-                              }
+                              disabled={question.subQuestions.length <= 1}
                             >
                               删除
                             </Button>
