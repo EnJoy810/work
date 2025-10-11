@@ -304,7 +304,6 @@ export const calculateElementPosition = (element, referenceElement) => {
   const rightPercent = parseFloat((relativeRight / realWidth).toFixed(4));
   const topPercent = parseFloat((relativeTop / realHeight).toFixed(4));
   const bottomPercent = parseFloat((relativeBottom / realHeight).toFixed(4));
-  // debugger;
   return {
     real: {
       width: parseFloat(elementRect.width.toFixed(2)),

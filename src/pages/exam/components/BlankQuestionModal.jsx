@@ -429,6 +429,7 @@ const BlankQuestionModal = ({
       questionNumber: questionNumber,
       totalCount: totalCount,
       isEdit: isEditMode,
+       sliceQuestion: false, // 初始未分页
     };
 
     // 根据填空类型添加对应的数据
@@ -570,7 +571,6 @@ const BlankQuestionModal = ({
       submitData.questions = longQuestions;
     }
     console.log("提交的数据", submitData);
-    return submitData;
 
     // 如果是编辑模式，保留原有sectionId
     if (isEditMode && initialData && initialData.sectionId) {

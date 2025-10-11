@@ -106,6 +106,7 @@ export const splitBlankQuestion = (
   let splitIndex = -1;
   let firstPart = null;
   let secondPart = null;
+  // debugger;
 
   if (question.fillType === "short") {
     // 短填空题 计算需要分割的位置
@@ -159,6 +160,7 @@ export const splitBlankQuestion = (
           const subQ = q.subQuestions[j];
           const subQLines = subQ.totalLines || 1;
           subTotalLines += subQLines;
+          totalLines += subQLines;
 
           console.log("subTotalLines 简答题的总行数", subTotalLines);
           console.log("剩余 可显示的行数", remainingLines);
@@ -169,11 +171,11 @@ export const splitBlankQuestion = (
           );
           // debugger;
 
-          if (subTotalLines >= remainingLines) {
+          if (totalLines >= remainingLines) {
             splitIndex = i; // 最后一行最后一小题的下标
             subSplitIndex = j; // 找到subQuestion中的分割点
             // 多余的行数
-            const perQuestionRemindLines = subTotalLines - remainingLines;
+            const perQuestionRemindLines = totalLines - remainingLines;
             // 当前题目多余的行数
             subQ.perQuestionRemindLines = perQuestionRemindLines;
             // 计算当前题目 当前页面剩余需要显示的行数
@@ -198,6 +200,7 @@ export const splitBlankQuestion = (
           }
         }
       } else {
+        // debugger;
         // console.log("q 行", q.linesPerQuestion);
         const lineCount = q.linesPerQuestion || 1;
         totalLines += lineCount;
@@ -293,66 +296,98 @@ export const splitBlankQuestion = (
           console.log("刚好整小题分割", subSplitData, subSplitIndex);
           // 当前subQ 需要显示的行数为0， 即将当前subQ 当前页面显示
           console.log("question 小题来的 ", question, currentPageData);
+          // debugger;
+          const leftSubFirstPart = splitData.subQuestions.slice(
+            0,
+            subSplitIndex + 1
+          );
+          const rightSubFirstPart = splitData.subQuestions.slice(
+            subSplitIndex + 1
+          );
           firstPart = {
             ...question,
             originQuestions: question.questions,
-            questions: [{ ...splitData }], // 只有当前条数据
-          };
-          secondPart = {
-            ...question,
-            originQuestions: question.questions,
-            sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
-            questions: [...question.questions.slice(splitIndex + 1)], // 只有当前条数据,
-          };
-        } else {
-          firstPart = {
-            ...question,
-            originQuestions: question.questions,
-            questions: [...currentPageData],
+            questions: [
+              ...question.questions.slice(0, splitIndex),
+              {
+                ...splitData,
+                subQuestions: leftSubFirstPart,
+              },
+            ],
           };
 
           secondPart = {
             ...question,
             originQuestions: question.questions,
             sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
-            questions: [...nextPageData],
+            questions: [
+              {
+                ...splitData,
+                subQuestions: rightSubFirstPart,
+              },
+              ...question.questions.slice(splitIndex + 1),
+            ],
           };
-          // const leftSubFirstPart = splitData.subQuestions.slice(
-          //   0,
-          //   subSplitIndex + 1
-          // );
-          // const rightSubFirstPart = splitData.subQuestions.slice(subSplitIndex);
-          // console.log(
-          //   "leftSubFirstPart 小题左部分",
-          //   leftSubFirstPart,
-          //   "rightSubFirstPart 小题右部分",
-          //   rightSubFirstPart
-          // );
-          // // todo
           // firstPart = {
           //   ...question,
           //   originQuestions: question.questions,
-          //   questions: [
-          //     ...question.questions.slice(0, splitIndex),
-          //     {
-          //       ...splitData,
-          //       subQuestions: leftSubFirstPart,
-          //     },
-          //   ],
+          //   questions: [{ ...splitData }], // 只有当前条数据
+          // };
+          // secondPart = {
+          //   ...question,
+          //   originQuestions: question.questions,
+          //   sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+          //   questions: [...question.questions.slice(splitIndex + 1)], // 只有当前条数据,
+          // };
+        } else {
+          // firstPart = {
+          //   ...question,
+          //   originQuestions: question.questions,
+          //   questions: [...currentPageData],
           // };
 
           // secondPart = {
           //   ...question,
           //   originQuestions: question.questions,
           //   sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
-          //   questions: [
-          //     {
-          //       ...splitData,
-          //       subQuestions: rightSubFirstPart,
-          //     },
-          //     ...question.questions.slice(splitIndex + 1),
-          //   ],
+          //   questions: [...nextPageData],
           // };
+          const leftSubFirstPart = splitData.subQuestions.slice(
+            0,
+            subSplitIndex + 1
+          );
+          const rightSubFirstPart = splitData.subQuestions.slice(subSplitIndex);
+          console.log(
+            "leftSubFirstPart 小题左部分",
+            leftSubFirstPart,
+            "rightSubFirstPart 小题右部分",
+            rightSubFirstPart
+          );
+          // debugger;
+          firstPart = {
+            ...question,
+            originQuestions: question.questions,
+            questions: [
+              ...question.questions.slice(0, splitIndex),
+              {
+                ...splitData,
+                subQuestions: leftSubFirstPart,
+              },
+            ],
+          };
+
+          secondPart = {
+            ...question,
+            originQuestions: question.questions,
+            sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
+            questions: [
+              {
+                ...splitData,
+                subQuestions: rightSubFirstPart,
+              },
+              ...question.questions.slice(splitIndex + 1),
+            ],
+          };
         }
       } else {
         firstPart = {
@@ -405,6 +440,7 @@ export const processPageQuestions = (
           questionHeight,
           remainingHeight
         );
+        // debugger;
         console.log(
           "firstPart, secondPart",
           firstPart,
@@ -457,6 +493,7 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
       totalPages: 1,
     };
   }
+  // debugger;
 
   // 计算第一页可用高度
   const firstPageAvailableHeight = calculatePageContentHeight({

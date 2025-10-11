@@ -8,30 +8,35 @@ import { calculateElementPosition } from "../../../utils/tools";
 const LongFillRenderer = React.forwardRef(
   ({ questions, pageRef, onPositionUpdate }, ref) => {
     const { questions: subQuestions, sliceQuestion } = questions;
-    // console.log(
-    //   "subQuestions 简答题渲染",
-    //   questions,
-    //   questions.showSubQuestionScore
-    // );
+    console.log("subQuestions 简答题渲染", questions);
 
     // 创建ref集合用于存储每个小题的DOM元素引用
     const questionItemRefs = useRef({});
 
     // 先处理数据数组，生成结构化的数据
     const processedQuestions = [];
-
+    // console.log("题目数据", subQuestions, questions);
     subQuestions.forEach((subItem) => {
       if (subItem.isAddSubQuestionClicked && subItem.subQuestions) {
         // 处理带有小题的情况
         subItem.subQuestions.forEach((subQuestion, subIndex) => {
           const blank = {
-            innerQuestionNumber: subIndex + 1, // 小题名称
-            linesPerQuestion: subQuestion.totalLines, // 每题行数
+            innerQuestionNumber:
+              !questions.sliceQuestion || !subQuestion.perQuestionSplitLines
+                ? subQuestion.number
+                : "", // 小题序号
+            linesPerQuestion:
+              questions.sliceQuestion && subQuestion.perQuestionSplitLines
+                ? subQuestion.perQuestionSplitLines
+                : subQuestion.perQuestionRemindLines
+                ? subQuestion.perQuestionRemindLines
+                : subQuestion.totalLines, // 有分割的则展示perQuestionSplitLines分割的行，perQuestionRemindLines然后判断是否展示分割后剩余的行，每题行数
             pointsPerLine: subQuestion.pointsPerLine, // 每题分数
             showLinesPerQuestion: subItem.showLinesPerQuestion, // 分割后显示的行数
             id: subQuestion.id || `${subItem.id}-${subIndex}`, // 确保每个小题有唯一ID
           };
-          if (subIndex === 0) {
+          // 第一题展示上级序号
+          if (subQuestion.number === 1) {
             blank.questionNumber = subItem.questionNumber; // 第一项获取上级的题号显示
           }
           processedQuestions.push(blank);
@@ -48,7 +53,7 @@ const LongFillRenderer = React.forwardRef(
         });
       }
     });
-    // console.log("processedQuestions 简答题渲染", processedQuestions);
+    console.log("processedQuestions 简答题渲染", processedQuestions);
 
     // 为每个小题计算位置并收集更新信息
     useEffect(() => {
@@ -98,7 +103,7 @@ const LongFillRenderer = React.forwardRef(
 
           // 为每个小题生成唯一标识符，避免与SubjectiveQuestionsRenderer的数据冲突
           const sectionWithType = `${questions.sectionId}_longFill`;
-          
+
           // 只传递位置信息，不修改原数据结构
           onPositionUpdate(sectionWithType, {
             type: "longFillPositions",

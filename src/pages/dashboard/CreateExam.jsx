@@ -97,8 +97,8 @@ const CreateExam = () => {
         console.log("创建新考试数据: 已准备FormData");
 
         // 提交到后端接口
-        request
-          .post("/grading/exam/create", formData, {
+        request 
+          .post("/grading/exam-grading/create", formData, {
             headers: {
               "Content-Type": "multipart/form-data",
             },

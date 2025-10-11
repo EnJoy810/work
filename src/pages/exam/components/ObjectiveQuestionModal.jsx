@@ -209,7 +209,12 @@ const ObjectiveQuestionModal = ({
       // 如果有questions数据，则设置分段和题目
       if (initialData.questions && initialData.questions.length > 0) {
         // 在编辑模式下，如果initialData中包含segments字段，优先使用它
-        if (isEditMode && initialData.segments && Array.isArray(initialData.segments) && initialData.segments.length > 0) {
+        if (
+          isEditMode &&
+          initialData.segments &&
+          Array.isArray(initialData.segments) &&
+          initialData.segments.length > 0
+        ) {
           setSegments(initialData.segments);
         } else {
           // 从questions数据反向推导segments数据
@@ -231,7 +236,7 @@ const ObjectiveQuestionModal = ({
             },
           ]);
         }
-        
+
         // 严格按照initialData中的questions数据设置题目列表，不受segments影响
         setTimeout(() => {
           setQuestions(initialData.questions);
@@ -409,12 +414,12 @@ const ObjectiveQuestionModal = ({
       //   }));
       // }
       console.log("initialData", initialData);
-      
+
       // 计算所有题目的总分
       const totalScore = processedQuestions.reduce((sum, question) => {
         return sum + (question.score || 0);
       }, 0);
-      
+
       let successData = {
         questions: processedQuestions,
         totalCount: processedQuestions.length,
@@ -423,6 +428,7 @@ const ObjectiveQuestionModal = ({
         questionContent: questionContent,
         isEdit: isEditMode,
         segments: segments,
+        sliceQuestion: false, // 初始未分页
       };
       console.log("提交数据", successData);
       if (isEditMode) {
