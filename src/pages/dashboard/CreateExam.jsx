@@ -88,6 +88,7 @@ const CreateExam = () => {
         // 添加考试信息
         formData.append("subject", values.examSubject);
         formData.append("paper_title", values.examName);
+        formData.append("template", values.examTemplate);
 
         // 添加文件数据
         formData.append("origin_paper", paperFile);
@@ -489,6 +490,8 @@ const CreateExam = () => {
               initialValues={{
                 examSubject: "chinese",
               }}
+              labelCol={{ style: { width: '100px' } }}
+              wrapperCol={{ style: { marginLeft: '10px' } }}
             >
               <div style={{ display: "flex", justifyContent: "space-between" }}>
                 <div style={{ width: "48%" }}>
@@ -496,8 +499,6 @@ const CreateExam = () => {
                     label="考试名称"
                     name="examName"
                     rules={[{ required: true, message: "请输入考试名称" }]}
-                    labelCol={{ span: 8 }}
-                    wrapperCol={{ span: 16 }}
                   >
                     <Input
                       placeholder="请输入考试名称"
@@ -510,8 +511,6 @@ const CreateExam = () => {
                     label="考试科目"
                     name="examSubject"
                     rules={[{ required: true, message: "请选择考试科目" }]}
-                    labelCol={{ span: 8 }}
-                    wrapperCol={{ span: 16 }}
                   >
                     <Select
                       style={{ width: "100%" }}
@@ -524,6 +523,20 @@ const CreateExam = () => {
                   </Form.Item>
                 </div>
               </div>
+              <Form.Item
+                label="答题卷模版"
+                name="examTemplate"
+                rules={[{ required: true, message: "请选择答题卷模版" }]}
+              >
+                <Select
+                  style={{ width: "100%" }}
+                  placeholder="请选择答题卷模版"
+                >
+                  <Select.Option value="template1">标准模版</Select.Option>
+                  <Select.Option value="template2">A4横向</Select.Option>
+                  <Select.Option value="template3">A4纵向</Select.Option>
+                </Select>
+              </Form.Item>
             </Form>
           </Card>
 
