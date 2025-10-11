@@ -132,7 +132,7 @@ const CreateExam = () => {
           })
           .catch((error) => {
             console.error("考试创建失败:", error);
-            showError("考试创建失败，请重试");
+            // showError("考试创建失败，请重试");
           });
       })
       .catch((info) => {
@@ -245,7 +245,7 @@ const CreateExam = () => {
         })
         .catch((error) => {
           console.error("创建考试失败:", error);
-          showError("创建考试失败，请重试");
+          // showError("创建考试失败，请重试");
         });
     }
   };

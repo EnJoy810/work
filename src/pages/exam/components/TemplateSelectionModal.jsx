@@ -136,7 +136,7 @@ const TemplateSelectionModal = ({ visible, onCancel, onSelect }) => {
                   <div>
                     <p style={{ color: "#888", fontSize: "12px" }}>
                       创建时间：
-                      {template.createTime}
+                      {template.created_at}
                     </p>
                   </div>
                 }

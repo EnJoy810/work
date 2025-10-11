@@ -443,7 +443,7 @@ const ChinesePaperDesign = () => {
       })
       .catch((error) => {
         console.error("保存模板失败：", error);
-        showInfo(`模板"${templateName}"保存失败`);
+        // showInfo(`模板"${templateName}"保存失败`);
       });
   };
 

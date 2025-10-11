@@ -72,7 +72,7 @@ const UploadAnswerSheet = () => {
       })
       .catch((error) => {
         console.error("答题卡上传失败:", error);
-        showError("答题卡上传失败，请重试");
+        // showError("答题卡上传失败，请重试");
       });
   };
 

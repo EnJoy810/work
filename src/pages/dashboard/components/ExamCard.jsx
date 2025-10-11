@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button } from "antd";
-import {
-  UploadOutlined,
-  FileTextOutlined,
-  ClockCircleOutlined,
+import { 
+  UploadOutlined, 
+  FileTextOutlined, 
+  ClockCircleOutlined, 
   BarChartOutlined,
+  ExclamationCircleOutlined,
 } from "@ant-design/icons";
 import ScoreRulesModal from "./ScoreRulesModal";
 import { formatDate } from "../../../utils/tools";
@@ -145,6 +146,20 @@ const ExamCard = ({ exam, navigate }) => {
             <span style={textStyles}>已完成</span>
           </span>
         );
+      case "FAILED":
+        return (
+          <span
+            className="gray-status-badge"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+            }}
+          >
+            <ExclamationCircleOutlined style={{ ...iconStyles, color: "#ff4d4f" }} />
+            <span style={textStyles}>{exam.errorMessage || "处理失败"}</span>
+          </span>
+        );
+      
       default:
         return null;
     }
