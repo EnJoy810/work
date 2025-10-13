@@ -90,7 +90,9 @@ const AnswerSheetRenderer = forwardRef(
 
     // 考试相关信息状态，使用从父组件传递的props作为默认值
     const [examSubject, setExamSubject] = useState(propExamSubject || "语文");
-    const [applicableMajor, setApplicableMajor] = useState(propApplicableMajor || "25级高职高考");
+    const [applicableMajor, setApplicableMajor] = useState(
+      propApplicableMajor || "25级高职高考"
+    );
     const [examTime, setExamTime] = useState(propExamTime || "150");
 
     // 弹窗可见性状态
@@ -118,42 +120,47 @@ const AnswerSheetRenderer = forwardRef(
     const getPositionUpdateFunction = useCallback((pageIndex) => {
       // 如果还没有为这个pageIndex创建函数，则创建一个
       if (!positionUpdateFunctions.current[pageIndex]) {
-        positionUpdateFunctions.current[pageIndex] = (identifier, positionInfo) => {
+        positionUpdateFunctions.current[pageIndex] = (
+          identifier,
+          positionInfo
+        ) => {
           // 创建包含pageIndex的新位置信息
           const positionInfoWithPage = {
             ...positionInfo,
-            pageIndex: pageIndex + 1
+            pageIndex: pageIndex + 1,
           };
-          
+
           // 更新位置信息
           setQuestionPositions((prev) => {
             // 获取当前位置信息
             const currentPosition = prev[identifier];
-            
+
             // 检查是否有真正的变化（排除pageIndex的变化）
-            const isPositionChanged = !currentPosition || 
+            const isPositionChanged =
+              !currentPosition ||
               JSON.stringify({
                 ...currentPosition,
-                pageIndex: undefined
-              }) !== JSON.stringify({
-                ...positionInfo,
-                pageIndex: undefined
-              });
-            
+                pageIndex: undefined,
+              }) !==
+                JSON.stringify({
+                  ...positionInfo,
+                  pageIndex: undefined,
+                });
+
             // 如果位置信息没有真正变化，且当前已经有pageIndex，则不更新
             if (!isPositionChanged && currentPosition?.pageIndex) {
               return prev;
             }
-            
+
             // 更新位置信息
             return {
               ...prev,
-              [identifier]: positionInfoWithPage
+              [identifier]: positionInfoWithPage,
             };
           });
         };
       }
-      
+
       return positionUpdateFunctions.current[pageIndex];
     }, []); // 空依赖数组，确保函数引用稳定
 
@@ -363,7 +370,7 @@ const AnswerSheetRenderer = forwardRef(
             编辑
           </Button>
 
-          <div style={{ marginRight: "30px" }}>
+          <div className="font-black" style={{ marginRight: "30px" }}>
             考试科目:{" "}
             <span
               style={{
@@ -375,7 +382,7 @@ const AnswerSheetRenderer = forwardRef(
               {examSubject}
             </span>
           </div>
-          <div style={{ marginRight: "30px" }}>
+          <div className="font-black" style={{ marginRight: "30px" }}>
             适用专业（班级）:{" "}
             <span
               style={{
@@ -387,7 +394,7 @@ const AnswerSheetRenderer = forwardRef(
               {applicableMajor}
             </span>
           </div>
-          <div>考试时间: {examTime}分钟</div>
+          <div className="font-black">考试时间: {examTime}分钟</div>
         </div>
       );
     };
@@ -431,6 +438,7 @@ const AnswerSheetRenderer = forwardRef(
               {"填涂样例".split("").map((char, index) => (
                 <div
                   key={index}
+                  className="font-black"
                   style={{
                     fontSize: "14px",
                     margin: "3px 0",
@@ -444,6 +452,7 @@ const AnswerSheetRenderer = forwardRef(
 
             {/* 右边：正确填涂及示例 */}
             <div
+              className="font-black"
               style={{
                 flex: 1,
                 display: "flex",
@@ -453,7 +462,10 @@ const AnswerSheetRenderer = forwardRef(
                 fontSize: "14px",
               }}
             >
-              <p style={{ margin: "0", padding: "0", fontWeight: "bold" }}>
+              <p
+                className="font-black"
+                style={{ margin: "0", padding: "0", fontWeight: "bold" }}
+              >
                 正确填涂
               </p>
               <div
@@ -465,7 +477,10 @@ const AnswerSheetRenderer = forwardRef(
                   margin: "3px auto",
                 }}
               ></div>
-              <p style={{ margin: "0", padding: "0", fontWeight: "bold" }}>
+              <p
+                className="font-black"
+                style={{ margin: "0", padding: "0", fontWeight: "bold" }}
+              >
                 错误填涂
               </p>
               <div
@@ -479,6 +494,7 @@ const AnswerSheetRenderer = forwardRef(
                 }}
               >
                 <div
+                  className="font-black"
                   style={{
                     border: "1px solid #000",
                     width: "20px",
@@ -492,6 +508,7 @@ const AnswerSheetRenderer = forwardRef(
                   √
                 </div>
                 <div
+                  className="font-black"
                   style={{
                     border: "1px solid #000",
                     width: "20px",
@@ -505,6 +522,7 @@ const AnswerSheetRenderer = forwardRef(
                   ×
                 </div>
                 <div
+                  className="font-black"
                   style={{
                     border: "1px solid #000",
                     width: "20px",
@@ -518,6 +536,7 @@ const AnswerSheetRenderer = forwardRef(
                   ●
                 </div>
                 <div
+                  className="font-black"
                   style={{
                     border: "1px solid #000",
                     width: "20px",
@@ -536,6 +555,7 @@ const AnswerSheetRenderer = forwardRef(
 
           {/* 右边注意事项说明 */}
           <div
+            className="font-black"
             style={{
               flex: 1,
               padding: "10px",
@@ -546,6 +566,7 @@ const AnswerSheetRenderer = forwardRef(
           >
             {/* 左边注意事项标题，垂直排列 */}
             <div
+              className="font-black"
               style={{
                 width: "20px",
                 display: "flex",
@@ -568,7 +589,7 @@ const AnswerSheetRenderer = forwardRef(
             </div>
 
             {/* 右边注意事项内容 */}
-            <div style={{ flex: 1 }}>
+            <div className="font-black" style={{ flex: 1 }}>
               <p style={{ margin: "3px 0" }}>
                 1.答题前，考生先将自己的姓名、班级、考场、座位号填写清楚。
               </p>
@@ -675,6 +696,7 @@ const AnswerSheetRenderer = forwardRef(
                   backgroundColor: "transparent",
                   fontFamily: "inherit",
                   transition: "border-color 0.3s ease",
+                  color: "#000",
                 }}
                 onFocus={(e) => {
                   e.target.style.borderColor = "#1890ff";

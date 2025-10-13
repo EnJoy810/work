@@ -131,6 +131,7 @@ const ShortFillRenderer = React.forwardRef(
                     >
                       {/* 无论是否有值都渲染span，确保空间占用 */}
                       <span
+                        className="font-black"
                         style={{
                           display: "flex",
                           alignItems: "flex-end",

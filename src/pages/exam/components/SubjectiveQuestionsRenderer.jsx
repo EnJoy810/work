@@ -24,7 +24,12 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
     // 使用useEffect在组件渲染后获取尺寸和位置信息
     useEffect(() => {
       // 当组件挂载时计算一次位置信息
-      if (questionsContainerRef.current && pageRef && onPositionUpdate && questions.sectionId) {
+      if (
+        questionsContainerRef.current &&
+        pageRef &&
+        onPositionUpdate &&
+        questions.sectionId
+      ) {
         // 使用setTimeout确保DOM已经完全渲染
         const timer = setTimeout(() => {
           const positionInfo = calculateElementPosition(
@@ -58,22 +63,26 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
     }, []); // 空依赖数组，确保只在组件挂载时运行一次
 
     // 根据fillType决定渲染哪种类型的填空题
-  const renderQuestionContent = () => {
-    if (fillType === "short") {
-      return <ShortFillRenderer 
-        questions={questions} 
-        pageRef={pageRef} 
-        onPositionUpdate={onPositionUpdate} 
-      />;
-    } else if (fillType === "long") {
-      return <LongFillRenderer 
-        questions={questions} 
-        pageRef={pageRef} 
-        onPositionUpdate={onPositionUpdate} 
-      />;
-    }
-    return null;
-  };
+    const renderQuestionContent = () => {
+      if (fillType === "short") {
+        return (
+          <ShortFillRenderer
+            questions={questions}
+            pageRef={pageRef}
+            onPositionUpdate={onPositionUpdate}
+          />
+        );
+      } else if (fillType === "long") {
+        return (
+          <LongFillRenderer
+            questions={questions}
+            pageRef={pageRef}
+            onPositionUpdate={onPositionUpdate}
+          />
+        );
+      }
+      return null;
+    };
 
     return (
       <div
@@ -89,6 +98,7 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
         {/* 非切片题目才显示标题 */}
         {!questions.sliceQuestion ? (
           <div
+            className="font-black slice-title-question"
             style={{
               fontWeight: "bold",
               fontSize: "16px",

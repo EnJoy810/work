@@ -140,7 +140,7 @@ const LongFillRenderer = React.forwardRef(
             {(!sliceQuestion ||
               (sliceQuestion && !question.showLinesPerQuestion)) && (
               <div
-                className="long-fill-question-title"
+                className="long-fill-question-title font-black"
                 style={{
                   marginRight: "10px",
                   fontWeight: "500",

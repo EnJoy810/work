@@ -105,6 +105,7 @@ const WordQuestionRenderer = ({
         {/* 作文题标题 - 只在第一页显示 */}
         {pageIndex === 0 && (
           <div
+            className="font-black"
             style={{
               marginBottom: "20px",
               fontSize: "18px",

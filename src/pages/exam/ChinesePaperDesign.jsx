@@ -309,9 +309,12 @@ const ChinesePaperDesign = () => {
         if (titleElement) {
           // 创建新的div元素
           const divElement = document.createElement("div");
+
           // 复制input的样式
           const titleStyle = titleElement.style;
+          console.log("titleStyle", titleStyle);
           divElement.style.height = titleStyle.height;
+          divElement.style.color = titleStyle.color; // 设置标题颜色
           divElement.style.lineHeight = titleStyle.lineHeight;
           divElement.style.textAlign = titleStyle.textAlign;
           divElement.style.verticalAlign = titleStyle.verticalAlign;

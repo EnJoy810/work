@@ -127,6 +127,7 @@ const ObjectiveQuestionsRenderer = ({
     <div ref={questionsContainerRef}>
       {/* 选择题标题 */}
       <div
+        className="font-black"
         style={{
           fontWeight: "bold",
           fontSize: "16px",
@@ -175,12 +176,14 @@ const ObjectiveQuestionsRenderer = ({
               return (
                 <div
                   key={question.id || questionIndex}
+                  className="font-black"
                   style={{
                     display: "flex",
                     alignItems: "center",
                   }}
                 >
                   <div
+                    className="font-black"
                     style={{
                       fontWeight: "bold",
                       minWidth: "30px",
@@ -195,11 +198,12 @@ const ObjectiveQuestionsRenderer = ({
                       display: "flex",
                       gap: "3px",
                     }}
-                    className="smallObjectiveOptions"
+                    className="smallObjectiveOptions font-black"
                     ref={(el) => (questionItemRefs.current[question.id] = el)}
                   >
                     {options.map((option) => (
                       <div
+                        className="font-black"
                         key={option}
                         ref={(el) =>
                           (optionRefs.current[`${question.id}_${option}`] = el)
