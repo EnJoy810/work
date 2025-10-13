@@ -82,17 +82,75 @@ const EssayGrading = () => {
   const [evaluation, _setEvaluation] = useState(
     '文章紧扣"春天与希望"的主题，内容切题，主旨明确。'
   );
-  const [sentenceComments, _setSentenceComments] = useState([
-    "开头点题，语言优美，比喻恰当",
-    "描述生动，画面感强",
-    "引用爷爷的话，增加了文章的深度",
-    "过渡自然，逻辑清晰",
-    "对比手法运用得当，突出主题",
-    "结尾升华主题，点明中心思想",
-  ]);
-  const [improvementSuggestions, _setImprovementSuggestions] = useState(
-    "可以增加一些具体的事例，使文章更加生动具体。"
+
+  // 可用的颜色池
+  const availableColors = ["blue", "green", "purple", "orange", "red"];
+
+  // 随机选择颜色的函数，尽量避免重复
+  const getRandomColor = (usedColors = []) => {
+    // 找出尚未使用的颜色
+    const unusedColors = availableColors.filter(
+      (color) => !usedColors.includes(color)
+    );
+
+    // 如果还有未使用的颜色，从中随机选择
+    if (unusedColors.length > 0) {
+      return unusedColors[Math.floor(Math.random() * unusedColors.length)];
+    }
+
+    // 如果所有颜色都用过了，从所有可用颜色中随机选择
+    return availableColors[Math.floor(Math.random() * availableColors.length)];
+  };
+
+  // 句子评语数据结构 - 只包含有评语的句子，包含原句和评语
+  const generateInitialComments = () => {
+    const commentsData = [
+      {
+        sentenceIndex: 0,
+        originalSentence: "春天，是希望的季节。",
+        comment: "开头点题，语言优美，比喻恰当",
+      },
+      {
+        sentenceIndex: 2,
+        originalSentence:
+          "记得小时候，每到春天，爷爷总会带我到村子后面的小山上看桃花。",
+        comment: "描述生动，画面感强",
+      },
+      {
+        sentenceIndex: 4,
+        originalSentence:
+          '爷爷说："春天会教我们希望，无论冬天多么寒冷，春天总会如期而至。"',
+        comment: "引用爷爷的话，增加了文章的深度",
+      },
+      {
+        sentenceIndex: 7,
+        originalSentence:
+          "人生路上，我们都会遇到各种困难挫折，就像严寒的冬天。",
+        comment: "对比手法运用得当，突出主题",
+      },
+    ];
+
+    // 为每个评论随机分配颜色，尽量避免重复
+    const usedColors = [];
+    return commentsData.map((comment) => {
+      const color = getRandomColor(usedColors);
+      usedColors.push(color);
+      return { ...comment, color };
+    });
+  };
+
+  // 初始化带有随机颜色的句子评语
+  const [sentenceComments, _setSentenceComments] = useState(
+    generateInitialComments()
   );
+
+  // 获取句子的颜色
+  const getSentenceColor = (index) => {
+    const comment = sentenceComments.find(
+      (item) => item.sentenceIndex === index
+    );
+    return comment ? comment.color : "";
+  };
 
   const essayContentRef = useRef(null);
 
@@ -139,6 +197,19 @@ const EssayGrading = () => {
   // 处理句子高亮取消
   const handleSentenceMouseLeave = () => {
     setHighlightedSentenceIndex(-1);
+  };
+
+  // 获取颜色值
+  const getColorValue = (colorName) => {
+    const colorMap = {
+      blue: "#1890ff",
+      green: "#52c41a",
+      purple: "#722ed1",
+      orange: "#fa8c16",
+      red: "#f5222d",
+      default: "#d9d9d9",
+    };
+    return colorMap[colorName] || colorMap.default;
   };
 
   // 切换学生
@@ -227,18 +298,34 @@ const EssayGrading = () => {
             </div>
             <Divider />
             <div className="essay-content">
-              {sentences.map((sentence, index) => (
-                <span
-                  key={index}
-                  className={`essay-sentence ${
-                    index === highlightedSentenceIndex ? "highlighted" : ""
-                  }`}
-                  onMouseEnter={() => handleSentenceMouseEnter(index)}
-                  onMouseLeave={handleSentenceMouseLeave}
-                >
-                  {sentence}
-                </span>
-              ))}
+              {sentences.map((sentence, index) => {
+                const color = getSentenceColor(index);
+                const hasComment = color !== "";
+                return (
+                  <span
+                    key={index}
+                    className={`essay-sentence 
+                      ${
+                        index === highlightedSentenceIndex || hasComment
+                          ? "highlighted"
+                          : ""
+                      } 
+                      ${hasComment ? `comment-${color}` : ""}`}
+                    style={
+                      hasComment
+                        ? {
+                            borderBottom: `2px solid ${getColorValue(color)}`,
+                            cursor: "pointer",
+                          }
+                        : {}
+                    }
+                    onMouseEnter={() => handleSentenceMouseEnter(index)}
+                    onMouseLeave={handleSentenceMouseLeave}
+                  >
+                    {sentence}
+                  </span>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -256,27 +343,29 @@ const EssayGrading = () => {
           <div className="sentence-comments-section">
             <h4>按句评语</h4>
             <div className="sentence-comments">
-              {sentences.map((sentence, index) => (
+              {sentenceComments.map((comment, commentIndex) => (
                 <div
-                  key={index}
-                  className={`comment-item ${
-                    index === highlightedSentenceIndex ? "highlighted" : ""
-                  }`}
+                  key={commentIndex}
+                  className={`comment-item  comment-${comment.color}`}
+                  style={{
+                    borderLeft: `4px solid ${getColorValue(comment.color)}`,
+                  }}
                 >
                   <div className="comment-header">
-                    <Tag color="green">带评语</Tag>
+                    <Tag color={comment.color}>带评语</Tag>
                     <div className="comment-icons">
                       <Badge dot>
                         <span>AI</span>
                       </Badge>
                     </div>
                   </div>
-                  <div className="comment-content">
-                    {sentenceComments[index] || "暂无评语"}
+                  <div className="original-sentence">
+                    {comment.originalSentence}
                   </div>
-                  {index === highlightedSentenceIndex && (
+                  <div className="comment-content">{comment.comment}</div>
+                  {comment.sentenceIndex === highlightedSentenceIndex && (
                     <div className="improvement-suggestion">
-                      <h5>严重建议修改：</h5>
+                      <h5>建议修改：</h5>
                       <p>段落一下面有冗余的感叹号，节省一点提问空间</p>
                     </div>
                   )}

@@ -256,7 +256,7 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
-  height: 300px; /* 设置固定高度 */
+  height: 50vh; /* 设置固定高度 */
   overflow-y: auto; /* 内容超出时显示滚动条 */
   padding-right: 4px; /* 为滚动条留出空间 */
 }
@@ -377,4 +377,93 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* 不同颜色的句子样式 */
+.essay-sentence.comment-blue {
+  /* 默认状态下没有背景色 */
+}
+
+.essay-sentence.comment-blue:hover {
+  background-color: rgba(24, 144, 255, 0.1);
+}
+
+.essay-sentence.comment-blue.highlighted {
+  background-color: rgba(24, 144, 255, 0.2);
+  font-weight: 500;
+}
+
+.essay-sentence.comment-green {
+  /* 默认状态下没有背景色 */
+}
+
+.essay-sentence.comment-green:hover {
+  background-color: rgba(82, 196, 26, 0.1);
+}
+
+.essay-sentence.comment-green.highlighted {
+  background-color: rgba(82, 196, 26, 0.2);
+  font-weight: 500;
+}
+
+.essay-sentence.comment-purple {
+  /* 默认状态下没有背景色 */
+}
+
+.essay-sentence.comment-purple:hover {
+  background-color: rgba(114, 46, 209, 0.1);
+}
+
+.essay-sentence.comment-purple.highlighted {
+  background-color: rgba(114, 46, 209, 0.2);
+  font-weight: 500;
+}
+
+.essay-sentence.comment-orange {
+  /* 默认状态下没有背景色 */
+}
+
+.essay-sentence.comment-orange:hover {
+  background-color: rgba(250, 140, 22, 0.1);
+}
+
+.essay-sentence.comment-orange.highlighted {
+  background-color: rgba(250, 140, 22, 0.2);
+  font-weight: 500;
+}
+
+/* 不同颜色的评语项样式 */
+.comment-item.comment-blue {
+  border-left-color: #1890ff;
+  background-color: rgba(24, 144, 255, 0.2);
+}
+
+.comment-item.comment-green {
+  border-left-color: #52c41a;
+  background-color: rgba(82, 196, 26, 0.2);
+}
+
+.comment-item.comment-purple {
+  border-left-color: #722ed1;
+  background-color: rgba(114, 46, 209, 0.2);
+}
+
+.comment-item.comment-orange {
+  border-left-color: #fa8c16;
+  background-color: rgba(250, 140, 22, 0.2);
+}
+
+.comment-item.comment-red {
+  border-left-color: #f5222d;
+  background-color: rgba(245, 34, 45, 0.2);
+}
+
+/* 原句显示样式 */
+.original-sentence {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 6px;
+  font-style: italic;
+  border-bottom: 1px dashed #e8e8e8;
+  padding-bottom: 4px;
 }
