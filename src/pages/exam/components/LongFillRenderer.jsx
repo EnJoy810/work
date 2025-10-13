@@ -148,13 +148,12 @@ const LongFillRenderer = React.forwardRef(
                   alignItems: "flex-end",
                 }}
               >
-                {question.questionNumber ? `${question.questionNumber}、` : ""}
-                {question.innerQuestionNumber
-                  ? `(${question.innerQuestionNumber})`
-                  : ""}
-                {questions.showSubQuestionScore
-                  ? `（${question.pointsPerLine}分）`
-                  : ""}
+                {`
+                  ${question.questionNumber ? `${question.questionNumber}. ` : ""}
+                  &nbsp;
+                  ${question.innerQuestionNumber ? `(${question.innerQuestionNumber})` : ""}
+                  ${questions.showSubQuestionScore ? `(${question.pointsPerLine}分)` : ""}
+                `}
               </div>
             )}
 

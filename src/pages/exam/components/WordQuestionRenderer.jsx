@@ -107,18 +107,15 @@ const WordQuestionRenderer = ({
           <div
             style={{
               marginBottom: "20px",
-              textAlign: "center",
               fontSize: "18px",
               fontWeight: "bold",
             }}
           >
-            第{questionNumber}题
+            {/* 第{questionNumber}题 */}
             <span style={{ marginLeft: 20 }}>
-              {" "}
-              {wordQuestionValues.subQuestionNumber} 、
+              {wordQuestionValues.subQuestionNumber}. &nbsp;
             </span>
-            作文题（
-            {score}分）
+            作文题（{score}分）
           </div>
         )}
 

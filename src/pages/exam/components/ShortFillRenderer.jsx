@@ -145,9 +145,9 @@ const ShortFillRenderer = React.forwardRef(
                       >
                         {/* 这里的空格是为了给文字留空间，不能删除 */}
                         {blank.questionNumber
-                          ? `${blank.questionNumber}、`
+                          ? `${blank.questionNumber}. `
                           : ""}
-
+                        &nbsp;
                         {blank.innerQuestionNumber
                           ? `(${blank.innerQuestionNumber})`
                           : ""}

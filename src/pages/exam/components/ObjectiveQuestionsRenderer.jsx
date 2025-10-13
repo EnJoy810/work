@@ -188,7 +188,7 @@ const ObjectiveQuestionsRenderer = ({
                       fontSize: 12,
                     }}
                   >
-                    {question.questionNumber || questionIndex + 1}、
+                    {question.questionNumber || questionIndex + 1}. &nbsp;
                   </div>
                   <div
                     style={{
