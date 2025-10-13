@@ -76,12 +76,12 @@ deploy_new_version() {
     echo -e "${GREEN}开始部署新版本: $VERSION${NC}"
     
     # 安装依赖
-    echo -e "${YELLOW}安装依赖...${NC}"
-    npm install --production
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}依赖安装失败，请检查错误信息${NC}"
-        exit 1
-    fi
+    # echo -e "${YELLOW}安装依赖...${NC}"
+    # npm install --production
+    # if [ $? -ne 0 ]; then
+    #     echo -e "${RED}依赖安装失败，请检查错误信息${NC}"
+    #     exit 1
+    # fi
     
     # 构建项目
     echo -e "${YELLOW}构建项目...${NC}"
@@ -100,23 +100,23 @@ deploy_new_version() {
     cp -r dist/* $RELEASE_DIR
     
     # 更新符号链接
-    echo -e "${YELLOW}更新符号链接...${NC}"
-    if [ -L $CURRENT_LINK ]; then
-        rm $CURRENT_LINK
-    fi
-    ln -s $RELEASE_DIR $CURRENT_LINK
+    # echo -e "${YELLOW}更新符号链接...${NC}"
+    # if [ -L $CURRENT_LINK ]; then
+    #     rm $CURRENT_LINK
+    # fi
+    # ln -s $RELEASE_DIR $CURRENT_LINK
     
     # 设置权限
-    echo -e "${YELLOW}设置文件权限...${NC}"
-    chown -R www-data:www-data $RELEASE_DIR
-    chmod -R 755 $RELEASE_DIR
+    # echo -e "${YELLOW}设置文件权限...${NC}"
+    # chown -R www-data:www-data $RELEASE_DIR
+    # chmod -R 755 $RELEASE_DIR
     
     # 重启Nginx
-    echo -e "${YELLOW}重启Nginx服务...${NC}"
-    systemctl restart nginx
-    if [ $? -ne 0 ]; then
-        echo -e "${RED}Nginx重启失败，请手动检查服务状态${NC}"
-    fi
+    # echo -e "${YELLOW}重启Nginx服务...${NC}"
+    # systemctl restart nginx
+    # if [ $? -ne 0 ]; then
+    #     echo -e "${RED}Nginx重启失败，请手动检查服务状态${NC}"
+    # fi
     
     echo -e "${GREEN}新版本部署成功！${NC}"
     echo -e "当前版本: $VERSION"
