@@ -1,5 +1,15 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { Button, Typography, Form, Input, Checkbox, Empty, Space } from "antd";
+import {
+  Button,
+  Typography,
+  Form,
+  Input,
+  Checkbox,
+  Empty,
+  Space,
+  Select,
+  Radio,
+} from "antd";
 import {
   DownloadOutlined,
   EditOutlined,
@@ -100,6 +110,7 @@ const ChinesePaperDesign = () => {
   const [formValues, setFormValues] = useState({
     // hasSealingLine: false,
     hasNote: true,
+    paperSize: "A3", // 默认A3
   });
 
   // 考试相关信息状态
@@ -277,7 +288,13 @@ const ChinesePaperDesign = () => {
 
       // 准备用于下载或预览的数据结构
       const examData = {
-        basicInfo: formValues,
+        basicInfo: {
+          hasNote: formValues.hasNote,
+          examSubject,
+          applicableMajor,
+          examTime,
+          title,
+        },
         totalQuestions: questions.length,
         questions: questions,
         // 添加作文数据
@@ -289,6 +306,8 @@ const ChinesePaperDesign = () => {
         questionPositions: questionPositions,
         // 以ID为键的位置数据对象，方便直接根据ID获取
         questionPositionsById: formatQuestionPositionsById(questionPositions),
+        // 添加试卷大小信息
+        paperSize: formValues.paperSize,
       };
 
       console.log("试卷完整数据：", examData);
@@ -312,7 +331,6 @@ const ChinesePaperDesign = () => {
 
           // 复制input的样式
           const titleStyle = titleElement.style;
-          console.log("titleStyle", titleStyle);
           divElement.style.height = titleStyle.height;
           divElement.style.color = titleStyle.color; // 设置标题颜色
           divElement.style.lineHeight = titleStyle.lineHeight;
@@ -540,6 +558,7 @@ const ChinesePaperDesign = () => {
 
         {/* 右边：操作台 - 固定定位不随页面滚动 */}
         <div
+          className="fixed-right-panel"
           style={{
             position: "fixed",
             top: "65px", // 调整top值，避免遮挡导航栏
@@ -549,7 +568,7 @@ const ChinesePaperDesign = () => {
             display: "flex",
             flexDirection: "column",
             overflow: "auto",
-            padding: "16px",
+            padding: "16px 8px",
             backgroundColor: "white",
             boxShadow: "-2px 0 8px rgba(0, 0, 0, 0.1)",
             zIndex: "100",
@@ -557,7 +576,7 @@ const ChinesePaperDesign = () => {
         >
           {/* 基础信息 */}
 
-          <div style={{ marginBottom: "12px", padding: "4px" }}>
+          <div style={{ padding: "4px" }}>
             <Title level={5}>答题卷模板</Title>
             <Button
               type="primary"
@@ -567,11 +586,12 @@ const ChinesePaperDesign = () => {
             >
               选择答题卷模板
             </Button>
+
             <Title level={5}>基础信息</Title>
 
             <Form
               form={form}
-              layout="vertical"
+              layout="horizontal"
               onValuesChange={handleValuesChange}
               initialValues={formValues}
             >
@@ -579,10 +599,28 @@ const ChinesePaperDesign = () => {
                 name="hasSealingLine"
                 valuePropName="checked"
                 initialValue={true}
+                labelCol={{ span: 8 }}
+                wrapperCol={{ span: 16 }}
               >
                 <Checkbox>显示密封线</Checkbox>
               </Form.Item> */}
-              <Form.Item name="hasNote" valuePropName="checked">
+              <Form.Item
+                name="paperSize"
+                label="版式"
+                labelCol={{ span: 6 }}
+                wrapperCol={{ span: 18 }}
+              >
+                <Radio.Group buttonStyle="solid" size="middle">
+                  <Radio.Button value="A3">A3</Radio.Button>
+                  <Radio.Button value="A4">A4</Radio.Button>
+                </Radio.Group>
+              </Form.Item>
+              <Form.Item
+                name="hasNote"
+                valuePropName="checked"
+                labelCol={{ span: 0 }}
+                wrapperCol={{ span: 24 }}
+              >
                 <Checkbox>显示注意事项</Checkbox>
               </Form.Item>
             </Form>

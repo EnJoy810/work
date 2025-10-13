@@ -12,10 +12,10 @@ const ExamPaperPreview = () => {
   const navigate = useNavigate();
   // const dispatch = useDispatch();
   const { examData, answerSheetPages } = useSelector((state) => state.preview);
-
+  const { paperSize = 'A3' } = examData || {}; //页面默认A3版式
   // A4尺寸定义（单位：像素，基于72dpi）
-  const A4_WIDTH = 595;
-  const A4_HEIGHT = 842;
+  const A4_WIDTH = 783;
+  const A4_HEIGHT = 1135;
 
   // A3尺寸定义（单位：像素，基于72dpi）
   const A3_WIDTH = 783 * 2;
@@ -50,37 +50,61 @@ const ExamPaperPreview = () => {
 
   // 下载PDF功能
   const handleDownloadPDF = () => {
-    // 获取所有A3预览容器
-    const a3Containers = document.querySelectorAll(".a3-preview-container");
-
-    // 创建一个临时容器来放置所有A3页面
+    // 创建一个临时容器来放置所有页面
     const tempContainer = document.createElement("div");
 
-    // 克隆并添加所有A3容器
-    a3Containers.forEach((container) => {
-      const clonedContainer = container.cloneNode(true);
+    if (paperSize === 'A3') {
+      // 获取所有A3预览容器
+      const a3Containers = document.querySelectorAll(".a3-preview-container");
 
-      // 重置样式，确保以A3尺寸渲染
-      clonedContainer.style.width = A3_WIDTH + "px";
-      clonedContainer.style.height = A3_HEIGHT + "px";
-      clonedContainer.style.margin = "0 0 0 0";
-      clonedContainer.style.padding = "0";
-      clonedContainer.style.boxShadow = "none";
-      clonedContainer.style.border = "none";
+      // 克隆并添加所有A3容器
+      a3Containers.forEach((container) => {
+        const clonedContainer = container.cloneNode(true);
 
-      // 为每个A3容器创建一个PDF页面容器
-      const pageContent = document.createElement("div");
-      pageContent.className = "pdf-a3-page";
-      pageContent.appendChild(clonedContainer);
-      tempContainer.appendChild(pageContent);
-    });
+        // 重置样式，确保以A3尺寸渲染
+        clonedContainer.style.width = A3_WIDTH + "px";
+        clonedContainer.style.height = A3_HEIGHT + "px";
+        clonedContainer.style.margin = "0 0 0 0";
+        clonedContainer.style.padding = "0";
+        clonedContainer.style.boxShadow = "none";
+        clonedContainer.style.border = "none";
 
-    // 设置PDF选项，使用A3尺寸和横向
+        // 为每个A3容器创建一个PDF页面容器
+        const pageContent = document.createElement("div");
+        pageContent.className = "pdf-a3-page";
+        pageContent.appendChild(clonedContainer);
+        tempContainer.appendChild(pageContent);
+      });
+    } else {
+      // 获取所有A4预览容器
+      const a4Containers = document.querySelectorAll(".a4-preview-container");
+
+      // 克隆并添加所有A4容器
+      a4Containers.forEach((container) => {
+        const clonedContainer = container.cloneNode(true);
+
+        // 重置样式，确保以A4尺寸渲染
+        clonedContainer.style.width = A4_WIDTH + "px";
+        clonedContainer.style.height = A4_HEIGHT + "px";
+        clonedContainer.style.margin = "0 0 0 0";
+        clonedContainer.style.padding = "0";
+        clonedContainer.style.boxShadow = "none";
+        clonedContainer.style.border = "none";
+
+        // 为每个A4容器创建一个PDF页面容器
+        const pageContent = document.createElement("div");
+        pageContent.className = "pdf-a4-page";
+        pageContent.appendChild(clonedContainer);
+        tempContainer.appendChild(pageContent);
+      });
+    }
+
+    // 设置PDF选项，根据paperSize选择不同的尺寸和方向
     const opt = {
       margin: 0,
       padding: 0,
       filename: examData?.basicInfo?.title
-        ? `${examData.basicInfo.title}_预览.pdf`
+        ? `${examData.basicInfo.title}_答题卷_${paperSize}.pdf`
         : "考试试卷.pdf",
       image: { type: "jpeg", quality: 0.98 },
       html2canvas: {
@@ -93,8 +117,8 @@ const ExamPaperPreview = () => {
       },
       jsPDF: {
         unit: "px", // 使用像素单位以匹配我们的尺寸定义
-        format: [A3_WIDTH, A3_HEIGHT], // 使用A3尺寸
-        orientation: "landscape", // 横向，因为一个A3页面上显示两页A4内容
+        format: paperSize === 'A3' ? [A3_WIDTH, A3_HEIGHT] : [A4_WIDTH, A4_HEIGHT],
+        orientation: paperSize === 'A3' ? "landscape" : "portrait",
       },
     };
 
@@ -152,62 +176,88 @@ const ExamPaperPreview = () => {
           }}
         >
           {answerSheetPages.length > 0 ? (
-            // 将页面两两分组，每两页放在一个A3大小的容器中
-            Array.from(
-              { length: Math.ceil(answerSheetPages.length / 2) },
-              (_, groupIndex) => {
-                const leftPage = answerSheetPages[groupIndex * 2];
-                const rightPage = answerSheetPages[groupIndex * 2 + 1];
+            // 根据paperSize决定如何展示页面
+            paperSize === 'A3' ? (
+              // A3版式：将页面两两分组，每两页放在一个A3大小的容器中
+              Array.from(
+                { length: Math.ceil(answerSheetPages.length / 2) },
+                (_, groupIndex) => {
+                  const leftPage = answerSheetPages[groupIndex * 2];
+                  const rightPage = answerSheetPages[groupIndex * 2 + 1];
 
-                return (
+                  return (
+                    <div
+                      key={groupIndex}
+                      className="a3-preview-container"
+                      style={{
+                        width: A3_WIDTH, // A3尺寸宽度
+                        height: A3_HEIGHT,
+                        backgroundColor: "white",
+                        marginBottom: "24px",
+                        padding: "10px",
+                        overflow: "hidden",
+                        display: "flex",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      {/* 左页 */}
+                      {leftPage && (
+                        <div
+                          className="preview-page-container left-page"
+                          style={{
+                            width: "49%",
+                            height: "100%",
+                            backgroundColor: "white",
+                            overflow: "hidden",
+                          }}
+                          dangerouslySetInnerHTML={{ __html: leftPage }}
+                        />
+                      )}
+
+                      {/* 右页 */}
+                      {rightPage && (
+                        <div
+                          className="preview-page-container right-page"
+                          style={{
+                            width: "49%",
+                            height: "100%",
+                            backgroundColor: "white",
+                            overflow: "hidden",
+                          }}
+                          dangerouslySetInnerHTML={{ __html: rightPage }}
+                        />
+                      )}
+                    </div>
+                  );
+                }
+              )
+            ) : (
+              // A4版式：每页单独放在一个A4大小的容器中
+              answerSheetPages.map((page, pageIndex) => (
+                <div
+                  key={pageIndex}
+                  className="a4-preview-container"
+                  style={{
+                    width: A4_WIDTH, // A4尺寸宽度
+                    height: A4_HEIGHT,
+                    backgroundColor: "white",
+                    marginBottom: "24px",
+                    padding: "10px",
+                    overflow: "hidden",
+                  }}
+                >
                   <div
-                    key={groupIndex}
-                    className="a3-preview-container"
+                    className="preview-page-container"
                     style={{
-                      width: A3_WIDTH, // 缩小2倍以在屏幕上显示
-                      height: A3_HEIGHT,
+                      width: "100%",
+                      height: "100%",
                       backgroundColor: "white",
-                      // border: "1px solid #d9d9d9",
-                      marginBottom: "24px",
-                      padding: "10px",
                       overflow: "hidden",
-                      // boxShadow: "0 2px 8px rgba(0, 0, 0, 0.1)",
-                      display: "flex",
-                      justifyContent: "space-between",
                     }}
-                  >
-                    {/* 左页 */}
-                    {leftPage && (
-                      <div
-                        className="preview-page-container left-page"
-                        style={{
-                          width: "49%",
-                          height: "100%",
-                          backgroundColor: "white",
-                          overflow: "hidden",
-                          // border: "1px solid #f0f0f0",
-                        }}
-                        dangerouslySetInnerHTML={{ __html: leftPage }}
-                      />
-                    )}
-
-                    {/* 右页 */}
-                    {rightPage && (
-                      <div
-                        className="preview-page-container right-page"
-                        style={{
-                          width: "49%",
-                          height: "100%",
-                          backgroundColor: "white",
-                          overflow: "hidden",
-                          // border: "1px solid #f0f0f0",
-                        }}
-                        dangerouslySetInnerHTML={{ __html: rightPage }}
-                      />
-                    )}
-                  </div>
-                );
-              }
+                    dangerouslySetInnerHTML={{ __html: page }}
+                  />
+                </div>
+              ))
             )
           ) : (
             <div
