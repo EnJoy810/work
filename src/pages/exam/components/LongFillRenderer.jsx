@@ -129,6 +129,7 @@ const LongFillRenderer = React.forwardRef(
         >
           {/* 第一行包含标题和下划线 */}
           <div
+            className="long-fill-question-title-container"
             style={{
               // marginBottom: "10px",
               display: "flex",
@@ -148,10 +149,15 @@ const LongFillRenderer = React.forwardRef(
                   alignItems: "flex-end",
                 }}
               >
-                  {question.questionNumber ? `${question.questionNumber}. ` : ""}
-                  &nbsp;
-                  {question.innerQuestionNumber ? `(${question.innerQuestionNumber})` : ""}
-                  {questions.showSubQuestionScore ? `(${question.pointsPerLine}分)` : ""}
+                {question.questionNumber ? `${question.questionNumber}. ` : ""}
+                &nbsp;
+                {question.innerQuestionNumber
+                  ? `(${question.innerQuestionNumber})`
+                  : ""}
+                &nbsp;
+                {questions.showSubQuestionScore
+                  ? `(${question.pointsPerLine}分)`
+                  : ""}
               </div>
             )}
 
@@ -174,6 +180,7 @@ const LongFillRenderer = React.forwardRef(
             ),
           }).map((_, lineIndex) => (
             <div
+              className="long-fill-question-line"
               key={`${question.key}-line-${lineIndex + 1}`}
               style={{
                 // marginBottom: "10px",
