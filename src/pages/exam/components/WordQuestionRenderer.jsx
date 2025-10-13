@@ -71,6 +71,20 @@ const WordQuestionRenderer = ({
             backgroundColor: "black",
           }}
         />
+        {/*   左上角增加一个方框，用来识别方向 作文都显示 */}
+        {pageIndex % 2 === 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: `${pagePoint}px`,
+              left: `${pagePoint * 3}px`,
+              width: "10px",
+              height: "10px",
+              backgroundColor: "black",
+            }}
+          />
+        )}
+
         <div
           style={{
             position: "absolute",

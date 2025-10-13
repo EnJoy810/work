@@ -638,6 +638,19 @@ const AnswerSheetRenderer = forwardRef(
               backgroundColor: "black",
             }}
           />
+          {/* 左上角增加一个方框，用来识别方向 - 仅在奇数页显示 */}
+          {pageIndex % 2 === 0 && (
+            <div
+              style={{
+                position: "absolute",
+                top: `${pagePoint}px`,
+                left: `${pagePoint * 3}px`,
+                width: "10px",
+                height: "10px",
+                backgroundColor: "black",
+              }}
+            />
+          )}
           {/* 右上角 */}
           <div
             style={{

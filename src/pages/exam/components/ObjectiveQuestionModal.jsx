@@ -44,7 +44,7 @@ const ObjectiveQuestionModal = ({
       id: 1,
       startQuestion: "1",
       endQuestion: "",
-      score: "2",
+      score: "3",
       optionsCount: "4",
     },
   ]);
@@ -119,7 +119,7 @@ const ObjectiveQuestionModal = ({
         id: newId,
         startQuestion: newQuestion,
         endQuestion: "",
-        score: "2",
+        score: "3",
         optionsCount: "4",
       },
     ]);
@@ -248,7 +248,7 @@ const ObjectiveQuestionModal = ({
             id: 1,
             startQuestion: "1",
             endQuestion: "",
-            score: "2",
+            score: "3",
             optionsCount: "4",
           },
         ]);
@@ -268,7 +268,7 @@ const ObjectiveQuestionModal = ({
           id: 1,
           startQuestion: "1",
           endQuestion: "",
-          score: "2",
+          score: "3",
           optionsCount: "4",
         },
       ]);
