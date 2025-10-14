@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Card, Button } from "antd";
-import { 
-  UploadOutlined, 
-  FileTextOutlined, 
-  ClockCircleOutlined, 
+import {
+  UploadOutlined,
+  FileTextOutlined,
+  ClockCircleOutlined,
   BarChartOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
@@ -155,11 +155,13 @@ const ExamCard = ({ exam, navigate }) => {
               alignItems: "center",
             }}
           >
-            <ExclamationCircleOutlined style={{ ...iconStyles, color: "#ff4d4f" }} />
+            <ExclamationCircleOutlined
+              style={{ ...iconStyles, color: "#ff4d4f" }}
+            />
             <span style={textStyles}>{exam.errorMessage || "处理失败"}</span>
           </span>
         );
-      
+
       default:
         return null;
     }
@@ -276,12 +278,14 @@ const ExamCard = ({ exam, navigate }) => {
               >
                 查看作文批改
               </Button>
-              
+
               <Button
                 type="default"
                 icon={<BarChartOutlined />}
                 onClick={() => {
-                  navigate(`/question-analysis?grading_id=${exam.grading_id}`);
+                  navigate(
+                    `/question-analysis?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`
+                  );
                 }}
               >
                 查看题目分析

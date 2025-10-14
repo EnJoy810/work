@@ -19,6 +19,7 @@ import {
   UserSwitchOutlined,
 } from "@ant-design/icons";
 import { useSearchParams } from "react-router-dom";
+import request from "../../utils/request";
 import "./styles/QuestionAnalysis.css";
 
 /**
@@ -27,329 +28,109 @@ import "./styles/QuestionAnalysis.css";
  */
 const QuestionAnalysis = () => {
   const [searchParams] = useSearchParams();
-  const _gradingId = searchParams.get("grading_id"); // 未来将用于从API获取数据
+  const gradingId = searchParams.get("grading_id"); // 未来将用于从API获取数据
+  const examId = searchParams.get("exam_id"); // 未来将用于从API获取数据
+  // console.log("gradingId", gradingId);
+  // 题目数据，所有学生共用
+  const [questions, setQuestions] = useState([]);
+  // 学生数据
+  const [students, setStudents] = useState([]);
 
-  // 模拟学生数据
-  const [students, _setStudents] = useState([
-    {
-      id: "S001",
-      name: "张明",
-      score: 85,
-      status: "AI批改",
-      statusType: "success",
-      questions: [
-        {
-          id: 1,
-          type: "math",
-          title: "函数性质分析",
-          score: 18,
-          totalScore: 20,
-          answerImage: "https://via.placeholder.com/600x400?text=函数题答案",
-          stem: "已知函数f(x) = x² + 2x + 1，求函数的性质并分析其图像特点。",
-          referenceAnswer:
-            "配方：f(x) = (x+1)²，开口向上的抛物线，顶点(-1,0)，对称轴x=-1",
-          isMultipleChoice: false,
-        },
-        {
-          id: 2,
-          type: "physics",
-          title: "力学计算",
-          score: 22,
-          totalScore: 25,
-          answerImage: "https://via.placeholder.com/600x400?text=力学题答案",
-          stem: "一个质量为2kg的物体从高度为10m的斜面顶端由静止滑下，斜面的倾角为30度，动摩擦因数为0.2。求物体滑到斜面底端时的速度。(g=10m/s²)",
-          referenceAnswer:
-            "根据能量守恒定律，重力势能转化为动能和克服摩擦力做功：mgh = 1/2 mv² + μmgcosθ·s，其中s=h/sinθ。代入数据计算得v≈11.8m/s。",
-          isMultipleChoice: false,
-        },
-        {
-          id: 3,
-          type: "chemistry",
-          title: "化学反应方程式",
-          score: 15,
-          totalScore: 20,
-          answerImage: "https://via.placeholder.com/600x400?text=化学题答案",
-          stem: "写出氢气与氧气反应生成水的化学方程式，并配平。",
-          referenceAnswer: "2H₂ + O₂ = 2H₂O（条件：点燃）",
-          isMultipleChoice: false,
-        },
-        {
-          id: 4,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-        },
-        {
-          id: 5,
-          type: "physics",
-          title: "选择题 - 牛顿定律",
-          score: 5,
-          totalScore: 5,
-          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
-          stem: "牛顿第二定律的表达式是？",
-          referenceAnswer: "F = ma，选项B",
-          isMultipleChoice: true,
-          options: ["F = mv", "F = ma", "F = m/v", "F = m/a"],
-          correctOption: 1,
-        },
-        {
-          id: 6,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-        },
-        {
-          id: 7,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-        },
-        {
-          id: 8,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-        },
-        {
-          id: 9,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-        },
-        {
-          id: 10,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-        },
-        {
-          id: 11,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-        },
-      ],
-    },
-    {
-      id: "S002",
-      name: "李华",
-      score: 92,
-      status: "手动批改",
-      statusType: "processing",
-      questions: [
-        {
-          id: 1,
-          type: "math",
-          title: "函数性质分析",
-          score: 20,
-          totalScore: 20,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=函数题答案-李华",
-          stem: "已知函数f(x) = x² + 2x + 1，求函数的性质并分析其图像特点。",
-          referenceAnswer:
-            "配方：f(x) = (x+1)²，开口向上的抛物线，顶点(-1,0)，对称轴x=-1",
-          isMultipleChoice: false,
-        },
-        {
-          id: 2,
-          type: "physics",
-          title: "力学计算",
-          score: 24,
-          totalScore: 25,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=力学题答案-李华",
-          stem: "一个质量为2kg的物体从高度为10m的斜面顶端由静止滑下，斜面的倾角为30度，动摩擦因数为0.2。求物体滑到斜面底端时的速度。(g=10m/s²)",
-          referenceAnswer:
-            "根据能量守恒定律，重力势能转化为动能和克服摩擦力做功：mgh = 1/2 mv² + μmgcosθ·s，其中s=h/sinθ。代入数据计算得v≈11.8m/s。",
-          isMultipleChoice: false,
-        },
-        {
-          id: 3,
-          type: "chemistry",
-          title: "化学反应方程式",
-          score: 19,
-          totalScore: 20,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=化学题答案-李华",
-          stem: "写出氢气与氧气反应生成水的化学方程式，并配平。",
-          referenceAnswer: "2H₂ + O₂ = 2H₂O（条件：点燃）",
-          isMultipleChoice: false,
-        },
-        {
-          id: 4,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=选择题答案-李华",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-          studentAnswer: 0,
-        },
-        {
-          id: 5,
-          type: "physics",
-          title: "选择题 - 牛顿定律",
-          score: 5,
-          totalScore: 5,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=选择题答案-李华",
-          stem: "牛顿第二定律的表达式是？",
-          referenceAnswer: "F = ma，选项B",
-          isMultipleChoice: true,
-          options: ["F = mv", "F = ma", "F = m/v", "F = m/a"],
-          correctOption: 1,
-          studentAnswer: 1,
-        },
-      ],
-    },
-    {
-      id: "S003",
-      name: "王芳",
-      score: 78,
-      status: "AI待批",
-      statusType: "warning",
-      questions: [
-        {
-          id: 1,
-          type: "math",
-          title: "函数性质分析",
-          score: 16,
-          totalScore: 20,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=函数题答案-王芳",
-          stem: "已知函数f(x) = x² + 2x + 1，求函数的性质并分析其图像特点。",
-          referenceAnswer:
-            "配方：f(x) = (x+1)²，开口向上的抛物线，顶点(-1,0)，对称轴x=-1",
-          isMultipleChoice: false,
-        },
-        {
-          id: 2,
-          type: "physics",
-          title: "力学计算",
-          score: 20,
-          totalScore: 25,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=力学题答案-王芳",
-          stem: "一个质量为2kg的物体从高度为10m的斜面顶端由静止滑下，斜面的倾角为30度，动摩擦因数为0.2。求物体滑到斜面底端时的速度。(g=10m/s²)",
-          referenceAnswer:
-            "根据能量守恒定律，重力势能转化为动能和克服摩擦力做功：mgh = 1/2 mv² + μmgcosθ·s，其中s=h/sinθ。代入数据计算得v≈11.8m/s。",
-          isMultipleChoice: false,
-        },
-        {
-          id: 3,
-          type: "chemistry",
-          title: "化学反应方程式",
-          score: 17,
-          totalScore: 20,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=化学题答案-王芳",
-          stem: "写出氢气与氧气反应生成水的化学方程式，并配平。",
-          referenceAnswer: "2H₂ + O₂ = 2H₂O（条件：点燃）",
-          isMultipleChoice: false,
-        },
-        {
-          id: 4,
-          type: "math",
-          title: "选择题 - 函数定义域",
-          score: 5,
-          totalScore: 5,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=选择题答案-王芳",
-          stem: "函数f(x) = √(x-1)的定义域是？",
-          referenceAnswer: "x ≥ 1，选项A",
-          isMultipleChoice: true,
-          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
-          correctOption: 0,
-          studentAnswer: 1,
-        },
-        {
-          id: 5,
-          type: "physics",
-          title: "选择题 - 牛顿定律",
-          score: 0,
-          totalScore: 5,
-          answerImage:
-            "https://via.placeholder.com/600x400?text=选择题答案-王芳",
-          stem: "牛顿第二定律的表达式是？",
-          referenceAnswer: "F = ma，选项B",
-          isMultipleChoice: true,
-          options: ["F = mv", "F = ma", "F = m/v", "F = m/a"],
-          correctOption: 1,
-          studentAnswer: 2,
-        },
-      ],
-    },
-  ]);
+  // 从API同时获取题目数据和学生数据
+  useEffect(() => {
+    const fetchExamData = async () => {
+      try {
+        // 获取题目数据
+        const questionsRes = await request.get(
+          `/exam-question/exam-question-list`,
+          { exam_id: examId }
+        );
+        if (questionsRes.data && questionsRes.data.length > 0) {
+          setQuestions(questionsRes.data);
+          // 设置默认选中第一个题目
+          setCurrentQuestionId(questionsRes.data[0].question_id);
+        }
+
+        // 获取学生数据
+        const studentsRes = await request.get(`/exam-question/student-list`, {
+          grading_id: gradingId,
+        });
+        // console.log("studentsRes", studentsRes);
+        if (studentsRes.data && studentsRes.data.length > 0) {
+          setStudents(studentsRes.data);
+          setCurrentStudentIndex(0);
+        }
+      } catch (error) {
+        console.error("获取考试数据失败:", error);
+      }
+    };
+
+    fetchExamData();
+  }, [gradingId, examId]);
 
   // 当前选中的学生
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
   const currentStudent = students[currentStudentIndex];
 
-  // 当前选中的题目
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const currentQuestion =
-    currentStudent?.questions?.[currentQuestionIndex] || {};
+  // 当前选中的题目ID
+  const [currentQuestionId, setCurrentQuestionId] = useState(null);
 
-  // 评分相关
-  const [score, setScore] = useState(currentStudent?.score || 0);
+  // 题目详情数据
+  const [questionDetail, setQuestionDetail] = useState({});
+
+  // 学生答案数据
+  const [studentAnswer, setStudentAnswer] = useState({});
+
+  // 当题目ID变化时，获取题目详情数据
+  useEffect(() => {
+    const fetchQuestionDetail = async () => {
+      if (currentQuestionId && examId) {
+        try {
+          const detailRes = await request.get(`/exam-question`, {
+            exam_id: examId,
+            question_id: currentQuestionId,
+          });
+          if (detailRes.data) {
+            setQuestionDetail(detailRes.data);
+          }
+        } catch (error) {
+          console.error("获取题目详情失败:", error);
+          // 保持现有数据不变
+        }
+      }
+    };
+
+    fetchQuestionDetail();
+  }, [currentQuestionId, examId]);
+
+  // 当学生或题目变化时，获取学生答案信息
+  useEffect(() => {
+    console.log("currentStudent", currentStudent);
+    const fetchStudentAnswer = async () => {
+      if (currentStudent && currentStudent.student_name && gradingId) {
+        try {
+          const answerRes = await request.get(`/exam-question/grading`, {
+            grading_id: gradingId,
+            student_name: currentStudent.student_name,
+            question_id: currentQuestionId,
+          });
+          console.log("answerRes.data", answerRes.data);
+          if (answerRes.data) {
+            setStudentAnswer(answerRes.data);
+          }
+        } catch (error) {
+          console.error("获取学生答案信息失败:", error);
+          setStudentAnswer({});
+        }
+      }
+    };
+
+    fetchStudentAnswer();
+  }, [currentStudent, gradingId, currentQuestionId]);
 
   // 展开折叠状态
+  const [choiceExpanded, setChoiceExpanded] = useState(false);
   const [nonChoiceExpanded, setNonChoiceExpanded] = useState(true);
-  const [choiceExpanded, setChoiceExpanded] = useState(true);
 
   const essayContentRef = useRef(null);
   const questionsContainerRef = useRef(null);
@@ -360,7 +141,7 @@ const QuestionAnalysis = () => {
     const calculateQuestionsPerRow = () => {
       if (questionsContainerRef.current) {
         const containerWidth = questionsContainerRef.current.clientWidth;
-        const questionWidth = 38; // 每个题目按钮的宽度(30px) + 左右边距(4px*2)
+        const questionWidth = 48; // 每个题目按钮的宽度(40px) + 左右边距(4px*2)
         const availableWidth = containerWidth - 120; // 减去其他元素占用的宽度
         const count = Math.max(1, Math.floor(availableWidth / questionWidth));
         // console.log("count", count, containerWidth);
@@ -379,14 +160,6 @@ const QuestionAnalysis = () => {
       window.removeEventListener("resize", calculateQuestionsPerRow);
     };
   }, []);
-
-  // 当选中学生变化时，更新评分和当前题目索引
-  useEffect(() => {
-    if (currentStudent) {
-      setScore(currentStudent.score);
-      setCurrentQuestionIndex(0);
-    }
-  }, [currentStudent]);
 
   // 切换学生
   const handlePrevStudent = () => {
@@ -436,8 +209,7 @@ const QuestionAnalysis = () => {
                 onClick={() => setCurrentStudentIndex(index)}
               >
                 <div className="student-info">
-                  <div className="student-name">{student.name}</div>
-                  <div className="student-id">学号：{student.id}</div>
+                  <div className="student-name">{student.student_name}</div>
                 </div>
                 <div className="student-score-section">
                   <div className="student-score">{student.score}分</div>
@@ -459,11 +231,11 @@ const QuestionAnalysis = () => {
               }}
             >
               {/* <h2 style={{ margin: 0, fontSize: "18px", fontWeight: "bold" }}>
-                {currentStudent?.name} - 第{currentQuestion?.id || 1}题
+                {currentStudent?.name} - 第{questionDetail?.id || 1}题
               </h2> */}
 
               {/* 题目序号切换按钮 - 区分选择题和非选择题 */}
-              {currentStudent?.questions && (
+              {questions && questions.length > 0 && (
                 <div
                   style={{
                     marginLeft: "16px",
@@ -484,7 +256,6 @@ const QuestionAnalysis = () => {
                     <div
                       style={{
                         display: "flex",
-                        alignItems: "center",
                         justifyContent: "flex-end",
                         marginBottom: "8px",
                         cursor: "pointer",
@@ -497,118 +268,123 @@ const QuestionAnalysis = () => {
                       </span>
                       <span>{choiceExpanded ? "▼" : "▶"}</span>
                     </div>
-                    <div style={{ display: "flex", marginLeft: "20px" }}>
-                      {/* 第一行题目，总是显示 */}
-                      {currentStudent.questions
-                        .filter((q) => q.isMultipleChoice)
-                        .slice(0, questionsPerRow)
-                        .map((question) => {
-                          const originalIndex =
-                            currentStudent.questions.findIndex(
-                              (q) => q.id === question.id
-                            );
-                          return (
-                            <span
-                              key={question.id}
-                              onClick={() =>
-                                setCurrentQuestionIndex(originalIndex)
-                              }
-                              style={{
-                                width: "30px",
-                                height: "30px",
-                                margin: "0 4px",
-                                borderRadius: "4px",
-                                border: "1px solid #d9d9d9",
-                                backgroundColor:
-                                  originalIndex === currentQuestionIndex
-                                    ? "oklch(.7 .2 254)"
-                                    : "#fff",
-                                color:
-                                  originalIndex === currentQuestionIndex
-                                    ? "#fff"
-                                    : "#000",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                                lineHeight: "30px",
-                                textAlign: "center",
-                              }}
-                            >
-                              {question.id}
-                            </span>
-                          );
-                        })}
-                    </div>
-                    {choiceExpanded && (
-                      <>
-                        {/* 第二行及之后的题目，每行显示questionsPerRow个 */}
-                        {
-                          // 将剩余题目分组，每组questionsPerRow个
-                          Array.from({
-                            length: Math.ceil(
-                              currentStudent.questions
-                                .filter((q) => q.isMultipleChoice)
-                                .slice(questionsPerRow).length / questionsPerRow
-                            ),
-                          }).map((_, rowIndex) => {
-                            const start = rowIndex * questionsPerRow;
-                            const end = start + questionsPerRow;
-                            const rowQuestions = currentStudent.questions
-                              .filter((q) => q.isMultipleChoice)
-                              .slice(questionsPerRow)
-                              .slice(start, end);
-
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        flex: 1,
+                        marginLeft: "20px",
+                      }}
+                    >
+                      <div style={{ display: "flex" }}>
+                        {/* 第一行题目，总是显示 */}
+                        {questions
+                          .filter((q) => q.question_type === "choice")
+                          .slice(0, questionsPerRow)
+                          .map((question) => {
                             return (
-                              <div
-                                key={`choice-row-${rowIndex}`}
+                              <span
+                                key={question.question_id}
+                                onClick={() =>
+                                  setCurrentQuestionId(question.question_id)
+                                }
                                 style={{
-                                  display: "flex",
-                                  marginLeft: "100px",
-                                  marginTop: rowIndex === 0 ? 0 : "8px",
+                                  width: "40px",
+                                  height: "30px",
+                                  margin: "0 4px",
+                                  borderRadius: "4px",
+                                  border: "1px solid #d9d9d9",
+                                  backgroundColor:
+                                    question.question_id === currentQuestionId
+                                      ? "oklch(.7 .2 254)"
+                                      : "#fff",
+                                  color:
+                                    question.question_id === currentQuestionId
+                                      ? "#fff"
+                                      : "#000",
+                                  cursor: "pointer",
+                                  fontSize: "14px",
+                                  fontWeight: "bold",
+                                  lineHeight: "30px",
+                                  textAlign: "center",
                                 }}
                               >
-                                {rowQuestions.map((question) => {
-                                  const originalIndex =
-                                    currentStudent.questions.findIndex(
-                                      (q) => q.id === question.id
-                                    );
-                                  return (
-                                    <span
-                                      key={question.id}
-                                      onClick={() =>
-                                        setCurrentQuestionIndex(originalIndex)
-                                      }
-                                      style={{
-                                        width: "30px",
-                                        height: "30px",
-                                        margin: "0 4px",
-                                        borderRadius: "4px",
-                                        border: "1px solid #d9d9d9",
-                                        backgroundColor:
-                                          originalIndex === currentQuestionIndex
-                                            ? "oklch(.7 .2 254)"
-                                            : "#fff",
-                                        color:
-                                          originalIndex === currentQuestionIndex
-                                            ? "#fff"
-                                            : "#000",
-                                        cursor: "pointer",
-                                        fontSize: "14px",
-                                        fontWeight: "bold",
-                                        lineHeight: "30px",
-                                        textAlign: "center",
-                                      }}
-                                    >
-                                      {question.id}
-                                    </span>
-                                  );
-                                })}
-                              </div>
+                                {question.question_id}
+                              </span>
                             );
-                          })
-                        }
-                      </>
-                    )}
+                          })}
+                      </div>
+                      {choiceExpanded && (
+                        <>
+                          {/* 第二行及之后的题目，每行显示questionsPerRow个 */}
+                          {
+                            // 将剩余题目分组，每组questionsPerRow个
+                            Array.from({
+                              length: Math.ceil(
+                                questions
+                                  .filter((q) => q.question_type === "choice")
+                                  .slice(questionsPerRow).length /
+                                  questionsPerRow
+                              ),
+                            }).map((_, rowIndex) => {
+                              const start = rowIndex * questionsPerRow;
+                              const end = start + questionsPerRow;
+                              const rowQuestions = questions
+                                .filter((q) => q.question_type === "choice")
+                                .slice(questionsPerRow)
+                                .slice(start, end);
+
+                              return (
+                                <div
+                                  key={`choice-row-${rowIndex}`}
+                                  style={{
+                                    display: "flex",
+                                    marginTop: "8px",
+                                  }}
+                                >
+                                  {rowQuestions.map((question) => {
+                                    return (
+                                      <span
+                                        key={question.question_id}
+                                        onClick={() =>
+                                          setCurrentQuestionId(
+                                            question.question_id
+                                          )
+                                        }
+                                        style={{
+                                          width: "40px",
+                                          height: "30px",
+                                          margin: "0 4px",
+                                          borderRadius: "4px",
+                                          border: "1px solid #d9d9d9",
+                                          backgroundColor:
+                                            question.question_id ===
+                                            currentQuestionId
+                                              ? "oklch(.7 .2 254)"
+                                              : "#fff",
+                                          color:
+                                            question.question_id ===
+                                            currentQuestionId
+                                              ? "#fff"
+                                              : "#000",
+                                          cursor: "pointer",
+                                          fontSize: "14px",
+                                          fontWeight: "bold",
+                                          lineHeight: "30px",
+                                          textAlign: "center",
+                                        }}
+                                      >
+                                        {question.question_id}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })
+                          }
+                        </>
+                      )}
+                    </div>
                   </div>
                   {/* 选择题组 */}
                   <div
@@ -642,32 +418,28 @@ const QuestionAnalysis = () => {
                       }}
                     >
                       {/* 第一个题目，总是显示 */}
-                      {currentStudent.questions
-                        .filter((q) => !q.isMultipleChoice)
+                      {questions
+                        .filter((q) => q.question_type !== "choice")
                         .slice(0, questionsPerRow)
                         .map((question) => {
-                          const originalIndex =
-                            currentStudent.questions.findIndex(
-                              (q) => q.id === question.id
-                            );
                           return (
                             <span
-                              key={question.id}
+                              key={question.question_id}
                               onClick={() =>
-                                setCurrentQuestionIndex(originalIndex)
+                                setCurrentQuestionId(question.question_id)
                               }
                               style={{
-                                width: "30px",
+                                width: "40px",
                                 height: "30px",
                                 margin: "0 4px",
                                 borderRadius: "4px",
                                 border: "1px solid #d9d9d9",
                                 backgroundColor:
-                                  originalIndex === currentQuestionIndex
+                                  question.question_id === currentQuestionId
                                     ? "oklch(.7 .2 254)"
                                     : "#fff",
                                 color:
-                                  originalIndex === currentQuestionIndex
+                                  question.question_id === currentQuestionId
                                     ? "#fff"
                                     : "#000",
                                 cursor: "pointer",
@@ -677,7 +449,7 @@ const QuestionAnalysis = () => {
                                 textAlign: "center",
                               }}
                             >
-                              {question.id}
+                              {question.question_id}
                             </span>
                           );
                         })}
@@ -690,53 +462,49 @@ const QuestionAnalysis = () => {
                             // 将剩余非选择题分组，每组questionsPerRow个
                             Array.from({
                               length: Math.ceil(
-                                currentStudent.questions
-                                  .filter((q) => !q.isMultipleChoice)
+                                questions
+                                  .filter((q) => q.question_type !== "choice")
                                   .slice(questionsPerRow).length /
                                   questionsPerRow
                               ),
                             }).map((_, rowIndex) => {
                               const start = rowIndex * questionsPerRow;
                               const end = start + questionsPerRow;
-                              const rowQuestions = currentStudent.questions
-                                .filter((q) => !q.isMultipleChoice)
+                              const rowQuestions = questions
+                                .filter((q) => q.question_type !== "choice")
                                 .slice(questionsPerRow)
                                 .slice(start, end);
-
                               return (
                                 <div
                                   key={`non-choice-row-${rowIndex}`}
                                   style={{
                                     display: "flex",
-                                    marginLeft: "100px",
-                                    marginTop: rowIndex === 0 ? 0 : "8px",
+                                    marginTop: "8px",
                                   }}
                                 >
                                   {rowQuestions.map((question) => {
-                                    const originalIndex =
-                                      currentStudent.questions.findIndex(
-                                        (q) => q.id === question.id
-                                      );
                                     return (
                                       <span
                                         key={question.id}
                                         onClick={() =>
-                                          setCurrentQuestionIndex(originalIndex)
+                                          setCurrentQuestionId(
+                                            question.question_id
+                                          )
                                         }
                                         style={{
-                                          width: "30px",
+                                          width: "40px",
                                           height: "30px",
                                           margin: "0 4px",
                                           borderRadius: "4px",
                                           border: "1px solid #d9d9d9",
                                           backgroundColor:
-                                            originalIndex ===
-                                            currentQuestionIndex
+                                            question.question_id ===
+                                            currentQuestionId
                                               ? "oklch(.7 .2 254)"
                                               : "#fff",
                                           color:
-                                            originalIndex ===
-                                            currentQuestionIndex
+                                            question.question_id ===
+                                            currentQuestionId
                                               ? "#fff"
                                               : "#000",
                                           cursor: "pointer",
@@ -746,7 +514,7 @@ const QuestionAnalysis = () => {
                                           textAlign: "center",
                                         }}
                                       >
-                                        {question.id}
+                                        {question.question_id}
                                       </span>
                                     );
                                   })}
@@ -785,9 +553,9 @@ const QuestionAnalysis = () => {
                     color: "oklch(.145 0 0)",
                   }}
                 >
-                  高二数学上学期期中考试 - 第{currentQuestion.id}题
+                  第{questionDetail.question_id}题
                 </div>
-                <div
+                {/* <div
                   style={{
                     textAlign: "center",
                     marginBottom: "20px",
@@ -796,7 +564,7 @@ const QuestionAnalysis = () => {
                   }}
                 >
                   姓名：{currentStudent?.name} 学号：{currentStudent?.id}
-                </div>
+                </div> */}
                 <div
                   style={{
                     backgroundColor: "oklch(.97 .014 254.604)",
@@ -825,11 +593,22 @@ const QuestionAnalysis = () => {
                       padding: "16px",
                       fontSize: "14px",
                       lineHeight: "1.8",
+                      textAlign: "center",
                     }}
                   >
-                    解：根据题意，设函数f(x) = x² + 2x + 1<br />
-                    当x = -1时，f(-1) = 1 - 2 + 1 = 0<br />
-                    所以函数在x = -1处有零点。
+                    {studentAnswer.answer_photo_url ? (
+                      <img
+                        src={studentAnswer.answer_photo_url}
+                        alt="学生答案"
+                        style={{
+                          maxWidth: "100%",
+                          maxHeight: "400px",
+                          objectFit: "contain",
+                        }}
+                      />
+                    ) : (
+                      <div style={{ color: "#999" }}>暂无学生答案</div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -837,8 +616,43 @@ const QuestionAnalysis = () => {
             <div className="score-section">
               <h3>得分</h3>
               <div className="score-display">
-                <span className="score-number">{score}</span>
-                <span className="score-max">/ 100</span>
+                <span className="score-number">
+                  {studentAnswer?.score || 0}
+                </span>
+                <span className="score-max">/ {questionDetail?.score}</span>
+              </div>
+            </div>
+            <div className="scoring-criteria-section">
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: "12px",
+                }}
+              >
+                <h4 style={{ margin: 0 }}>作答分析</h4>
+              </div>
+
+              <div
+                style={{
+                  backgroundColor: "#f0f7ff",
+                  padding: "16px",
+                  borderRadius: "6px",
+                  border: "1px solid #e0e7ff",
+                }}
+              >
+                <div style={{ marginBottom: "12px" }}>
+                  <p
+                    style={{
+                      margin: 0,
+                      fontSize: "14px",
+                      lineHeight: "1.5",
+                    }}
+                  >
+                    {studentAnswer.score_reason || "暂无作答分析"}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -846,7 +660,7 @@ const QuestionAnalysis = () => {
 
         {/* 右侧：题目信息 */}
         <div className="right-panel">
-          {currentQuestion ? (
+          {questionDetail ? (
             <>
               {/* 题干 */}
               <div className="question-stem-section">
@@ -860,12 +674,12 @@ const QuestionAnalysis = () => {
                   }}
                 >
                   <p style={{ margin: 0, lineHeight: "1.6" }}>
-                    {currentQuestion.stem || "暂无题干信息"}
+                    {questionDetail.question || "暂无题干信息"}
                   </p>
                 </div>
               </div>
 
-              <Divider style={{ margin: "16px 0" }} />
+              {/* <Divider style={{ margin: "16px 0" }} /> */}
 
               {/* 参考答案 */}
               <div className="reference-answer-section">
@@ -880,12 +694,12 @@ const QuestionAnalysis = () => {
                   }}
                 >
                   <p style={{ margin: 0, lineHeight: "1.6", color: "#333" }}>
-                    {currentQuestion.referenceAnswer || "暂无参考答案信息"}
+                    {questionDetail.answer || "暂无参考答案信息"}
                   </p>
                 </div>
               </div>
 
-              <Divider style={{ margin: "16px 0" }} />
+              {/* <Divider style={{ margin: "16px 0" }} /> */}
 
               {/* 评分标准 */}
               <div className="scoring-criteria-section">
@@ -897,7 +711,7 @@ const QuestionAnalysis = () => {
                     marginBottom: "12px",
                   }}
                 >
-                  <h4 style={{ margin: 0 }}>评分标准</h4>
+                  <h4 style={{ margin: 0 }}>评分要点</h4>
                 </div>
 
                 <div
@@ -909,26 +723,14 @@ const QuestionAnalysis = () => {
                   }}
                 >
                   <div style={{ marginBottom: "12px" }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        marginBottom: "8px",
-                      }}
-                    >
-                      <span style={{ fontWeight: "bold", fontSize: "14px" }}>
-                        注意事项
-                      </span>
-                    </div>
                     <p
                       style={{
                         margin: 0,
                         fontSize: "14px",
-                        color: "#666",
                         lineHeight: "1.5",
                       }}
                     >
-                      修改此题的答案或评分标准后，可对所有学生的此题进行重新批改。
+                      {questionDetail.score_standard || "暂无评分要点信息"}
                     </p>
                   </div>
                 </div>

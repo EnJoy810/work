@@ -75,31 +75,31 @@ const Login = () => {
         );
 
         // 检查用户角色
-        if (response.role === "TEACHER") {
-          try {
-            // 教师角色需要获取班级列表
-            const classResponse = await request.get(
-              `/teacher-class/class_list/${response.userId}`
-            );
-            console.log("班级列表响应:", classResponse);
+        // if (response.role === "TEACHER") {
+        //   try {
+        //     // 教师角色需要获取班级列表
+        //     const classResponse = await request.get(
+        //       `/teacher-class/class_list/${response.userId}`
+        //     );
+        //     console.log("班级列表响应:", classResponse);
 
-            // 设置班级列表到Redux
-            dispatch(setClassList(classResponse.data || []));
+        //     // 设置班级列表到Redux
+        //     dispatch(setClassList(classResponse.data || []));
 
-            // 默认选择第一个班级
-            if (classResponse.data && classResponse.data.length > 0) {
-              dispatch(setSelectedClassId(classResponse.data[0].id));
-            }
-            navigate("/");
-          } catch (classError) {
-            console.warn("获取班级列表失败:", classError);
-            // 即使获取班级列表失败，也继续登录流程
-            navigate("/");
-          }
-        } else {
-          // 跳转到首页
-          navigate("/");
-        }
+        //     // 默认选择第一个班级
+        //     if (classResponse.data && classResponse.data.length > 0) {
+        //       dispatch(setSelectedClassId(classResponse.data[0].id));
+        //     }
+        //     navigate("/");
+        //   } catch (classError) {
+        //     console.warn("获取班级列表失败:", classError);
+        //     // 即使获取班级列表失败，也继续登录流程
+        //     navigate("/");
+        //   }
+        // } else {
+        // 跳转到首页
+        navigate("/");
+        // }
       } catch (apiError) {
         // dispatch(
         //   setUserInfo({
