@@ -329,30 +329,7 @@ export const splitBlankQuestion = (
               ...question.questions.slice(splitIndex + 1),
             ],
           };
-          // firstPart = {
-          //   ...question,
-          //   originQuestions: question.questions,
-          //   questions: [{ ...splitData }], // 只有当前条数据
-          // };
-          // secondPart = {
-          //   ...question,
-          //   originQuestions: question.questions,
-          //   sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
-          //   questions: [...question.questions.slice(splitIndex + 1)], // 只有当前条数据,
-          // };
         } else {
-          // firstPart = {
-          //   ...question,
-          //   originQuestions: question.questions,
-          //   questions: [...currentPageData],
-          // };
-
-          // secondPart = {
-          //   ...question,
-          //   originQuestions: question.questions,
-          //   sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
-          //   questions: [...nextPageData],
-          // };
           const leftSubFirstPart = splitData.subQuestions.slice(
             0,
             subSplitIndex + 1
@@ -424,10 +401,10 @@ export const processPageQuestions = (
     const element = questions[index];
     // 调用抽离的函数计算题目高度
     const questionHeight = calculateQuestionHeight(element);
-    console.log("当前题目高度  1->", element.type, questionHeight, element);
+    // console.log("当前题目高度  1->", element.type, questionHeight, element);
 
     availableHeight -= questionHeight;
-    console.log("当前可用高度  2->", availableHeight);
+    // console.log("当前可用高度  2->", availableHeight);
 
     // 题目计算完，判断是否需要分页 留一定余量
     if (availableHeight < -remainingHeight) {
@@ -478,7 +455,7 @@ export const processPageQuestions = (
   if (remindIndex === 0) {
     remindIndex = questions.length; // 设置为数组长度，表示没有剩余题目
   }
-  console.log("remindIndex", remindIndex);
+  // console.log("remindIndex", remindIndex);
 
   return { currentPageQuestions, remindIndex };
 };

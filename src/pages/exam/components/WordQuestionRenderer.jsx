@@ -38,9 +38,9 @@ const WordQuestionRenderer = ({
   const totalWordPages = Math.ceil(totalGrids / gridsPerPage);
 
   // 获取作文题相关信息
-  const questionNumber = wordQuestionValues.questionNumber || "一";
+  // const questionNumber = wordQuestionValues.questionNumber || "一";
   const score = wordQuestionValues.score || 60;
-  const subQuestionNumber = wordQuestionValues.subQuestionNumber || 0;
+  // const subQuestionNumber = wordQuestionValues.subQuestionNumber || 0;
 
   // 生成作文格子页面
   return Array.from({ length: totalWordPages }).map((_, pageIndex) => {

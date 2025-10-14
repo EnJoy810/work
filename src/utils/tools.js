@@ -1,5 +1,23 @@
 import CryptoJS from "crypto-js";
 
+// 导入页面尺寸常量
+import {
+  PAGE_WIDTH,
+  PAGE_HEIGHT,
+  PAGE_MARGIN,
+  PAGE_CONTENT_HEIGHT,
+  PAGE_POINT,
+} from "./constants";
+
+// 导入页面题目计算相关工具函数
+import {
+  calculateQuestionHeight,
+  calculatePageContentHeight,
+  splitBlankQuestion,
+  processPageQuestions,
+  calculateQuestionsPagination,
+} from "./pagePaginationUtils";
+
 // 密码加密（使用SHA-256算法）
 export const encryptPassword = (password) => {
   try {
@@ -214,24 +232,6 @@ export const formatMoney = (amount, decimals = 2) => {
   });
 };
 
-// 导入页面尺寸常量
-import {
-  PAGE_WIDTH,
-  PAGE_HEIGHT,
-  PAGE_MARGIN,
-  PAGE_CONTENT_HEIGHT,
-  PAGE_POINT,
-} from "./constants";
-
-// 导入页面题目计算相关工具函数
-import {
-  calculateQuestionHeight,
-  calculatePageContentHeight,
-  splitBlankQuestion,
-  processPageQuestions,
-  calculateQuestionsPagination,
-} from "./pagePaginationUtils";
-
 export {
   calculateQuestionHeight,
   calculatePageContentHeight,
@@ -274,13 +274,6 @@ export const calculateElementPosition = (element, referenceElement) => {
     };
   }
   // console.log("referenceRect 左", elementRect.left, referenceRect.left);
-  // console.log("referenceRect ", elementRect, referenceRect);
-  // console.log(
-  //   "elementRect 当前元素===>",
-  //   elementRect,
-  //   "referenceRect 参考元素 --->",
-  //   referenceRect
-  // );
 
   // 计算相对位置（相对于参考元素的左上角）
   const relativeLeft = parseFloat(
@@ -312,15 +305,6 @@ export const calculateElementPosition = (element, referenceElement) => {
       top: relativeTop,
       right: relativeRight,
       bottom: relativeBottom,
-      // 相对于整个文档的绝对位置
-      // absolute: {
-      //   left: elementRect.left,
-      //   top: elementRect.top,
-      //   right: elementRect.right,
-      //   bottom: elementRect.bottom,
-      //   x: elementRect.x,
-      //   y: elementRect.y
-      // }
     },
     percent: {
       left: leftPercent,

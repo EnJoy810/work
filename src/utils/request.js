@@ -21,6 +21,13 @@ request.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    // 从Redux store中获取选中的班级ID并设置到请求头
+    const selectedClassId = state.class.selectedClassId;
+    if (selectedClassId) {
+      config.headers["X-Current-Class"] = selectedClassId;
+    }
+
     return config;
   },
   (error) => {
@@ -53,10 +60,10 @@ request.interceptors.response.use(
         case 401:
           // 未授权，清除用户信息并跳转到登录页
           console.error("未授权，请重新登录");
-          
+
           // 清除用户登录信息和token
           store.dispatch(clearUserInfo());
-          
+
           // 跳转到登录页
           window.location.href = "/login";
           break;

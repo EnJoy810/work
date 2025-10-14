@@ -12,12 +12,13 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
 } from "@ant-design/icons";
-import { APP_VERSION } from '../utils/appConfig';
+import { APP_VERSION } from "../utils/appConfig";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Layout, Menu, Dropdown, Avatar, Drawer } from "antd";
+import { Layout, Menu, Dropdown, Avatar, Drawer, Tooltip } from "antd";
 import { useMessageService } from "../components/common/message";
 import { useSelector, useDispatch } from "react-redux";
 import { clearUserInfo } from "../store/slices/userSlice";
+import { clearClassInfo, setSelectedClassId } from "../store/slices/classSlice";
 import "./navbar.css";
 import LogoIcon from "../components/common/LogoIcon";
 
@@ -26,11 +27,14 @@ const { Header } = Layout;
 const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { userInfo } = useSelector((state) => state.user);
+  const { userInfo, isLoggedIn } = useSelector((state) => state.user);
+  const { classList, selectedClassId } = useSelector((state) => state.class);
   const { showSuccess } = useMessageService();
   const location = useLocation();
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  const [isTablet, setIsTablet] = useState(window.innerWidth > 768 && window.innerWidth <= 1024);
+  const [isTablet, setIsTablet] = useState(
+    window.innerWidth > 768 && window.innerWidth <= 1024
+  );
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // 用户菜单配置
@@ -102,11 +106,21 @@ const Navbar = () => {
 
   const handleUserMenuClick = (e) => {
     if (e.key === "logout") {
-      // 退出登录逻辑 - 使用Redux清除用户信息
+      // 退出登录逻辑 - 使用Redux清除用户信息和班级信息
       dispatch(clearUserInfo());
+      dispatch(clearClassInfo());
       showSuccess("退出登录成功");
       navigate("/login", { replace: true });
     }
+  };
+
+  // 处理班级切换
+  const handleClassChange = (classItem) => {
+    console.log("classItem.id", classItem.id);
+    dispatch(setSelectedClassId(classItem.id));
+    showSuccess(`已切换到班级：${classItem.name}`);
+    // 班级切换后刷新当前页面
+    window.location.reload();
   };
 
   // 监听窗口尺寸变化
@@ -119,9 +133,9 @@ const Navbar = () => {
       }
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -232,23 +246,61 @@ const Navbar = () => {
             })}
           </div>
         )}
+        <div>
+          {/* 右侧：用户信息 */}
+          <div style={{ display: "flex", alignItems: "center" }}>
+            {/* 班级信息显示和切换 */}
+            {userInfo && isLoggedIn && classList && classList.length > 0 && (
+              <Dropdown
+                menu={{
+                  items: classList.map((classItem) => ({
+                    key: classItem.id,
+                    label: (
+                      <div style={{ display: "flex", alignItems: "center" }}>
+                        {selectedClassId === classItem.id && (
+                          <span style={{ marginRight: 8, color: "#1890ff" }}>
+                            ✓
+                          </span>
+                        )}
+                        <span>{classItem.name}</span>
+                      </div>
+                    ),
+                    onClick: () => handleClassChange(classItem),
+                  })),
+                }}
+                trigger={["hover"]}
+              >
+                <div style={{ marginRight: 16, cursor: "pointer" }}>
+                  {/* <span style={{ marginRight: 4 }}>班级：</span> */}
+                  <span style={{ color: "#1890ff" }}>
+                    {classList.find((c) => c.id === selectedClassId)?.name ||
+                      "未选择"}
+                  </span>
+                  <DownOutlined style={{ fontSize: "12px", marginLeft: 4 }} />
+                </div>
+              </Dropdown>
+            )}
 
-        {/* 右侧：用户信息 */}
-        <Dropdown
-          menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
-          trigger={["click"]}
-        >
-          <div className="user-drop" style={{}}>
-            <Avatar
-              src={userInfo?.avatar}
-              size={22}
-              icon={<UserOutlined />}
-              style={{ marginRight: 8, backgroundColor: "#1890ff" }}
-            />
-            <span style={{ marginRight: 8 }}>{userInfo?.username || " "}</span>
-            <DownOutlined style={{ fontSize: "12px" }} />
+            {/* 用户信息下拉菜单 */}
+            <Dropdown
+              menu={{ items: userMenuItems, onClick: handleUserMenuClick }}
+              trigger={["click"]}
+            >
+              <div className="user-drop" style={{}}>
+                <Avatar
+                  src={userInfo?.avatar}
+                  size={22}
+                  icon={<UserOutlined />}
+                  style={{ marginRight: 8, backgroundColor: "#1890ff" }}
+                />
+                <span style={{ marginRight: 8 }}>
+                  {userInfo?.username || " "}
+                </span>
+                <DownOutlined style={{ fontSize: "12px" }} />
+              </div>
+            </Dropdown>
           </div>
-        </Dropdown>
+        </div>
       </div>
 
       {/* 移动端左侧抽屉菜单 */}
