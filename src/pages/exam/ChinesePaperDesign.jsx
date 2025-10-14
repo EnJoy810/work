@@ -113,11 +113,6 @@ const ChinesePaperDesign = () => {
     paperSize: "A3", // 默认A3
   });
 
-  // 考试相关信息状态
-  const [examSubject, setExamSubject] = useState("语文");
-  const [applicableMajor, setApplicableMajor] = useState("25级高职高考");
-  const [examTime, setExamTime] = useState("150");
-
   // 存储分页后的数据
   const [paginationData, setPaginationData] = useState([]);
   const [totalPages, setTotalPages] = useState(1); // 分页数据
@@ -158,14 +153,12 @@ const ChinesePaperDesign = () => {
       answerSheetRef.current.setTitle(title);
     }
     // 根据模板设置考试相关信息
-    if (examSubject) {
-      setExamSubject(examSubject);
-    }
-    if (applicableMajor) {
-      setApplicableMajor(applicableMajor);
-    }
-    if (examTime) {
-      setExamTime(examTime);
+    if (answerSheetRef.current && answerSheetRef.current.setExamInfo) {
+      answerSheetRef.current.setExamInfo({
+        examSubject,
+        applicableMajor,
+        examTime,
+      });
     }
     // 关闭弹窗
     setTemplateModalVisible(false);
@@ -286,13 +279,19 @@ const ChinesePaperDesign = () => {
         examInfoPosition = answerSheetRef.current.getExamInfoSectionPosition();
       }
 
+      // 从AnswerSheetRenderer组件获取最新的考试信息
+      let rendererExamInfo = {};
+      if (answerSheetRef.current && answerSheetRef.current.getExamInfo) {
+        rendererExamInfo = answerSheetRef.current.getExamInfo();
+      }
+
       // 准备用于下载或预览的数据结构
       const examData = {
         basicInfo: {
           hasNote: formValues.hasNote,
-          examSubject,
-          applicableMajor,
-          examTime,
+          examSubject: rendererExamInfo.examSubject,
+          applicableMajor: rendererExamInfo.applicableMajor,
+          examTime: rendererExamInfo.examTime,
           title,
         },
         totalQuestions: questions.length,
@@ -436,13 +435,20 @@ const ChinesePaperDesign = () => {
     ) {
       examInfoPosition = answerSheetRef.current.getExamInfoSectionPosition();
     }
+    // 从AnswerSheetRenderer组件获取最新的考试信息
+    let rendererExamInfo = {};
+    if (answerSheetRef.current && answerSheetRef.current.getExamInfo) {
+      rendererExamInfo = answerSheetRef.current.getExamInfo();
+    }
+    console.log("rendererExamInfo 考试信息", rendererExamInfo);
+
     const examInfo = {
       questions: questions,
       basicInfo: {
         hasNote: formValues.hasNote,
-        examSubject,
-        applicableMajor,
-        examTime,
+        examSubject: rendererExamInfo.examSubject,
+        applicableMajor: rendererExamInfo.applicableMajor,
+        examTime: rendererExamInfo.examTime,
         title,
       },
       examInfoPosition,
@@ -549,10 +555,6 @@ const ChinesePaperDesign = () => {
               setQuestions(updatedQuestions);
             }}
             onWordQuestionAction={onWordQuestionAction}
-            // 传递考试相关信息状态
-            examSubject={examSubject}
-            applicableMajor={applicableMajor}
-            examTime={examTime}
           />
         </div>
 
