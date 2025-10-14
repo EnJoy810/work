@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Modal, List, Button, Space, Typography, Empty, Spin } from "antd";
 import { useMessageService } from "../../../components/common/message";
 import request from "../../../utils/request";
+import { formatDate } from "../../../utils/tools";
 
 const { Text } = Typography;
 
@@ -136,7 +137,7 @@ const TemplateSelectionModal = ({ visible, onCancel, onSelect }) => {
                   <div>
                     <p style={{ color: "#888", fontSize: "12px" }}>
                       创建时间：
-                      {template.created_at}
+                      {formatDate(template.created_at, "YYYY-MM-DD HH:mm:ss")}
                     </p>
                   </div>
                 }
