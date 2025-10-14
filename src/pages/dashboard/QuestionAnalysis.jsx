@@ -99,6 +99,84 @@ const QuestionAnalysis = () => {
           options: ["F = mv", "F = ma", "F = m/v", "F = m/a"],
           correctOption: 1,
         },
+        {
+          id: 6,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+        },
+        {
+          id: 7,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+        },
+        {
+          id: 8,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+        },
+        {
+          id: 9,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+        },
+        {
+          id: 10,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+        },
+        {
+          id: 11,
+          type: "math",
+          title: "选择题 - 函数定义域",
+          score: 5,
+          totalScore: 5,
+          answerImage: "https://via.placeholder.com/600x400?text=选择题答案",
+          stem: "函数f(x) = √(x-1)的定义域是？",
+          referenceAnswer: "x ≥ 1，选项A",
+          isMultipleChoice: true,
+          options: ["x ≥ 1", "x > 1", "x < 1", "x ≤ 1"],
+          correctOption: 0,
+        },
       ],
     },
     {
@@ -263,7 +341,8 @@ const QuestionAnalysis = () => {
 
   // 当前选中的题目
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const currentQuestion = currentStudent?.questions?.[currentQuestionIndex];
+  const currentQuestion =
+    currentStudent?.questions?.[currentQuestionIndex] || {};
 
   // 评分相关
   const [score, setScore] = useState(currentStudent?.score || 0);
@@ -273,6 +352,33 @@ const QuestionAnalysis = () => {
   const [choiceExpanded, setChoiceExpanded] = useState(true);
 
   const essayContentRef = useRef(null);
+  const questionsContainerRef = useRef(null);
+  const [questionsPerRow, setQuestionsPerRow] = useState(8); // 默认值为8
+
+  // 计算一行能显示的题目数量
+  useEffect(() => {
+    const calculateQuestionsPerRow = () => {
+      if (questionsContainerRef.current) {
+        const containerWidth = questionsContainerRef.current.clientWidth;
+        const questionWidth = 38; // 每个题目按钮的宽度(30px) + 左右边距(4px*2)
+        const availableWidth = containerWidth - 120; // 减去其他元素占用的宽度
+        const count = Math.max(1, Math.floor(availableWidth / questionWidth));
+        // console.log("count", count, containerWidth);
+        setQuestionsPerRow(count);
+      }
+    };
+
+    // 初始化计算
+    calculateQuestionsPerRow();
+
+    // 监听窗口大小变化
+    window.addEventListener("resize", calculateQuestionsPerRow);
+
+    // 清理函数
+    return () => {
+      window.removeEventListener("resize", calculateQuestionsPerRow);
+    };
+  }, []);
 
   // 当选中学生变化时，更新评分和当前题目索引
   useEffect(() => {
@@ -345,7 +451,9 @@ const QuestionAnalysis = () => {
         <div className="center-panel" ref={essayContentRef}>
           <div className="question-grading-header">
             <div
+              className="question-grading-title"
               style={{
+                flex: 1,
                 display: "flex",
                 alignItems: "center",
               }}
@@ -361,10 +469,12 @@ const QuestionAnalysis = () => {
                     marginLeft: "16px",
                     display: "flex",
                     flexDirection: "column",
+                    flex: 1,
                   }}
                 >
                   {/* 选择题组 */}
                   <div
+                    ref={questionsContainerRef}
                     style={{
                       marginBottom: "12px",
                       display: "flex",
@@ -387,51 +497,122 @@ const QuestionAnalysis = () => {
                       </span>
                       <span>{choiceExpanded ? "▼" : "▶"}</span>
                     </div>
+                    <div style={{ display: "flex", marginLeft: "20px" }}>
+                      {/* 第一行题目，总是显示 */}
+                      {currentStudent.questions
+                        .filter((q) => q.isMultipleChoice)
+                        .slice(0, questionsPerRow)
+                        .map((question) => {
+                          const originalIndex =
+                            currentStudent.questions.findIndex(
+                              (q) => q.id === question.id
+                            );
+                          return (
+                            <span
+                              key={question.id}
+                              onClick={() =>
+                                setCurrentQuestionIndex(originalIndex)
+                              }
+                              style={{
+                                width: "30px",
+                                height: "30px",
+                                margin: "0 4px",
+                                borderRadius: "4px",
+                                border: "1px solid #d9d9d9",
+                                backgroundColor:
+                                  originalIndex === currentQuestionIndex
+                                    ? "oklch(.7 .2 254)"
+                                    : "#fff",
+                                color:
+                                  originalIndex === currentQuestionIndex
+                                    ? "#fff"
+                                    : "#000",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: "bold",
+                                lineHeight: "30px",
+                                textAlign: "center",
+                              }}
+                            >
+                              {question.id}
+                            </span>
+                          );
+                        })}
+                    </div>
                     {choiceExpanded && (
-                      <div style={{ display: "flex", marginLeft: "20px" }}>
-                        {currentStudent.questions
-                          .filter((q) => q.isMultipleChoice)
-                          .map((question, index) => {
-                            const originalIndex =
-                              currentStudent.questions.findIndex(
-                                (q) => q.id === question.id
-                              );
+                      <>
+                        {/* 第二行及之后的题目，每行显示questionsPerRow个 */}
+                        {
+                          // 将剩余题目分组，每组questionsPerRow个
+                          Array.from({
+                            length: Math.ceil(
+                              currentStudent.questions
+                                .filter((q) => q.isMultipleChoice)
+                                .slice(questionsPerRow).length / questionsPerRow
+                            ),
+                          }).map((_, rowIndex) => {
+                            const start = rowIndex * questionsPerRow;
+                            const end = start + questionsPerRow;
+                            const rowQuestions = currentStudent.questions
+                              .filter((q) => q.isMultipleChoice)
+                              .slice(questionsPerRow)
+                              .slice(start, end);
+
                             return (
-                              <span
-                                key={question.id}
-                                onClick={() =>
-                                  setCurrentQuestionIndex(originalIndex)
-                                }
+                              <div
+                                key={`choice-row-${rowIndex}`}
                                 style={{
-                                  width: "30px",
-                                  height: "30px",
-                                  margin: "0 4px",
-                                  borderRadius: "4px",
-                                  border: "1px solid #d9d9d9",
-                                  backgroundColor:
-                                    originalIndex === currentQuestionIndex
-                                      ? "oklch(.7 .2 254)"
-                                      : "#fff",
-                                  color:
-                                    originalIndex === currentQuestionIndex
-                                      ? "#fff"
-                                      : "#000",
-                                  cursor: "pointer",
-                                  fontSize: "14px",
-                                  fontWeight: "bold",
-                                  lineHeight: "30px",
-                                  textAlign: "center",
+                                  display: "flex",
+                                  marginLeft: "100px",
+                                  marginTop: rowIndex === 0 ? 0 : "8px",
                                 }}
                               >
-                                {question.id}
-                              </span>
+                                {rowQuestions.map((question) => {
+                                  const originalIndex =
+                                    currentStudent.questions.findIndex(
+                                      (q) => q.id === question.id
+                                    );
+                                  return (
+                                    <span
+                                      key={question.id}
+                                      onClick={() =>
+                                        setCurrentQuestionIndex(originalIndex)
+                                      }
+                                      style={{
+                                        width: "30px",
+                                        height: "30px",
+                                        margin: "0 4px",
+                                        borderRadius: "4px",
+                                        border: "1px solid #d9d9d9",
+                                        backgroundColor:
+                                          originalIndex === currentQuestionIndex
+                                            ? "oklch(.7 .2 254)"
+                                            : "#fff",
+                                        color:
+                                          originalIndex === currentQuestionIndex
+                                            ? "#fff"
+                                            : "#000",
+                                        cursor: "pointer",
+                                        fontSize: "14px",
+                                        fontWeight: "bold",
+                                        lineHeight: "30px",
+                                        textAlign: "center",
+                                      }}
+                                    >
+                                      {question.id}
+                                    </span>
+                                  );
+                                })}
+                              </div>
                             );
-                          })}
-                      </div>
+                          })
+                        }
+                      </>
                     )}
                   </div>
-                  {/* 非选择题组 */}
+                  {/* 选择题组 */}
                   <div
+                    ref={questionsContainerRef}
                     style={{
                       display: "flex",
                       flexWrap: "wrap",
@@ -440,7 +621,6 @@ const QuestionAnalysis = () => {
                     <div
                       style={{
                         display: "flex",
-                        alignItems: "center",
                         marginBottom: "8px",
                         cursor: "pointer",
                         justifyContent: "flex-end",
@@ -453,48 +633,130 @@ const QuestionAnalysis = () => {
                       </span>
                       <span>{nonChoiceExpanded ? "▼" : "▶"}</span>
                     </div>
-                    {nonChoiceExpanded && (
-                      <div style={{ display: "flex", marginLeft: "20px" }}>
-                        {currentStudent.questions
-                          .filter((q) => !q.isMultipleChoice)
-                          .map((question, index) => {
-                            const originalIndex =
-                              currentStudent.questions.findIndex(
-                                (q) => q.id === question.id
-                              );
-                            return (
-                              <span
-                                key={question.id}
-                                onClick={() =>
-                                  setCurrentQuestionIndex(originalIndex)
-                                }
-                                style={{
-                                  width: "30px",
-                                  height: "30px",
-                                  margin: "0 4px",
-                                  borderRadius: "4px",
-                                  border: "1px solid #d9d9d9",
-                                  backgroundColor:
-                                    originalIndex === currentQuestionIndex
-                                      ? "oklch(.7 .2 254)"
-                                      : "#fff",
-                                  color:
-                                    originalIndex === currentQuestionIndex
-                                      ? "#fff"
-                                      : "#000",
-                                  cursor: "pointer",
-                                  fontSize: "14px",
-                                  fontWeight: "bold",
-                                  lineHeight: "30px",
-                                  textAlign: "center",
-                                }}
-                              >
-                                {question.id}
-                              </span>
+                    <div
+                      style={{
+                        flex: 1,
+                        display: "flex",
+                        flexWrap: "wrap",
+                        marginLeft: "20px",
+                      }}
+                    >
+                      {/* 第一个题目，总是显示 */}
+                      {currentStudent.questions
+                        .filter((q) => !q.isMultipleChoice)
+                        .slice(0, questionsPerRow)
+                        .map((question) => {
+                          const originalIndex =
+                            currentStudent.questions.findIndex(
+                              (q) => q.id === question.id
                             );
-                          })}
-                      </div>
-                    )}
+                          return (
+                            <span
+                              key={question.id}
+                              onClick={() =>
+                                setCurrentQuestionIndex(originalIndex)
+                              }
+                              style={{
+                                width: "30px",
+                                height: "30px",
+                                margin: "0 4px",
+                                borderRadius: "4px",
+                                border: "1px solid #d9d9d9",
+                                backgroundColor:
+                                  originalIndex === currentQuestionIndex
+                                    ? "oklch(.7 .2 254)"
+                                    : "#fff",
+                                color:
+                                  originalIndex === currentQuestionIndex
+                                    ? "#fff"
+                                    : "#000",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                fontWeight: "bold",
+                                lineHeight: "30px",
+                                textAlign: "center",
+                              }}
+                            >
+                              {question.id}
+                            </span>
+                          );
+                        })}
+
+                      {/* 其他题目，根据展开状态决定是否显示 */}
+                      {nonChoiceExpanded && (
+                        <>
+                          {/* 第二行及之后的非选择题，每行显示questionsPerRow个 */}
+                          {
+                            // 将剩余非选择题分组，每组questionsPerRow个
+                            Array.from({
+                              length: Math.ceil(
+                                currentStudent.questions
+                                  .filter((q) => !q.isMultipleChoice)
+                                  .slice(questionsPerRow).length /
+                                  questionsPerRow
+                              ),
+                            }).map((_, rowIndex) => {
+                              const start = rowIndex * questionsPerRow;
+                              const end = start + questionsPerRow;
+                              const rowQuestions = currentStudent.questions
+                                .filter((q) => !q.isMultipleChoice)
+                                .slice(questionsPerRow)
+                                .slice(start, end);
+
+                              return (
+                                <div
+                                  key={`non-choice-row-${rowIndex}`}
+                                  style={{
+                                    display: "flex",
+                                    marginLeft: "100px",
+                                    marginTop: rowIndex === 0 ? 0 : "8px",
+                                  }}
+                                >
+                                  {rowQuestions.map((question) => {
+                                    const originalIndex =
+                                      currentStudent.questions.findIndex(
+                                        (q) => q.id === question.id
+                                      );
+                                    return (
+                                      <span
+                                        key={question.id}
+                                        onClick={() =>
+                                          setCurrentQuestionIndex(originalIndex)
+                                        }
+                                        style={{
+                                          width: "30px",
+                                          height: "30px",
+                                          margin: "0 4px",
+                                          borderRadius: "4px",
+                                          border: "1px solid #d9d9d9",
+                                          backgroundColor:
+                                            originalIndex ===
+                                            currentQuestionIndex
+                                              ? "oklch(.7 .2 254)"
+                                              : "#fff",
+                                          color:
+                                            originalIndex ===
+                                            currentQuestionIndex
+                                              ? "#fff"
+                                              : "#000",
+                                          cursor: "pointer",
+                                          fontSize: "14px",
+                                          fontWeight: "bold",
+                                          lineHeight: "30px",
+                                          textAlign: "center",
+                                        }}
+                                      >
+                                        {question.id}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              );
+                            })
+                          }
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
