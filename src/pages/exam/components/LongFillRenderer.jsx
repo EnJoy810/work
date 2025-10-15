@@ -8,7 +8,14 @@ import { calculateElementPosition } from "../../../utils/tools";
 const LongFillRenderer = React.forwardRef(
   ({ questions, pageRef, onPositionUpdate }, ref) => {
     const { questions: subQuestions, sliceQuestion } = questions;
-    console.log("subQuestions 简答题渲染",questions.questionNumber, questions);
+    console.log(questions.questionNumber, subQuestions);
+    console.log(
+      "subQuestions 简答题渲染",
+      questions.questionNumber,
+      sliceQuestion,
+      questions
+    );
+    // debugger
 
     // 创建ref集合用于存储每个小题的DOM元素引用
     const questionItemRefs = useRef({});
@@ -36,7 +43,10 @@ const LongFillRenderer = React.forwardRef(
             id: subQuestion.id || `${subItem.id}-${subIndex}`, // 确保每个小题有唯一ID
           };
           // 第一题展示上级序号
-          if (subQuestion.number === 1) {
+          if (
+            subQuestion.number === 1 &&
+            !subQuestion.perQuestionRemindLines 
+          ) {
             blank.questionNumber = subItem.questionNumber; // 第一项获取上级的题号显示
           }
           processedQuestions.push(blank);
@@ -53,7 +63,11 @@ const LongFillRenderer = React.forwardRef(
         });
       }
     });
-    console.log("processedQuestions 简答题渲染 处理完的数据",questions.questionNumber, processedQuestions);
+    console.log(
+      "processedQuestions 简答题渲染 处理完的数据",
+      questions.questionNumber,
+      processedQuestions
+    );
 
     // 为每个小题计算位置并收集更新信息
     useEffect(() => {
@@ -138,7 +152,9 @@ const LongFillRenderer = React.forwardRef(
           >
             {/* 没分割 或者 分割了但是没有分割的行数 */}
             {(!sliceQuestion ||
-              (sliceQuestion && !question.showLinesPerQuestion && question.innerQuestionNumber)) && (
+              (sliceQuestion &&
+                !question.showLinesPerQuestion &&
+                (question.questionNumber || question.innerQuestionNumber))) && (
               <div
                 className="long-fill-question-title font-black"
                 style={{

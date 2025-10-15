@@ -60,19 +60,24 @@ export const calculateQuestionHeight = (question) => {
 // 计算页面内容高度
 // 根据页面类型计算可用内容高度
 export const calculatePageContentHeight = (options = {}) => {
-  const { hasNote = true, pageType = "first" } = options;
+  const { hasNote = true, showStudentId = false, pageType = "first" } = options;
   // 页面高度常量
   const titleHeight = 63.09; // 标题高度
   const subjectHeight = 41; // 考试科目高度
   const classHeight = 72.11; // 班级高度
   const noteHeight = 182.07; // 注意事项高度
+  const studentHeight = 297; // 学号高度
 
   // 累加高度值计算内容高度
   // 对于第一页，包含所有头部信息；对于后续页面，不包含这些信息
   let totalContentHeight = 0; // 每页都有上下边距
   if (pageType === "first") {
     totalContentHeight =
-      titleHeight + subjectHeight + classHeight + (hasNote ? noteHeight : 0);
+      titleHeight +
+      subjectHeight +
+      classHeight +
+      (hasNote ? noteHeight : 0) +
+      (showStudentId ? studentHeight : 0);
   }
 
   // 计算可用内容高度（每页内容高度减去标题、考试科目、班级、注意事项的高度）
@@ -488,6 +493,7 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
   // 计算第一页可用高度
   const firstPageAvailableHeight = calculatePageContentHeight({
     hasNote: options.hasNote !== false,
+    showStudentId: options.showStudentId !== false,
     pageType: "first",
   });
 

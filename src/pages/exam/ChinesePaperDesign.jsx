@@ -105,11 +105,14 @@ const ChinesePaperDesign = () => {
     useState(false);
   const [wordQuestionValues, setWordQuestionValues] = useState({});
   const [questions, setQuestions] = useState([]);
-
+  // 学号列数据，默认值为8
+  const [studentIdColumns, _setStudentIdColumns] = useState(8); // 使用下划线前缀表示故意未使用的变量
+    
   // 表单状态
   const [formValues, setFormValues] = useState({
     // hasSealingLine: false,
     hasNote: true,
+    showStudentId: false, // 默认显示学号
     paperSize: "A3", // 默认A3
   });
 
@@ -134,8 +137,15 @@ const ChinesePaperDesign = () => {
     const examInfo = JSON.parse(template.info) || {};
     console.log("examInfo", examInfo);
     const { questions = [], basicInfo = {}, wordQuestion = {} } = examInfo;
-    const { hasNote, examTime, examSubject, applicableMajor, title } =
-      basicInfo;
+    const {
+      hasNote = true,
+      showStudentId = false,
+      examTime,
+      examSubject,
+      applicableMajor,
+      title,
+    } = basicInfo;
+    console.log("hasNote", hasNote, showStudentId, formValues);
 
     // 设置题目
     if (questions && questions.length > 0) {
@@ -143,11 +153,15 @@ const ChinesePaperDesign = () => {
     }
 
     setWordQuestionValues(wordQuestion);
-    // 设置表单值显示注意事项
+    // 设置表单值
     setFormValues({
       ...formValues,
       hasNote,
+      showStudentId,
     });
+    form.setFieldValue("hasNote", hasNote);
+    form.setFieldValue("showStudentId", showStudentId);
+
     // 设置答题卡标题
     if (title && answerSheetRef.current && answerSheetRef.current.setTitle) {
       answerSheetRef.current.setTitle(title);
@@ -183,6 +197,7 @@ const ChinesePaperDesign = () => {
         questions,
         {
           hasNote: formValues.hasNote !== false,
+          showStudentId: formValues.showStudentId !== false,
         }
       );
       setTotalPages(totalPages);
@@ -191,7 +206,7 @@ const ChinesePaperDesign = () => {
       setPaginationData([]);
       setTotalPages(1);
     }
-  }, [questions, formValues.hasNote]);
+  }, [questions, formValues.hasNote, formValues.showStudentId]);
 
   // 使用useCallback缓存getQuestionPositions函数，避免不必要的重新渲染
   const getQuestionPositions = useCallback((positions) => {
@@ -289,6 +304,7 @@ const ChinesePaperDesign = () => {
       const examData = {
         basicInfo: {
           hasNote: formValues.hasNote,
+          showStudentId: formValues.showStudentId,
           examSubject: rendererExamInfo.examSubject,
           applicableMajor: rendererExamInfo.applicableMajor,
           examTime: rendererExamInfo.examTime,
@@ -446,6 +462,7 @@ const ChinesePaperDesign = () => {
       questions: questions,
       basicInfo: {
         hasNote: formValues.hasNote,
+        showStudentId: formValues.showStudentId,
         examSubject: rendererExamInfo.examSubject,
         applicableMajor: rendererExamInfo.applicableMajor,
         examTime: rendererExamInfo.examTime,
@@ -548,8 +565,22 @@ const ChinesePaperDesign = () => {
             totalPages={totalPages}
             // hasSealingLine={formValues.hasSealingLine !== false}
             hasNote={formValues.hasNote !== false}
+            showStudentId={formValues.showStudentId !== false}
+            studentIdColumns={studentIdColumns}
             wordQuestionValues={wordQuestionValues}
             getQuestionPositions={getQuestionPositions}
+            onShowStudentIdChange={(value) => {
+              setFormValues((prev) => ({
+                ...prev,
+                showStudentId: value,
+              }));
+              // 同步更新表单值，确保复选框状态正确
+              form.setFieldValue("showStudentId", value);
+            }}
+            onStudentIdColumnsChange={(value) => {
+              // 更新学号列数量
+              _setStudentIdColumns(value);
+            }}
             onQuestionsUpdate={(updatedQuestions) => {
               console.log("接收到更新的题目数据：", updatedQuestions);
               setQuestions(updatedQuestions);
@@ -607,6 +638,7 @@ const ChinesePaperDesign = () => {
                 <Checkbox>显示密封线</Checkbox>
               </Form.Item> */}
               <Form.Item
+                style={{ marginBottom: "4px" }}
                 name="paperSize"
                 label="版式"
                 labelCol={{ span: 6 }}
@@ -618,12 +650,24 @@ const ChinesePaperDesign = () => {
                 </Radio.Group>
               </Form.Item>
               <Form.Item
+                style={{ marginBottom: "4px" }}
                 name="hasNote"
                 valuePropName="checked"
                 labelCol={{ span: 0 }}
                 wrapperCol={{ span: 24 }}
               >
                 <Checkbox>显示注意事项</Checkbox>
+              </Form.Item>
+
+              {/* 显示学号设置 */}
+              <Form.Item
+                style={{ marginBottom: "4px" }}
+                name="showStudentId"
+                valuePropName="checked"
+                labelCol={{ span: 0 }}
+                wrapperCol={{ span: 24 }}
+              >
+                <Checkbox>显示学号</Checkbox>
               </Form.Item>
             </Form>
           </div>

@@ -2,7 +2,7 @@ import React from "react";
 
 /**
  * 考试信息输入组件
- * 用于显示和编辑班级、姓名、考场、座位号等考试信息
+ * 用于显示和编辑班级、姓名、考场、座位号、学号等考试信息
  */
 const ExamInfoSection = () => {
   return (

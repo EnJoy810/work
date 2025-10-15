@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { EditOutlined } from "@ant-design/icons";
 import SealingLine from "./SealingLine";
-import { Button, Modal } from "antd";
+import { Button, Modal, InputNumber } from "antd";
 import ExamInfoModal from "./ExamInfoModal";
 import ObjectiveQuestionsRenderer from "./ObjectiveQuestionsRenderer"; // 选择题
 import SubjectiveQuestionsRenderer from "./SubjectiveQuestionsRenderer"; // 非选择题
@@ -41,10 +41,14 @@ const AnswerSheetRenderer = forwardRef(
       paginationData = [],
       totalPages = 1,
       hasNote = true,
+      showStudentId = false,
+      studentIdColumns = 8, // 学号列数，默认8
       wordQuestionValues = {},
       getQuestionPositions,
       onQuestionsUpdate = () => {}, // 设置为空函数作为默认值
       onWordQuestionAction = () => {}, // 用于处理作文题的编辑和删除操作
+      onShowStudentIdChange = () => {}, // 用于更新学号显示状态
+      onStudentIdColumnsChange = () => {}, // 用于更新学号列数量
     },
     ref
   ) => {
@@ -111,14 +115,17 @@ const AnswerSheetRenderer = forwardRef(
     // 弹窗可见性状态
     const [isModalVisible, setIsModalVisible] = useState(false);
     // 选择题编辑弹窗可见性状态
-    const [isObjectiveModalVisible, setIsObjectiveModalVisible] =
-      useState(false);
+    const [isObjectiveModalVisible, setIsObjectiveModalVisible] = useState(false);
     // 当前正在编辑的选择题数据
     const [editingObjectiveItem, setEditingObjectiveItem] = useState(null);
     // 填空题编辑弹窗可见性状态
     const [isBlankModalVisible, setIsBlankModalVisible] = useState(false);
     // 当前正在编辑的填空题数据
     const [editingBlankItem, setEditingBlankItem] = useState(null);
+    // 学号列编辑弹窗可见性状态
+    const [isStudentIdModalVisible, setIsStudentIdModalVisible] = useState(false);
+    // 当前编辑的学号列数量
+    const [editingStudentIdColumns, setEditingStudentIdColumns] = useState(studentIdColumns);
 
     // 存储每个页面容器的ref
     const pageRefs = useRef([]);
@@ -229,6 +236,26 @@ const AnswerSheetRenderer = forwardRef(
     const closeBlankModal = () => {
       setIsBlankModalVisible(false);
       setEditingBlankItem(null);
+    };
+
+    // 打开学号列编辑弹窗
+    const openStudentIdModal = () => {
+      setEditingStudentIdColumns(studentIdColumns);
+      setIsStudentIdModalVisible(true);
+    };
+
+    // 关闭学号列编辑弹窗
+    const closeStudentIdModal = () => {
+      setIsStudentIdModalVisible(false);
+    };
+
+    // 保存学号列数量的修改
+    const handleStudentIdSave = () => {
+      // 通知父组件更新学号列数量
+      if (onStudentIdColumnsChange && typeof onStudentIdColumnsChange === 'function') {
+        onStudentIdColumnsChange(editingStudentIdColumns);
+      }
+      closeStudentIdModal();
     };
 
     // 处理选择题编辑成功
@@ -621,6 +648,97 @@ const AnswerSheetRenderer = forwardRef(
       );
     };
 
+    // 渲染学号区域
+    const renderStudentId = () => {
+      // 生成0-9数字数组
+      const numbers = Array.from({ length: 10 }, (_, i) => i);
+      // 使用从props传入的学号列数
+      const idLength = studentIdColumns;
+
+      return (
+        <div style={{ margin: "0 auto 10px" }}>
+          {/* 准考证号标题 */}
+          <div
+            className="font-black"
+            style={{
+              border: "1px solid #000",
+              padding: "4px 0",
+              textAlign: "center",
+              fontWeight: "bold",
+            }}
+          >
+            学号
+          </div>
+
+          {/* 填写区域 */}
+          <div
+            style={{
+              display: "flex",
+              borderLeft: "1px solid #000",
+              borderRight: "1px solid #000",
+              borderBottom: "1px solid #000",
+            }}
+          >
+            {Array.from({ length: idLength }).map((_, index) => (
+              <div
+                key={`fill-${index}`}
+                style={{
+                  flex: 1,
+                  height: "30px",
+                  borderRight: index < idLength - 1 ? "1px solid #000" : "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              ></div>
+            ))}
+          </div>
+
+          {/* 填涂区域 */}
+          <div
+            style={{
+              border: "1px solid #000",
+              borderTop: "none",
+            }}
+          >
+            {numbers.map((num) => (
+              <div key={`row-${num}`} style={{ display: "flex" }}>
+                {Array.from({ length: idLength }).map((_, index) => (
+                  <div
+                    key={`cell-${num}-${index}`}
+                    style={{
+                      height: 22,
+                      flex: 1,
+                      borderRight:
+                        index < idLength - 1 ? "1px solid #000" : "none",
+                      borderBottom: num < 9 ? "1px solid #000" : "none",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "10px",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 20,
+                        height: 14,
+                        lineHeight: "14px",
+                        textAlign: "center",
+                        border: "1px solid #000",
+                        borderRadius: "2px",
+                      }}
+                    >
+                      {num}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
     // 渲染单页内容
     const renderPageContent = (pageQuestions = [], pageIndex) => {
       return (
@@ -742,6 +860,24 @@ const AnswerSheetRenderer = forwardRef(
                 <ExamInfoSection />
               </div>
 
+              {/* 学号/准考证号 */}
+              {showStudentId && (
+                <QuestionWrapper
+                  objectiveItem={{ type: 'studentId', id: 'studentIdSection' }}
+                  onEdit={() => {
+                    // 打开学号列编辑弹窗
+                    openStudentIdModal();
+                  }}
+                  onDelete={(item) => {
+                    // 处理学号区域的删除逻辑
+                    console.log('删除学号区域', item);
+                    // 调用回调函数将父组件的showStudentId设置为false
+                    onShowStudentIdChange(false);
+                  }}
+                >
+                  {renderStudentId()}
+                </QuestionWrapper>
+              )}
               {/* 注意事项 */}
               {hasNote && renderNote()}
             </>
@@ -965,6 +1101,39 @@ const AnswerSheetRenderer = forwardRef(
             onSuccess={handleBlankEditSuccess}
             onCancel={closeBlankModal}
           />
+        )}
+
+        {/* 学号列数量编辑弹窗 */}
+        {isStudentIdModalVisible && (
+          <Modal
+            title="编辑学号列数量"
+            open={isStudentIdModalVisible}
+            onOk={handleStudentIdSave}
+            onCancel={closeStudentIdModal}
+            okText="确定"
+            cancelText="取消"
+          >
+            <div style={{ padding: 20 }}>
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ display: 'flex', alignItems: 'center' }}>
+                  <label style={{ marginRight: 8, minWidth: '80px' }}>学号列数量：</label>
+                  <InputNumber
+                    min={1}
+                    max={20}
+                    value={editingStudentIdColumns}
+                    onChange={(value) => setEditingStudentIdColumns(value)}
+                    style={{
+                      width: '120px',
+                      fontSize: 14
+                    }}
+                  />
+                </div>
+                <div style={{ color: '#666', fontSize: 12, marginTop: 4 }}>
+                  请输入1-20之间的数字，用于设置学号区域的列数
+                </div>
+              </div>
+            </div>
+          </Modal>
         )}
       </div>
     );
