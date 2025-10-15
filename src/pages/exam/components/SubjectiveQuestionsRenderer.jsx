@@ -50,6 +50,7 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
           const currentPositionKey = JSON.stringify(positionInfo);
           if (currentPositionKey !== previousPositionInfoRef.current) {
             // 调用回调函数传递位置信息
+            // console.log("位置信息", questions.sectionId, extendedPositionInfo);
             onPositionUpdate(questions.sectionId, extendedPositionInfo);
 
             // 更新引用，存储当前位置信息
@@ -60,7 +61,7 @@ const SubjectiveQuestionsRenderer = React.forwardRef(
         // 清理定时器
         return () => clearTimeout(timer);
       }
-    }, []); // 空依赖数组，确保只在组件挂载时运行一次
+    }, [pageRef]); // 空依赖数组，确保只在组件挂载时运行一次
 
     // 根据fillType决定渲染哪种类型的填空题
     const renderQuestionContent = () => {

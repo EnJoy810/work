@@ -78,7 +78,8 @@ const ShortFillRenderer = React.forwardRef(
 
           // 只传递位置信息，不修改原数据结构
           // 使用完全独立的数据结构，不使用positionsInfo字段避免影响大题的位置数据
-          onPositionUpdate(questions.sectionId, {
+          const sectionWithType = `${questions.sectionId}_shortFill`;
+          onPositionUpdate(sectionWithType, {
             type: "shortFillPositions",
             shortFillPositionsInfo: positionsInfo,
           });
