@@ -11,7 +11,7 @@ import { deepClone } from "../utils/tools";
 // 计算题目高度
 // 根据题目类型返回计算的高度
 export const calculateQuestionHeight = (question) => {
-  console.log("计算题目高度 ", question);
+  // console.log("计算题目高度 ", question.questionNumber, question.questions);
   // 题目类型高度常量
   const objectHeight = 137.3; // 选择题高度
   const baseShortFirstHeight = 57.33; // 填空题基础高度（包含标题的一行高度）
@@ -46,7 +46,7 @@ export const calculateQuestionHeight = (question) => {
       });
       // console.log("totalLines 总行数", totalLines);
       return question.sliceQuestion
-        ? baseShowFirstHeight
+        ? baseShowFirstHeight + totalLines * blankLineHeight
         : baseShortFirstHeight + (totalLines - 1) * blankLineHeight;
     } else {
       return baseShortFirstHeight + (question.totalLines - 1) * blankLineHeight;
@@ -408,7 +408,12 @@ export const processPageQuestions = (
     const element = questions[index];
     // 调用抽离的函数计算题目高度
     const questionHeight = calculateQuestionHeight(element);
-    // console.log("当前题目高度  1->", element.type, questionHeight, element);
+    console.log(
+      "当前题目高度->",
+      element.questionNumber,
+      questionHeight,
+      element
+    );
 
     availableHeight -= questionHeight;
     // console.log("当前可用高度  2->", availableHeight);
@@ -525,6 +530,7 @@ export const calculateQuestionsPagination = (questions, options = {}) => {
     const nextPageAvailableHeight = calculatePageContentHeight({
       pageType: "subsequent",
     });
+    console.log("后续页面可用高度", nextPageAvailableHeight);
 
     let currentPage = 1;
     while (remindQuestions.length > 0) {
