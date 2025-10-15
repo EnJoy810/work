@@ -554,6 +554,8 @@ const BlankQuestionModal = ({
               subTotalScore += subQ.pointsPerLine;
               totalScore += subQ.pointsPerLine;
             }
+            subQ.perQuestionRemindLines = undefined
+            subQ.perQuestionSplitLines = undefined
           });
           q.totalScore = subTotalScore; //question的总分
         } else {

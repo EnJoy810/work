@@ -8,7 +8,7 @@ import { calculateElementPosition } from "../../../utils/tools";
 const LongFillRenderer = React.forwardRef(
   ({ questions, pageRef, onPositionUpdate }, ref) => {
     const { questions: subQuestions, sliceQuestion } = questions;
-    console.log("subQuestions 简答题渲染", questions);
+    console.log("subQuestions 简答题渲染",questions.questionNumber, questions);
 
     // 创建ref集合用于存储每个小题的DOM元素引用
     const questionItemRefs = useRef({});
@@ -26,10 +26,10 @@ const LongFillRenderer = React.forwardRef(
                 ? subQuestion.number
                 : "", // 小题序号
             linesPerQuestion:
-              questions.sliceQuestion && subQuestion.perQuestionSplitLines
-                ? subQuestion.perQuestionSplitLines
-                : subQuestion.perQuestionRemindLines
+              questions.sliceQuestion && subQuestion.perQuestionRemindLines
                 ? subQuestion.perQuestionRemindLines
+                : subQuestion.perQuestionSplitLines
+                ? subQuestion.perQuestionSplitLines
                 : subQuestion.totalLines, // 有分割的则展示perQuestionSplitLines分割的行，perQuestionRemindLines然后判断是否展示分割后剩余的行，每题行数
             pointsPerLine: subQuestion.pointsPerLine, // 每题分数
             showLinesPerQuestion: subItem.showLinesPerQuestion, // 分割后显示的行数
@@ -53,7 +53,7 @@ const LongFillRenderer = React.forwardRef(
         });
       }
     });
-    console.log("processedQuestions 简答题渲染", processedQuestions);
+    console.log("processedQuestions 简答题渲染 处理完的数据",questions.questionNumber, processedQuestions);
 
     // 为每个小题计算位置并收集更新信息
     useEffect(() => {
@@ -138,7 +138,7 @@ const LongFillRenderer = React.forwardRef(
           >
             {/* 没分割 或者 分割了但是没有分割的行数 */}
             {(!sliceQuestion ||
-              (sliceQuestion && !question.showLinesPerQuestion)) && (
+              (sliceQuestion && !question.showLinesPerQuestion && question.innerQuestionNumber)) && (
               <div
                 className="long-fill-question-title font-black"
                 style={{
@@ -155,7 +155,7 @@ const LongFillRenderer = React.forwardRef(
                   ? `(${question.innerQuestionNumber})`
                   : ""}
                 &nbsp;
-                {questions.showSubQuestionScore
+                {questions.showSubQuestionScore && question.innerQuestionNumber
                   ? `(${question.pointsPerLine}分)`
                   : ""}
               </div>

@@ -8,8 +8,8 @@ export default defineConfig({
     proxy: {
       // 配置API代理
       "/api": {
-        target: "http://192.168.18.134:8080/api", // 本地地址
-        // target: "http://47.115.91.61:8080/api", // 服务器地址
+        // target: "http://192.168.18.134:8080/api", // 本地地址
+        target: "http://47.115.91.61:8080/api", // 服务器地址
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },

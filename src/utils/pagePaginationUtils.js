@@ -6,6 +6,7 @@ import {
   PAGE_CONTENT_HEIGHT,
   PAGE_POINT,
 } from "./constants";
+import { deepClone } from "../utils/tools";
 
 // 计算题目高度
 // 根据题目类型返回计算的高度
@@ -146,6 +147,12 @@ export const splitBlankQuestion = (
       };
     }
   } else if (question.fillType === "long") {
+    const originQuestions = deepClone(question.questions);
+    console.log(
+      "originQuestions",
+      originQuestions,
+      question.questions[0].subQuestions
+    );
     // 简答题题 分页 - 只根据行数判断
     let totalLines = 0;
     let subSplitIndex = -1;
@@ -250,13 +257,13 @@ export const splitBlankQuestion = (
           // 不分割 小题里的
           firstPart = {
             ...question,
-            originQuestions: question.questions,
+            originQuestions: originQuestions,
             questions: currentPageData,
           };
 
           secondPart = {
             ...question,
-            originQuestions: question.questions,
+            originQuestions: originQuestions,
             sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
             questions: nextPageData,
           };
@@ -272,7 +279,7 @@ export const splitBlankQuestion = (
           // 题目有部分在下一个页显示
           firstPart = {
             ...question,
-            originQuestions: question.questions,
+            originQuestions: originQuestions,
             questions: [...leftFirstPart, ...rightFirstPart],
           };
           const leftSecondPart = [
@@ -284,7 +291,7 @@ export const splitBlankQuestion = (
           const rightSecondPart = [...question.questions.slice(splitIndex + 1)];
           secondPart = {
             ...question,
-            originQuestions: question.questions,
+            originQuestions: originQuestions,
             sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
             questions: [...leftSecondPart, ...rightSecondPart],
           };
@@ -307,7 +314,7 @@ export const splitBlankQuestion = (
           );
           firstPart = {
             ...question,
-            originQuestions: question.questions,
+            originQuestions: originQuestions,
             questions: [
               ...question.questions.slice(0, splitIndex),
               {
@@ -319,7 +326,7 @@ export const splitBlankQuestion = (
 
           secondPart = {
             ...question,
-            originQuestions: question.questions,
+            originQuestions: originQuestions,
             sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
             questions: [
               {
@@ -344,7 +351,7 @@ export const splitBlankQuestion = (
           // debugger;
           firstPart = {
             ...question,
-            originQuestions: question.questions,
+            originQuestions: originQuestions,
             questions: [
               ...question.questions.slice(0, splitIndex),
               {
@@ -356,7 +363,7 @@ export const splitBlankQuestion = (
 
           secondPart = {
             ...question,
-            originQuestions: question.questions,
+            originQuestions: originQuestions,
             sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
             questions: [
               {
@@ -370,13 +377,13 @@ export const splitBlankQuestion = (
       } else {
         firstPart = {
           ...question,
-          originQuestions: question.questions,
+          originQuestions: originQuestions,
           questions: currentPageData,
         };
 
         secondPart = {
           ...question,
-          originQuestions: question.questions,
+          originQuestions: originQuestions,
           sliceQuestion: true, // 分割的数据，不需要在页面中显示大标题了
           questions: nextPageData,
         };
