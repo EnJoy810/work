@@ -14,7 +14,7 @@ import {
 } from "@ant-design/icons";
 import { APP_VERSION } from "../utils/appConfig";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Layout, Menu, Dropdown, Avatar, Drawer, Tooltip } from "antd";
+import { Layout, Menu, Dropdown, Avatar, Drawer, Tooltip, Select } from "antd";
 import { useMessageService } from "../components/common/message";
 import { useSelector, useDispatch } from "react-redux";
 import { clearUserInfo } from "../store/slices/userSlice";
@@ -116,11 +116,15 @@ const Navbar = () => {
 
   // 处理班级切换
   const handleClassChange = (classItem) => {
-    console.log("classItem.id", classItem.id);
+    // 更新 Redux
     dispatch(setSelectedClassId(classItem.id));
+    // 同步保存到 localStorage（持久化）
+    localStorage.setItem('currentClassId', classItem.id);
     showSuccess(`已切换到班级：${classItem.name}`);
-    // 班级切换后刷新当前页面
-    window.location.reload();
+    // 延迟刷新，确保 Redux 更新完成
+    setTimeout(() => {
+      window.location.reload();
+    }, 300);
   };
 
   // 监听窗口尺寸变化
@@ -250,36 +254,43 @@ const Navbar = () => {
           {/* 右侧：用户信息 */}
           <div style={{ display: "flex", alignItems: "center" }}>
             {/* 班级信息显示和切换 */}
-            {userInfo && isLoggedIn && classList && classList.length > 0 && (
-              <Dropdown
-                menu={{
-                  items: classList.map((classItem) => ({
-                    key: classItem.id,
-                    label: (
-                      <div style={{ display: "flex", alignItems: "center" }}>
-                        {selectedClassId === classItem.id && (
-                          <span style={{ marginRight: 8, color: "#1890ff" }}>
-                            ✓
-                          </span>
-                        )}
-                        <span>{classItem.name}</span>
-                      </div>
-                    ),
-                    onClick: () => handleClassChange(classItem),
-                  })),
-                }}
-                trigger={["hover"]}
-              >
-                <div style={{ marginRight: 16, cursor: "pointer" }}>
-                  {/* <span style={{ marginRight: 4 }}>班级：</span> */}
-                  <span style={{ color: "#1890ff" }}>
-                    {classList.find((c) => c.id === selectedClassId)?.name ||
-                      "未选择"}
-                  </span>
-                  <DownOutlined style={{ fontSize: "12px", marginLeft: 4 }} />
-                </div>
-              </Dropdown>
-            )}
+            {userInfo && isLoggedIn && classList && classList.length > 0 && (() => {
+              // 获取当前选中的班级名称
+              const currentClassName = classList.find((c) => c.id === selectedClassId)?.name || '';
+              
+              // 动态计算宽度：每个字符约16px + 下拉箭头和内边距约28px（更紧凑）
+              const dynamicWidth = currentClassName.length * 16 + 28;
+              
+              return (
+                <Select
+                  value={selectedClassId}
+                  onChange={(value) => {
+                    const classItem = classList.find((c) => c.id === value);
+                    if (classItem) {
+                      handleClassChange(classItem);
+                    }
+                  }}
+                  style={{ 
+                    width: dynamicWidth, 
+                    marginRight: 16,
+                  }}
+                  placeholder="请选择班级"
+                >
+                  {[...classList]
+                    .sort((a, b) => {
+                      // 当前班级排在最前面
+                      if (a.id === selectedClassId) return -1;
+                      if (b.id === selectedClassId) return 1;
+                      return 0; // 其他班级保持原有顺序
+                    })
+                    .map((classItem) => (
+                      <Select.Option key={classItem.id} value={classItem.id}>
+                        {classItem.name}
+                      </Select.Option>
+                    ))}
+                </Select>
+              );
+            })()}
 
             {/* 用户信息下拉菜单 */}
             <Dropdown

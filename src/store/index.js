@@ -5,23 +5,28 @@ import userReducer from './slices/userSlice';
 import previewReducer from './slices/previewSlice';
 import classReducer from './slices/classSlice';
 
-// 持久化配置
-const persistConfig = {
-  key: 'root',
+// 用户信息持久化配置
+const userPersistConfig = {
+  key: 'user',
   storage,
-  // 可以配置需要持久化的reducer
-  // whitelist: ['user'] // 只有user reducer会被持久化
+};
+
+// 班级信息持久化配置
+const classPersistConfig = {
+  key: 'class',
+  storage,
 };
 
 // 创建持久化的reducer
-const persistedReducer = persistReducer(persistConfig, userReducer);
+const persistedUserReducer = persistReducer(userPersistConfig, userReducer);
+const persistedClassReducer = persistReducer(classPersistConfig, classReducer);
 
 // 配置Redux store
 export const store = configureStore({
   reducer: {
-    user: persistedReducer,
+    user: persistedUserReducer,
     preview: previewReducer,
-    class: classReducer
+    class: persistedClassReducer
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }), // 禁用serializableCheck，允许非序列化数据

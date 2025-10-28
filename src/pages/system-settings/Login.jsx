@@ -56,60 +56,48 @@ const Login = () => {
         encryptedValues.password = values.password;
       }
       console.log("encryptedValues", encryptedValues);
-      // 实际项目中，这里应该调用真实的登录API
-      let response;
-      try {
-        // 根据vite.config.js中的代理配置，使用'/api'前缀
-        response = await request.post("/auth/login", encryptedValues);
-        console.log("登录响应:", response);
+      
+      // 调用后端登录 API
+      const response = await request.post("/auth/login", encryptedValues);
+      console.log("登录响应:", response);
 
-        // 登录成功提示
-        showSuccess("登录成功");
+      // 登录成功提示
+      showSuccess("登录成功");
 
-        // 设置登录状态到Redux
-        dispatch(
-          setUserInfo({
-            userInfo: response,
-            token: response.token,
-          })
-        );
+      // 设置登录状态到Redux
+      dispatch(
+        setUserInfo({
+          userInfo: response,
+          token: response.token,
+        })
+      );
+      
+      // 如果是教师角色，获取班级列表
+      if (response.role === "TEACHER") {
+        try {
+          const classResponse = await request.get(
+            `/teacher-class/class_list/${response.userId}`
+          );
+          console.log("班级列表响应:", classResponse);
 
-        // 检查用户角色
-        // if (response.role === "TEACHER") {
-        //   try {
-        //     // 教师角色需要获取班级列表
-        //     const classResponse = await request.get(
-        //       `/teacher-class/class_list/${response.userId}`
-        //     );
-        //     console.log("班级列表响应:", classResponse);
+          // 设置班级列表到Redux（会自动持久化）
+          dispatch(setClassList(classResponse.data || []));
 
-        //     // 设置班级列表到Redux
-        //     dispatch(setClassList(classResponse.data || []));
-
-        //     // 默认选择第一个班级
-        //     if (classResponse.data && classResponse.data.length > 0) {
-        //       dispatch(setSelectedClassId(classResponse.data[0].id));
-        //     }
-        //     navigate("/");
-        //   } catch (classError) {
-        //     console.warn("获取班级列表失败:", classError);
-        //     // 即使获取班级列表失败，也继续登录流程
-        //     navigate("/");
-        //   }
-        // } else {
-        // 跳转到首页
-        navigate("/");
-        // }
-      } catch (apiError) {
-        // dispatch(
-        //   setUserInfo({
-        //     userInfo: {},
-        //     token: "111",
-        //   })
-        // );
-        console.warn("登录请求失败:", apiError);
-        // 如果API请求失败，使用模拟数据
+          // 默认选择第一个班级
+          if (classResponse.data && classResponse.data.length > 0) {
+            const firstClassId = classResponse.data[0].id;
+            dispatch(setSelectedClassId(firstClassId));
+            // 同步保存到localStorage
+            localStorage.setItem('currentClassId', firstClassId);
+          }
+        } catch (classError) {
+          console.error("获取班级列表失败:", classError);
+          // 即使获取班级列表失败，也继续登录流程
+        }
       }
+      
+      // 跳转到首页
+      navigate("/");
     } catch (error) {
       showError("登录失败，请检查用户名和密码");
       console.error("登录错误:", error);
