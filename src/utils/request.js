@@ -22,12 +22,12 @@ request.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`;
     }
 
-    // 从Redux store中获取选中的班级ID并设置到请求头
-    const selectedClassId = state.class.selectedClassId;
-    if (selectedClassId) {
-      config.headers["X-Current-Class"] = selectedClassId;
+    // 从Redux store或localStorage中获取班级ID并设置到请求头
+    // 优先使用Redux，如果没有则从localStorage获取
+    const currentClassId = state.class.selectedClassId || localStorage.getItem('currentClassId');
+    if (currentClassId) {
+      config.headers["X-Current-Class"] = currentClassId;
     }
-
     return config;
   },
   (error) => {
