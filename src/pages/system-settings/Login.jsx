@@ -75,17 +75,21 @@ const Login = () => {
       // 如果是教师角色，获取班级列表
       if (response.role === "TEACHER") {
         try {
+          // 根据接口文档 9.1: GET /api/admin/teacher-class/class_list/{teacherId}
           const classResponse = await request.get(
-            `/teacher-class/class_list/${response.userId}`
+            `/admin/teacher-class/class_list/${response.userId}`
           );
           console.log("班级列表响应:", classResponse);
 
+          // 根据API文档，返回格式为: { code: 200, data: { teacherId, teacherName, classes: [...] }, message }
+          const classList = classResponse.data?.classes || [];
+          
           // 设置班级列表到Redux（会自动持久化）
-          dispatch(setClassList(classResponse.data || []));
+          dispatch(setClassList(classList));
 
           // 默认选择第一个班级
-          if (classResponse.data && classResponse.data.length > 0) {
-            const firstClassId = classResponse.data[0].id;
+          if (classList.length > 0) {
+            const firstClassId = classList[0].id;
             dispatch(setSelectedClassId(firstClassId));
             // 同步保存到localStorage
             localStorage.setItem('currentClassId', firstClassId);

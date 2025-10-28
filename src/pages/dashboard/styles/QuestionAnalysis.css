@@ -227,3 +227,179 @@
 .scoring-criteria-section::-webkit-scrollbar-thumb:hover {
   background: #555;
 }
+
+/* 手动改分区域样式 - 放在右侧面板 */
+.manual-score-section {
+  padding: 16px 4px;
+  border-bottom: 1px solid #f0f0f0;
+  overflow-y: auto;
+  color: oklch(0.145 0 0);
+}
+
+.manual-score-section h4 {
+  font-size: 14px;
+  margin-bottom: 12px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
+/* 数字键盘容器 */
+.score-keyboard {
+  background-color: #ffffff;
+  padding: 8px;
+  border-radius: 6px;
+  border: 1px solid #e8e8e8;
+  user-select: none;
+}
+
+/* 顶部显示行 */
+.score-display-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+/* 分数显示框 */
+.score-input-display {
+  background-color: #f5f5f5;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: left;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  grid-column: span 2; /* 横跨两列 */
+}
+
+/* 快捷按钮行 */
+.score-quick-buttons {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* 数字键盘网格 (3x3) */
+.score-number-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+/* 底部行 (9和提交按钮) */
+.score-bottom-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+/* 通用按钮样式 */
+.score-btn {
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  outline: none;
+  background-color: #f5f5f5;
+  color: #333;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-btn:hover:not(:disabled) {
+  background-color: #e8e8e8;
+  border-color: #aaa;
+}
+
+.score-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.score-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 退格按钮 */
+.score-btn-backspace {
+  min-width: 50px;
+  height: 40px;
+  font-size: 24px;
+  font-weight: normal;
+}
+
+/* 快捷按钮 (满分/零分/.5) */
+.score-btn-quick {
+  height: 40px;
+  padding: 10px;
+}
+
+/* 数字按钮 */
+.score-btn-number {
+  padding: 16px;
+  font-size: 18px;
+}
+
+/* 提交按钮 */
+.score-btn-submit {
+  background-color: #1890ff;
+  color: #fff;
+  border-color: #1890ff;
+  padding: 16px;
+  font-size: 16px;
+  grid-column: span 2; /* 横跨两列 */
+}
+
+.score-btn-submit:hover:not(:disabled) {
+  background-color: #40a9ff;
+  border-color: #40a9ff;
+}
+
+.score-btn-submit:disabled {
+  background-color: #91d5ff;
+  border-color: #91d5ff;
+}
+
+/* 得分显示区域样式优化 */
+.score-section {
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  background-color: #fff;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.score-section h3 {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 12px;
+  color: oklch(0.145 0 0);
+}
+
+.score-display {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.score-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1890ff;
+}
+
+.score-max {
+  font-size: 18px;
+  color: #666;
+}

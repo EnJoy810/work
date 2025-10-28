@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   HomeOutlined,
   UserOutlined,
@@ -115,6 +115,7 @@ const Navbar = () => {
   };
 
   // 处理班级切换
+  // 班级列表来自接口: GET /api/admin/teacher-class/class_list/{teacherId} (在登录时获取)
   const handleClassChange = (classItem) => {
     // 更新 Redux
     dispatch(setSelectedClassId(classItem.id));

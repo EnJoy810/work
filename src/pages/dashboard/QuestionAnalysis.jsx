@@ -10,6 +10,8 @@ import {
   Tag,
   Divider,
   Radio,
+  InputNumber,
+  message as antdMessage,
 } from "antd";
 import {
   LeftOutlined,
@@ -17,6 +19,7 @@ import {
   CheckCircleOutlined,
   EditOutlined,
   UserSwitchOutlined,
+  SaveOutlined,
 } from "@ant-design/icons";
 import { useSearchParams } from "react-router-dom";
 import request from "../../utils/request";
@@ -81,6 +84,12 @@ const QuestionAnalysis = () => {
   // 学生答案数据
   const [studentAnswer, setStudentAnswer] = useState({});
 
+  // 手动改分相关状态
+  const [manualScore, setManualScore] = useState(""); // 手动修改的分数（字符串形式，支持小数点输入）
+  const [isSubmittingScore, setIsSubmittingScore] = useState(false); // 是否正在提交分数
+  // eslint-disable-next-line no-unused-vars
+  const [inputHistory, setInputHistory] = useState([]); // 输入历史记录，用于智能退格
+
   // 当题目ID变化时，获取题目详情数据
   useEffect(() => {
     const fetchQuestionDetail = async () => {
@@ -107,26 +116,189 @@ const QuestionAnalysis = () => {
   useEffect(() => {
     console.log("currentStudent", currentStudent);
     const fetchStudentAnswer = async () => {
-      if (currentStudent && currentStudent.student_name && gradingId) {
+      if (currentStudent && gradingId) {
         try {
-          const answerRes = await request.get(`/exam-question/grading`, {
+          // 根据API文档，使用 student_no 参数（兼容 studentNo 和 student_name）
+          const studentNo = currentStudent.studentNo || currentStudent.student_name;
+          if (!studentNo) {
+            console.error("学生学号不存在");
+            return;
+          }
+
+          // 后端实际实现为PUT方法，参数在请求体中
+          const answerRes = await request.put(`/exam-question/grading`, {
             grading_id: gradingId,
-            student_name: currentStudent.student_name,
+            student_no: studentNo,
             question_id: currentQuestionId,
           });
           console.log("answerRes.data", answerRes.data);
           if (answerRes.data) {
             setStudentAnswer(answerRes.data);
+            // 重置手动改分的分数为当前分数（转换为字符串）
+            setManualScore(String(answerRes.data.score || 0));
+            setInputHistory([]); // 清空输入历史
           }
         } catch (error) {
           console.error("获取学生答案信息失败:", error);
           setStudentAnswer({});
+          setManualScore("0");
+          setInputHistory([]); // 清空输入历史
         }
       }
     };
 
     fetchStudentAnswer();
   }, [currentStudent, gradingId, currentQuestionId]);
+
+  // 提交手动改分
+  const handleSubmitManualScore = async () => {
+    // 检查是否为选择题，选择题不允许手动改分
+    const currentQuestion = questions.find((q) => q.question_id === currentQuestionId);
+    if (currentQuestion && currentQuestion.question_type === "choice") {
+      antdMessage.warning("选择题不支持手动改分");
+      return;
+    }
+
+    // 将字符串分数转换为数字
+    const scoreValue = parseFloat(manualScore);
+
+    // 检查分数是否有效
+    if (manualScore === "" || isNaN(scoreValue)) {
+      antdMessage.warning("请输入有效的分数");
+      return;
+    }
+
+    // 检查分数是否在有效范围内
+    if (scoreValue < 0 || scoreValue > (questionDetail?.score || 0)) {
+      antdMessage.warning(`分数必须在0到${questionDetail?.score || 0}之间`);
+      return;
+    }
+
+    // 检查分数是否与当前分数相同
+    if (scoreValue === studentAnswer?.score) {
+      antdMessage.info("分数未发生变化");
+      return;
+    }
+
+    // 获取题目满分
+    const maxScore = questionDetail?.score || 0;
+
+    setIsSubmittingScore(true);
+    try {
+      // 计算 isCorrect 和 isPartial
+      const isCorrect = scoreValue === maxScore;
+      const isPartial = scoreValue > 0 && scoreValue < maxScore;
+
+      // 调用新的API接口提交手动改分（PUT方法）
+      const response = await request.put(`/exam-question/grading/score-update`, {
+        gradingId: gradingId,
+        studentNo: currentStudent.studentNo || currentStudent.student_name, // 兼容旧数据
+        questionId: currentQuestionId,
+        score: scoreValue,
+        comment: `教师手动改分：${scoreValue}分`,
+        isCorrect: isCorrect,
+        isPartial: isPartial,
+      });
+
+      if (response.code === "200" || response.code === 200) {
+        antdMessage.success("改分成功");
+        
+        // 更新学生答案数据
+        setStudentAnswer({
+          ...studentAnswer,
+          score: scoreValue,
+        });
+
+        // 刷新学生列表以更新总分
+        const studentsRes = await request.get(`/exam-question/student-list`, {
+          grading_id: gradingId,
+        });
+        if (studentsRes.data && studentsRes.data.length > 0) {
+          setStudents(studentsRes.data);
+        }
+      } else {
+        antdMessage.error(response.message || "改分失败");
+      }
+    } catch (error) {
+      console.error("提交改分失败:", error);
+      antdMessage.error("提交改分失败，请稍后重试");
+    } finally {
+      setIsSubmittingScore(false);
+    }
+  };
+
+  // 数字键盘按钮点击处理
+  const handleNumberClick = (num) => {
+    const maxScore = questionDetail?.score || 0;
+    
+    if (num === ".5") {
+      // 点击 .5 按钮：在当前整数基础上加 0.5
+      const currentValue = parseFloat(manualScore);
+      const integerPart = Math.floor(currentValue); // 获取整数部分
+      const newValue = integerPart + 0.5;
+      
+      // 检查是否超过满分
+      if (newValue > maxScore) {
+        return;
+      }
+      
+      // 如果当前已经是 x.5 格式，保持不变
+      if (manualScore.includes(".5") && parseFloat(manualScore) === newValue) {
+        return;
+      }
+      
+      setManualScore(String(newValue));
+      setInputHistory([String(newValue)]); // 记录为单个块
+    } else {
+      // 点击数字按钮 0-9：直接替换为该数字
+      const numValue = parseFloat(num);
+      
+      // 检查是否超过满分
+      if (numValue > maxScore) {
+        return;
+      }
+      
+      // 如果和当前值相同，不做任何操作
+      if (parseFloat(manualScore) === numValue) {
+        return;
+      }
+      
+      setManualScore(num);
+      setInputHistory([num]); // 记录为单个块
+    }
+  };
+
+  // 退格按钮处理
+  const handleBackspace = () => {
+    // 如果当前是 "0"，不做任何操作
+    if (manualScore === "0") {
+      return;
+    }
+    
+    // 如果当前是 x.5 格式，去掉 .5，变成整数
+    if (manualScore.includes(".5")) {
+      const integerPart = Math.floor(parseFloat(manualScore));
+      setManualScore(String(integerPart));
+      setInputHistory([String(integerPart)]);
+    } else {
+      // 如果当前是整数，退格到 0
+      setManualScore("0");
+      setInputHistory([]);
+    }
+  };
+
+  // 满分按钮处理
+  const handleFullScore = () => {
+    const fullScore = String(questionDetail?.score || 0);
+    setManualScore(fullScore);
+    setInputHistory([fullScore]); // 记录满分值，以便退格删除
+  };
+
+  // 零分按钮处理
+  const handleZeroScore = () => {
+    setManualScore("0");
+    setInputHistory(["0"]); // 记录零分值，以便退格删除
+  };
 
   // 展开折叠状态
   const [choiceExpanded, setChoiceExpanded] = useState(false);
@@ -735,6 +907,100 @@ const QuestionAnalysis = () => {
                   </div>
                 </div>
               </div>
+
+              {/* 手动改分区域 - 只在非选择题时显示 */}
+              {(() => {
+                const currentQuestion = questions.find(
+                  (q) => q.question_id === currentQuestionId
+                );
+                
+                // 只在非选择题时显示
+                return currentQuestion?.question_type !== "choice" ? (
+                  <div className="manual-score-section">
+                    <h4 style={{ margin: "0 0 12px 0" }}>
+                      <EditOutlined style={{ marginRight: "8px" }} />
+                      手动改分
+                    </h4>
+                    <div className="score-keyboard">
+                      {/* 顶部显示区域 */}
+                      <div className="score-display-row">
+                        <div className="score-input-display">
+                          {manualScore || "0"}
+                        </div>
+                        <button
+                          className="score-btn score-btn-backspace"
+                          onClick={handleBackspace}
+                          disabled={isSubmittingScore || manualScore === "0"}
+                          title="退格"
+                        >
+                          ⌫
+                        </button>
+                      </div>
+
+                      {/* 快捷按钮行 */}
+                      <div className="score-quick-buttons">
+                        <button
+                          className="score-btn score-btn-quick"
+                          onClick={handleFullScore}
+                          disabled={isSubmittingScore}
+                        >
+                          满分
+                        </button>
+                        <button
+                          className="score-btn score-btn-quick"
+                          onClick={handleZeroScore}
+                          disabled={isSubmittingScore}
+                        >
+                          零分
+                        </button>
+                        <button
+                          className="score-btn score-btn-quick"
+                          onClick={() => handleNumberClick(".5")}
+                          disabled={isSubmittingScore}
+                        >
+                          .5
+                        </button>
+                      </div>
+
+                      {/* 数字键盘 */}
+                      <div className="score-number-grid">
+                        {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((num) => (
+                          <button
+                            key={num}
+                            className="score-btn score-btn-number"
+                            onClick={() => handleNumberClick(String(num))}
+                            disabled={isSubmittingScore}
+                          >
+                            {num}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* 底部：9和提交按钮 */}
+                      <div className="score-bottom-row">
+                        <button
+                          className="score-btn score-btn-number"
+                          onClick={() => handleNumberClick("9")}
+                          disabled={isSubmittingScore}
+                        >
+                          9
+                        </button>
+                        <button
+                          className="score-btn score-btn-submit"
+                          onClick={handleSubmitManualScore}
+                          disabled={
+                            isSubmittingScore ||
+                            manualScore === "" ||
+                            parseFloat(manualScore) === studentAnswer?.score
+                          }
+                        >
+                          {isSubmittingScore ? "提交中..." : "提交"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ) : null;
+              })()}
             </>
           ) : (
             <div
