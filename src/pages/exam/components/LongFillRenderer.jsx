@@ -68,7 +68,7 @@ const LongFillRenderer = React.forwardRef(
       questions.questionNumber,
       processedQuestions
     );
-
+    
     // 为每个小题计算位置并收集更新信息
     useEffect(() => {
       // 当有必要的参数且问题数据存在时计算位置
@@ -171,7 +171,7 @@ const LongFillRenderer = React.forwardRef(
                   ? `(${question.innerQuestionNumber})`
                   : ""}
                 &nbsp;
-                {questions.showSubQuestionScore && question.innerQuestionNumber
+                {(question.innerQuestionNumber || question.questionNumber) && question.pointsPerLine
                   ? `(${question.pointsPerLine}分)`
                   : ""}
               </div>
