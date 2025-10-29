@@ -50,7 +50,6 @@ const Home = () => {
       setShouldPoll(hasPendingOrProcessingExams);
     } catch (error) {
       console.error("获取考试列表失败:", error);
-      // 在实际应用中可以添加错误提示
     } finally {
       setLoading(false);
     }

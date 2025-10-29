@@ -42,9 +42,6 @@ const Login = () => {
   const handleSubmit = async (values) => {
     setLoading(true);
     try {
-      // 模拟登录请求
-      console.log("登录信息:", values);
-
       // 密码加密处理 - 使用公共工具函数
       const encryptedValues = { ...values };
       try {
@@ -55,11 +52,9 @@ const Login = () => {
         // 加密失败时使用原始密码
         encryptedValues.password = values.password;
       }
-      console.log("encryptedValues", encryptedValues);
       
       // 调用后端登录 API
       const response = await request.post("/auth/login", encryptedValues);
-      console.log("登录响应:", response);
 
       // 登录成功提示
       showSuccess("登录成功");
@@ -75,24 +70,34 @@ const Login = () => {
       // 如果是教师角色，获取班级列表
       if (response.role === "TEACHER") {
         try {
-          // 根据接口文档 9.1: GET /api/admin/teacher-class/class_list/{teacherId}
+          // 根据接口文档: GET /api/teacher-class/class_list?teacher_id={teacherId}
           const classResponse = await request.get(
-            `/admin/teacher-class/class_list/${response.userId}`
+            `/teacher-class/class_list`,
+            { teacher_id: response.userId }
           );
-          console.log("班级列表响应:", classResponse);
 
           // 根据API文档，返回格式为: { code: 200, data: { teacherId, teacherName, classes: [...] }, message }
-          const classList = classResponse.data?.classes || [];
+          // 但实际可能直接是: { code: 200, data: [...], message }
+          const classList = classResponse.data?.classes || classResponse.data || [];
           
           // 设置班级列表到Redux（会自动持久化）
           dispatch(setClassList(classList));
 
-          // 默认选择第一个班级
+          // 默认选择第一个班级（优先选择有正常名称的班级，而不是UUID名称）
           if (classList.length > 0) {
-            const firstClassId = classList[0].id;
-            dispatch(setSelectedClassId(firstClassId));
-            // 同步保存到localStorage
-            localStorage.setItem('currentClassId', firstClassId);
+            // 查找第一个名称不是UUID格式的班级
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            const normalClass = classList.find(c => c.class_id && c.name && !uuidRegex.test(c.name));
+            
+            // 如果找到正常名称的班级，使用它；否则使用第一个
+            const defaultClass = normalClass || classList[0];
+            
+            if (defaultClass && defaultClass.class_id) {
+              const firstClassId = defaultClass.class_id;
+              dispatch(setSelectedClassId(firstClassId));
+              // 同步保存到localStorage
+              localStorage.setItem('currentClassId', firstClassId);
+            }
           }
         } catch (classError) {
           console.error("获取班级列表失败:", classError);

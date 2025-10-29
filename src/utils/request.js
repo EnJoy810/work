@@ -25,7 +25,7 @@ request.interceptors.request.use(
     // 从Redux store或localStorage中获取班级ID并设置到请求头
     // 优先使用Redux，如果没有则从localStorage获取
     const currentClassId = state.class.selectedClassId || localStorage.getItem('currentClassId');
-    if (currentClassId) {
+    if (currentClassId && currentClassId !== 'undefined') {
       config.headers["X-Current-Class"] = currentClassId;
     }
     return config;
@@ -54,7 +54,7 @@ request.interceptors.response.use(
   },
   (error) => {
     // 处理网络错误
-    console.error("网络错误:", error.message);
+    console.error("网络错误:", error);
     if (error.response) {
       switch (error.response.status) {
         case 401:

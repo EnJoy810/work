@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import {
   HomeOutlined,
   UserOutlined,
@@ -114,18 +114,26 @@ const Navbar = () => {
     }
   };
 
-  // 处理班级切换
-  // 班级列表来自接口: GET /api/admin/teacher-class/class_list/{teacherId} (在登录时获取)
-  const handleClassChange = (classItem) => {
-    // 更新 Redux
-    dispatch(setSelectedClassId(classItem.id));
-    // 同步保存到 localStorage（持久化）
-    localStorage.setItem('currentClassId', classItem.id);
+  /**
+   * 处理班级切换
+   * 切换班级后会刷新页面，重新加载该班级的考试数据
+   * 班级列表在登录时通过接口 GET /api/teacher-class/class_list 获取
+   */
+  const handleClassChange = (value) => {
+    const classItem = classList.find((c) => c.class_id === value);
+    if (!classItem) return;
+    
+    // 更新 Redux Store 和 localStorage
+    dispatch(setSelectedClassId(classItem.class_id));
+    localStorage.setItem('currentClassId', classItem.class_id);
+    
+    // 显示切换成功提示
     showSuccess(`已切换到班级：${classItem.name}`);
-    // 延迟刷新，确保 Redux 更新完成
+    
+    // 延迟刷新页面以重新加载班级相关数据
     setTimeout(() => {
       window.location.reload();
-    }, 300);
+    }, 500);
   };
 
   // 监听窗口尺寸变化
@@ -157,6 +165,7 @@ const Navbar = () => {
   return (
     <Header
       className="nav-bar-header"
+      id="navbar-header"
       style={{
         padding: 0,
         background: "#fff",
@@ -254,38 +263,35 @@ const Navbar = () => {
         <div>
           {/* 右侧：用户信息 */}
           <div style={{ display: "flex", alignItems: "center" }}>
-            {/* 班级信息显示和切换 */}
+            {/* 班级选择器 - 只在已登录且有班级数据时显示 */}
             {userInfo && isLoggedIn && classList && classList.length > 0 && (() => {
-              // 获取当前选中的班级名称
-              const currentClassName = classList.find((c) => c.id === selectedClassId)?.name || '';
-              
-              // 动态计算宽度：每个字符约16px + 下拉箭头和内边距约28px（更紧凑）
-              const dynamicWidth = currentClassName.length * 16 + 28;
+              // 获取当前选中的班级ID，如果没有则使用第一个班级
+              const currentClassId = selectedClassId || classList[0]?.class_id;
               
               return (
                 <Select
-                  value={selectedClassId}
-                  onChange={(value) => {
-                    const classItem = classList.find((c) => c.id === value);
-                    if (classItem) {
-                      handleClassChange(classItem);
-                    }
-                  }}
+                  value={currentClassId}
+                  onChange={handleClassChange}
+                  className="class-selector-compact"
                   style={{ 
-                    width: dynamicWidth, 
+                    width: 120,
                     marginRight: 16,
                   }}
                   placeholder="请选择班级"
+                  popupMatchSelectWidth={true}
+                  listHeight={128}
+                  getPopupContainer={() => document.getElementById('navbar-header')}
                 >
                   {[...classList]
+                    .filter((item) => item && item.class_id != null)
                     .sort((a, b) => {
-                      // 当前班级排在最前面
-                      if (a.id === selectedClassId) return -1;
-                      if (b.id === selectedClassId) return 1;
-                      return 0; // 其他班级保持原有顺序
+                      // 当前班级排在第一位，其他班级保持原有顺序
+                      if (a.class_id === currentClassId) return -1;
+                      if (b.class_id === currentClassId) return 1;
+                      return 0;
                     })
                     .map((classItem) => (
-                      <Select.Option key={classItem.id} value={classItem.id}>
+                      <Select.Option key={classItem.class_id} value={classItem.class_id}>
                         {classItem.name}
                       </Select.Option>
                     ))}
