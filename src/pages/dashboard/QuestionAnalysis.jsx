@@ -127,7 +127,7 @@ const QuestionAnalysis = () => {
       if (currentStudent && gradingId) {
         try {
           // 根据API文档，使用 student_no 参数（优先使用实际字段 student_name）
-          const studentNo = currentStudent.student_name || currentStudent.studentNo;
+          const studentNo = currentStudent.student_no;
           if (!studentNo) {
             console.error("学生学号不存在");
             return;
@@ -199,9 +199,9 @@ const QuestionAnalysis = () => {
     try {
       // 准备请求参数，确保分数是数字类型
       const requestData = {
-        gradingId: gradingId,
-        studentNo: currentStudent.student_name || currentStudent.studentNo, // 优先使用实际字段 student_name
-        questionId: currentQuestionId,
+        grading_id: gradingId,
+        student_no: currentStudent.student_no, 
+        question_id: currentQuestionId,
         question_type: currentQuestion.question_type, // 题目类型
         old_score: Number(studentAnswer?.score || 0), // 确保是数字类型
         new_score: Number(scoreValue), // 确保是数字类型

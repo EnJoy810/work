@@ -41,42 +41,7 @@ const EssayGrading = () => {
   
   // 学生列表数据（从后端加载）
   const [students, setStudents] = useState([
-    {
-      id: "S001",
-      name: "张明",
-      score: 85,
-      status: "AI批改",
-      statusType: "success",
-      essay: {
-        title: "春天，是希望的季节",
-        content:
-          '春天，是希望的季节。当第一缕春风吹过大地，万物开始复苏，我总是被这种生命力所感动。记得小时候，每到春天，爷爷总会带我到村子后面的小山上看桃花。那里有一片桃林，每到三月，粉红的花朵满树绽放，远远望去，就像天边的彩霞。爷爷说："春天会教我们希望，无论冬天多么寒冷，春天总会如期而至。"现在想来，爷爷的话蕴含着深刻的人生哲理。人生路上，我们都会遇到各种困难挫折，就像严寒的冬天。但是，只要我们心中怀着希望，相信春天一定会来临，就能够战胜一切困难。春天不仅是一个季节，更是一种精神。它告诉我们，生命是顽强的，希望是永恒的。在这个春天里，我要像那些破土而出的新芽一样，勇敢地面对生活的挑战，努力成长，绽放属于自己的光彩。',
-      },
-    },
-    {
-      id: "S002",
-      name: "李华",
-      score: 92,
-      status: "手动批改",
-      statusType: "processing",
-      essay: {
-        title: "秋天的收获",
-        content:
-          '秋天是收获的季节。田野里，金黄色的稻浪随风起伏，农民伯伯的脸上洋溢着丰收的喜悦。我最喜欢秋天的果园，红彤彤的苹果、黄澄澄的梨、紫莹莹的葡萄，让人看了就忍不住流口水。妈妈常说："一分耕耘，一分收获。"这句话我一直铭记在心。学习就像种地一样，只有付出辛勤的汗水，才能收获丰硕的果实。每当我在学习中遇到困难想要放弃时，就会想起秋天的果园，想起农民伯伯的辛苦付出。于是，我又重新振作起来，继续努力学习。我相信，只要我坚持不懈，总有一天会收获属于自己的成功。',
-      },
-    },
-    {
-      id: "S003",
-      name: "王芳",
-      score: 78,
-      status: "AI待批",
-      statusType: "warning",
-      essay: {
-        title: "冬天的温暖",
-        content:
-          "冬天虽然寒冷，却充满了温暖。记得去年冬天，我得了重感冒，躺在床上起不来。妈妈每天都给我熬姜茶，陪我打针吃药，细心地照顾我。爸爸也特意推掉了所有的应酬，在家陪我聊天，给我讲故事。同学们知道我生病了，纷纷打电话问候我，还轮流到家里给我补课。在大家的关心和照顾下，我的病很快就好了。虽然窗外飘着鹅毛大雪，但是我的心里却像春天一样温暖。这件事让我明白了，爱就像冬天里的阳光，能够驱散寒冷，带来温暖。只要我们心中充满爱，冬天也会变得温暖如春。",
-      },
-    },
+
   ]);
 
   // 当前选中的学生
@@ -118,49 +83,9 @@ const EssayGrading = () => {
     return availableColors[Math.floor(Math.random() * availableColors.length)];
   };
 
-  // 为每个学生生成初始评语数据
-  const generateInitialCommentsForStudent = (studentId) => {
-    // 只有张明(S001)有初始评语
-    if (studentId === "S001") {
-      return [
-        {
-          sentenceIndex: 0,
-          originalSentence: "春天，是希望的季节。",
-          comment: "开头点题，语言优美，比喻恰当",
-          color: "green",
-        },
-        {
-          sentenceIndex: 2,
-          originalSentence:
-            "记得小时候，每到春天，爷爷总会带我到村子后面的小山上看桃花。",
-          comment: "描述生动，画面感强",
-          color: "blue",
-        },
-        {
-          sentenceIndex: 4,
-          originalSentence:
-            '爷爷说："春天会教我们希望，无论冬天多么寒冷，春天总会如期而至。"',
-          comment: "引用爷爷的话，增加了文章的深度",
-          color: "purple",
-        },
-        {
-          sentenceIndex: 7,
-          originalSentence:
-            "人生路上，我们都会遇到各种困难挫折，就像严寒的冬天。",
-          comment: "对比手法运用得当，突出主题",
-          color: "orange",
-        },
-      ];
-    }
-    // 其他学生暂无评语
-    return [];
-  };
-
   // 为每个学生存储独立的评语数据
   const [studentComments, setStudentComments] = useState({
-    S001: generateInitialCommentsForStudent("S001"),
-    S002: generateInitialCommentsForStudent("S002"),
-    S003: generateInitialCommentsForStudent("S003"),
+    
   });
 
   // 当前学生的评语（基于 studentNo）
@@ -227,12 +152,12 @@ const EssayGrading = () => {
 
       // 转换学生数据格式
       const formattedStudents = resultList.map((result) => ({
-        id: result.studentNo || result.studentName, // 优先用学号，如果为空则用姓名
-        name: result.studentName,
-        score: result.essayScore || 0, // 显示作文分数
+        id: result.student_no || result.student_name, // 优先用学号，如果为空则用姓名
+        name: result.student_name,
+        score: result.essay_score || 0, // 显示作文分数
         status: "待批改",
         statusType: "warning",
-        studentNo: result.studentNo || result.studentName, // 优先用学号，如果为空则用姓名
+        studentNo: result.student_no || result.student_name, // 优先用学号，如果为空则用姓名
       }));
 
       setStudents(formattedStudents);
@@ -259,6 +184,7 @@ const EssayGrading = () => {
       message.loading({ content: "正在加载作文数据...", key: "loadEssay" });
       const response = await getEssayResult({ grading_id, student_no: studentNo });
       const data = response.data;
+      console.log("data", data);
 
       // 保存 essay_result_id
       if (!data.id) {
@@ -271,20 +197,22 @@ const EssayGrading = () => {
 
       // 解析评语
       let parsedFeedbacks = [];
-      if (data.sentenceFeedbacks) {
+      if (data.sentence_feedbacks) {
         try {
-          parsedFeedbacks = JSON.parse(data.sentenceFeedbacks);
+          parsedFeedbacks = JSON.parse(data.sentence_feedbacks);
         } catch (error) {
           console.error("解析评语失败:", error);
         }
       }
 
       // 分割作文内容为句子
-      const contentSentences = splitSentences(data.studentAnswer || "");
+      const contentSentences = splitSentences(data.student_answer || "");
       setSentences(contentSentences);
+      console.log("contentSentences", contentSentences);
 
       // 转换评语格式：后端 → 前端
       const convertedComments = parsedFeedbacks.map((feedback) => {
+        console.log("feedback", feedback);
         // 在句子数组中查找匹配的句子索引
         const sentenceIndex = contentSentences.findIndex(
           (s) => s.trim() === feedback.sentence.trim()
@@ -322,6 +250,7 @@ const EssayGrading = () => {
     if (grading_id) {
       loadStudentList();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [grading_id]);
 
   // 当选中学生变化时，更新句子和评分
@@ -618,7 +547,7 @@ const EssayGrading = () => {
           <div className="student-list">
             {students.map((student, index) => (
               <div
-                key={student.id}
+                key={`student-${index}`}
                 className={`student-item ${
                   index === currentStudentIndex ? "active" : ""
                 }`}
@@ -715,13 +644,13 @@ const EssayGrading = () => {
 
         {/* 右侧：评分内容 */}
         <div className="right-panel">
-          <div className="score-section">
+          {/* <div className="score-section">
             <h3>得分</h3>
             <div className="score-display">
               <span className="score-number">{score}</span>
-              <span className="score-max">/ 100</span>
+              <span className="score-max">/ 60</span>
             </div>
-          </div>
+          </div> */}
 
           <div className="sentence-comments-section">
             <h4>按句评语</h4>
