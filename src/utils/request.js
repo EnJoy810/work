@@ -40,7 +40,7 @@ request.interceptors.response.use(
   (response) => {
     // 根据后端接口规范处理响应数据
     const res = response.data;
-    // console.log("res--->", res);
+    
     if (res.code !== "200") {
       // 处理错误情况
       console.error("请求错误:", res.message);

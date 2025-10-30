@@ -196,8 +196,9 @@
   border-radius: 3px;
 }
 
-.essay-sentence:hover {
-  background-color: #e6f7ff;
+/* 没有评语的句子悬停时显示灰色背景 - 参考demo */
+.essay-sentence:hover:not(.comment-blue):not(.comment-green):not(.comment-purple):not(.comment-orange):not(.comment-red) {
+  background-color: #e5e7eb;
 }
 
 .essay-sentence.highlighted {
@@ -286,6 +287,24 @@
   margin-bottom: 8px;
 }
 
+/* 可编辑的评语内容 */
+.comment-editable {
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.comment-editable:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* 空评语的占位符样式 */
+.comment-placeholder {
+  color: #999;
+  font-style: italic;
+}
+
 .improvement-suggestion {
   background-color: #fff7e6;
   padding: 8px 12px;
@@ -336,6 +355,66 @@
   font-size: 16px;
   color: #666;
   margin-left: 8px;
+}
+
+/* 多维度评分 */
+.dimensions-section {
+  margin-bottom: 20px;
+}
+
+.dimensions-section h4 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.dimension-item {
+  margin-bottom: 16px;
+  padding: 12px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
+}
+
+.dimension-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.dimension-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dimension-score {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1890ff;
+}
+
+.dimension-progress {
+  width: 100%;
+  height: 8px;
+  background-color: #e8e8e8;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.dimension-progress-bar {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.dimension-comment {
+  font-size: 12px;
+  line-height: 1.6;
+  color: #666;
+  margin-top: 8px;
 }
 
 /* 评价和改进建议 */
@@ -466,4 +545,282 @@
   font-style: italic;
   border-bottom: 1px dashed #e8e8e8;
   padding-bottom: 4px;
+}
+
+/* ===== 底部导航栏样式 - 参考demo ===== */
+/* 动画效果 */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sentence-selection-toolbar {
+  margin-top: 16px;
+  animation: slideUp 0.3s ease-out;
+}
+
+/* 蓝色卡片容器 */
+.toolbar-card {
+  background-color: #e3f2fd;
+  border-radius: 12px;
+  padding: 24px;
+}
+
+/* 标题栏 */
+.toolbar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.toolbar-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #1976d2;
+}
+
+.toolbar-close-btn {
+  background: none;
+  border: none;
+  font-size: 24px;
+  line-height: 1;
+  color: #000;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+}
+
+.toolbar-close-btn:hover {
+  opacity: 0.7;
+}
+
+/* 快捷标签栏 */
+.toolbar-tags {
+  display: flex;
+  gap: 8px;
+}
+
+.tag-button {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+}
+
+.tag-button:hover {
+  background-color: #f9fafb;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tag-button .tag-icon {
+  font-size: 16px;
+  color: #000;
+}
+
+/* 功能按钮栏 */
+.toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background-color: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.action-btn:hover {
+  background-color: #f9fafb;
+}
+
+.action-btn .action-icon {
+  font-size: 16px;
+  color: #000;
+}
+
+/* ===== 颜色选择弹窗样式 ===== */
+.color-selection-modal {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.color-modal-content {
+  background-color: white;
+  border-radius: 8px;
+  padding: 24px;
+  max-width: 28rem;
+  width: 100%;
+  margin: 0 16px;
+}
+
+.color-modal-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+  color: #1f2937;
+}
+
+.color-modal-sentence {
+  font-size: 14px;
+  color: #6b7280;
+  margin-bottom: 16px;
+}
+
+.color-buttons-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.color-btn {
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+
+.color-btn-orange {
+  background-color: #fed7aa;
+  color: #9a3412;
+}
+
+.color-btn-orange:hover {
+  background-color: #fdba74;
+}
+
+.color-btn-green {
+  background-color: #bbf7d0;
+  color: #166534;
+}
+
+.color-btn-green:hover {
+  background-color: #86efac;
+}
+
+.color-btn-blue {
+  background-color: #bfdbfe;
+  color: #1e40af;
+}
+
+.color-btn-blue:hover {
+  background-color: #93c5fd;
+}
+
+.color-btn-purple {
+  background-color: #e9d5ff;
+  color: #6b21a8;
+}
+
+.color-btn-purple:hover {
+  background-color: #d8b4fe;
+}
+
+.color-cancel-btn {
+  width: 100%;
+  background-color: #e5e7eb;
+  color: #1f2937;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: background-color 0.2s;
+}
+
+.color-cancel-btn:hover {
+  background-color: #d1d5db;
+}
+
+/* ===== 评语编辑模式样式 ===== */
+.comment-edit-mode {
+  margin-bottom: 8px;
+}
+
+.comment-edit-textarea {
+  width: 100%;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+  background-color: white;
+  border-radius: 8px;
+  padding: 8px;
+  border: 1px solid #d1d5db;
+  resize: none;
+  font-family: inherit;
+}
+
+.comment-edit-textarea:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.comment-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.edit-cancel-btn {
+  background-color: #e5e7eb;
+  border-color: #e5e7eb;
+}
+
+.edit-cancel-btn:hover {
+  background-color: #d1d5db;
+  border-color: #d1d5db;
+}
+
+.edit-save-btn {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.edit-save-btn:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
 }

@@ -89,6 +89,7 @@ const QuestionAnalysis = () => {
   const [isSubmittingScore, setIsSubmittingScore] = useState(false); // 是否正在提交分数
   // eslint-disable-next-line no-unused-vars
   const [inputHistory, setInputHistory] = useState([]); // 输入历史记录，用于智能退格
+  const justUpdatedScoreRef = useRef(false); // 标记是否刚刚更新过分数，避免重复获取
 
   // 当题目ID变化时，获取题目详情数据
   useEffect(() => {
@@ -115,18 +116,25 @@ const QuestionAnalysis = () => {
   // 当学生或题目变化时，获取学生答案信息
   useEffect(() => {
     console.log("currentStudent", currentStudent);
+    
+    // 如果刚刚更新过分数，跳过本次获取（避免覆盖刚改的分数）
+    if (justUpdatedScoreRef.current) {
+      justUpdatedScoreRef.current = false;
+      return;
+    }
+    
     const fetchStudentAnswer = async () => {
       if (currentStudent && gradingId) {
         try {
-          // 根据API文档，使用 student_no 参数（兼容 studentNo 和 student_name）
-          const studentNo = currentStudent.studentNo || currentStudent.student_name;
+          // 根据API文档，使用 student_no 参数（优先使用实际字段 student_name）
+          const studentNo = currentStudent.student_name || currentStudent.studentNo;
           if (!studentNo) {
             console.error("学生学号不存在");
             return;
           }
 
-          // 后端实际实现为PUT方法，参数在请求体中
-          const answerRes = await request.put(`/exam-question/grading`, {
+          // 使用GET方法，参数作为查询参数
+          const answerRes = await request.get(`/exam-question/grading`, {
             grading_id: gradingId,
             student_no: studentNo,
             question_id: currentQuestionId,
@@ -159,6 +167,13 @@ const QuestionAnalysis = () => {
       return;
     }
 
+    // 获取题目满分
+    const maxScore = questionDetail?.score;
+    if (!maxScore || maxScore <= 0) {
+      antdMessage.warning("无法获取题目满分信息");
+      return;
+    }
+
     // 将字符串分数转换为数字
     const scoreValue = parseFloat(manualScore);
 
@@ -169,8 +184,8 @@ const QuestionAnalysis = () => {
     }
 
     // 检查分数是否在有效范围内
-    if (scoreValue < 0 || scoreValue > (questionDetail?.score || 0)) {
-      antdMessage.warning(`分数必须在0到${questionDetail?.score || 0}之间`);
+    if (scoreValue < 0 || scoreValue > maxScore) {
+      antdMessage.warning(`分数必须在0到${maxScore}分之间`);
       return;
     }
 
@@ -180,48 +195,50 @@ const QuestionAnalysis = () => {
       return;
     }
 
-    // 获取题目满分
-    const maxScore = questionDetail?.score || 0;
-
     setIsSubmittingScore(true);
     try {
-      // 计算 isCorrect 和 isPartial
-      const isCorrect = scoreValue === maxScore;
-      const isPartial = scoreValue > 0 && scoreValue < maxScore;
-
-      // 调用新的API接口提交手动改分（PUT方法）
-      const response = await request.put(`/exam-question/grading/score-update`, {
+      // 准备请求参数，确保分数是数字类型
+      const requestData = {
         gradingId: gradingId,
-        studentNo: currentStudent.studentNo || currentStudent.student_name, // 兼容旧数据
+        studentNo: currentStudent.student_name || currentStudent.studentNo, // 优先使用实际字段 student_name
         questionId: currentQuestionId,
-        score: scoreValue,
-        comment: `教师手动改分：${scoreValue}分`,
-        isCorrect: isCorrect,
-        isPartial: isPartial,
-      });
+        question_type: currentQuestion.question_type, // 题目类型
+        old_score: Number(studentAnswer?.score || 0), // 确保是数字类型
+        new_score: Number(scoreValue), // 确保是数字类型
+      };
+      
+      // 调用新的API接口提交手动改分（PUT方法）
+      const response = await request.put(`/exam-question/grading/score-update`, requestData);
 
       if (response.code === "200" || response.code === 200) {
         antdMessage.success("改分成功");
         
-        // 更新学生答案数据
+        // 立即更新学生答案数据，避免闪回
         setStudentAnswer({
           ...studentAnswer,
           score: scoreValue,
         });
 
-        // 刷新学生列表以更新总分
-        const studentsRes = await request.get(`/exam-question/student-list`, {
+        // 设置标志位，防止useEffect重复获取覆盖刚改的分数
+        justUpdatedScoreRef.current = true;
+
+        // 刷新学生列表以更新总分（不会影响当前答案显示）
+        request.get(`/exam-question/student-list`, {
           grading_id: gradingId,
+        }).then((studentsRes) => {
+          if (studentsRes.data && studentsRes.data.length > 0) {
+            setStudents(studentsRes.data);
+          }
+        }).catch((error) => {
+          console.error("刷新学生列表失败:", error);
         });
-        if (studentsRes.data && studentsRes.data.length > 0) {
-          setStudents(studentsRes.data);
-        }
       } else {
         antdMessage.error(response.message || "改分失败");
       }
     } catch (error) {
       console.error("提交改分失败:", error);
-      antdMessage.error("提交改分失败，请稍后重试");
+      const errorMsg = error.response?.data?.message || error.message || "提交改分失败，请稍后重试";
+      antdMessage.error(errorMsg);
     } finally {
       setIsSubmittingScore(false);
     }
@@ -229,7 +246,13 @@ const QuestionAnalysis = () => {
 
   // 数字键盘按钮点击处理
   const handleNumberClick = (num) => {
-    const maxScore = questionDetail?.score || 0;
+    const maxScore = questionDetail?.score;
+    
+    // 如果没有满分信息，不允许操作
+    if (!maxScore || maxScore <= 0) {
+      antdMessage.warning("无法获取题目满分信息");
+      return;
+    }
     
     if (num === ".5") {
       // 点击 .5 按钮：在当前整数基础上加 0.5
@@ -239,6 +262,7 @@ const QuestionAnalysis = () => {
       
       // 检查是否超过满分
       if (newValue > maxScore) {
+        antdMessage.warning(`分数不能超过满分${maxScore}分`);
         return;
       }
       
@@ -255,6 +279,7 @@ const QuestionAnalysis = () => {
       
       // 检查是否超过满分
       if (numValue > maxScore) {
+        antdMessage.warning(`分数不能超过满分${maxScore}分`);
         return;
       }
       
@@ -289,9 +314,13 @@ const QuestionAnalysis = () => {
 
   // 满分按钮处理
   const handleFullScore = () => {
-    const fullScore = String(questionDetail?.score || 0);
-    setManualScore(fullScore);
-    setInputHistory([fullScore]); // 记录满分值，以便退格删除
+    const fullScore = questionDetail?.score;
+    if (!fullScore || fullScore <= 0) {
+      antdMessage.warning("无法获取题目满分信息");
+      return;
+    }
+    setManualScore(String(fullScore));
+    setInputHistory([String(fullScore)]); // 记录满分值，以便退格删除
   };
 
   // 零分按钮处理
