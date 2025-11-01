@@ -652,7 +652,7 @@ const BlankQuestionModal = ({
         items={[
           {
             key: "short",
-            label: "短填空",
+            label: "填空题",
             children: (
               <>
                 <ShortFillQuestionSection

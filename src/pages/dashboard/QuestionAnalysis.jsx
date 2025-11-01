@@ -460,7 +460,8 @@ const QuestionAnalysis = () => {
                         justifyContent: "flex-end",
                         marginBottom: "8px",
                         cursor: "pointer",
-                        width: 80,
+                        minWidth: 80,
+                        whiteSpace: "nowrap",
                       }}
                       onClick={() => setChoiceExpanded(!choiceExpanded)}
                     >
@@ -471,8 +472,6 @@ const QuestionAnalysis = () => {
                     </div>
                     <div
                       style={{
-                        display: "flex",
-                        flexWrap: "wrap",
                         flex: 1,
                         marginLeft: "20px",
                       }}
@@ -601,7 +600,8 @@ const QuestionAnalysis = () => {
                         marginBottom: "8px",
                         cursor: "pointer",
                         justifyContent: "flex-end",
-                        width: 80,
+                        minWidth: 80,
+                        whiteSpace: "nowrap",
                       }}
                       onClick={() => setNonChoiceExpanded(!nonChoiceExpanded)}
                     >
@@ -613,47 +613,47 @@ const QuestionAnalysis = () => {
                     <div
                       style={{
                         flex: 1,
-                        display: "flex",
-                        flexWrap: "wrap",
                         marginLeft: "20px",
                       }}
                     >
-                      {/* 第一个题目，总是显示 */}
-                      {questions
-                        .filter((q) => q.question_type !== "choice")
-                        .slice(0, questionsPerRow)
-                        .map((question) => {
-                          return (
-                            <span
-                              key={question.question_id}
-                              onClick={() =>
-                                setCurrentQuestionId(question.question_id)
-                              }
-                              style={{
-                                width: "40px",
-                                height: "30px",
-                                margin: "0 4px",
-                                borderRadius: "4px",
-                                border: "1px solid #d9d9d9",
-                                backgroundColor:
-                                  question.question_id === currentQuestionId
-                                    ? "oklch(.7 .2 254)"
-                                    : "#fff",
-                                color:
-                                  question.question_id === currentQuestionId
-                                    ? "#fff"
-                                    : "#000",
-                                cursor: "pointer",
-                                fontSize: "14px",
-                                fontWeight: "bold",
-                                lineHeight: "30px",
-                                textAlign: "center",
-                              }}
-                            >
-                              {question.question_id}
-                            </span>
-                          );
-                        })}
+                      {/* 第一行题目，总是显示 */}
+                      <div style={{ display: "flex" }}>
+                        {questions
+                          .filter((q) => q.question_type !== "choice")
+                          .slice(0, questionsPerRow)
+                          .map((question) => {
+                            return (
+                              <span
+                                key={question.question_id}
+                                onClick={() =>
+                                  setCurrentQuestionId(question.question_id)
+                                }
+                                style={{
+                                  width: "40px",
+                                  height: "30px",
+                                  margin: "0 4px",
+                                  borderRadius: "4px",
+                                  border: "1px solid #d9d9d9",
+                                  backgroundColor:
+                                    question.question_id === currentQuestionId
+                                      ? "oklch(.7 .2 254)"
+                                      : "#fff",
+                                  color:
+                                    question.question_id === currentQuestionId
+                                      ? "#fff"
+                                      : "#000",
+                                  cursor: "pointer",
+                                  fontSize: "14px",
+                                  fontWeight: "bold",
+                                  lineHeight: "30px",
+                                  textAlign: "center",
+                                }}
+                              >
+                                {question.question_id}
+                              </span>
+                            );
+                          })}
+                      </div>
 
                       {/* 其他题目，根据展开状态决定是否显示 */}
                       {nonChoiceExpanded && (

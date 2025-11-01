@@ -8,7 +8,6 @@ import { calculateElementPosition } from "../../../utils/tools";
 const ShortFillRenderer = React.forwardRef(
   ({ questions, pageRef, onPositionUpdate }, ref) => {
     const { blanksPerLine, questions: subQuestions } = questions;
-    console.log("blanksPerLine 短填空渲染", questions);
 
     // 创建ref集合用于存储每个短填空元素的DOM引用
     const blankItemRefs = useRef({});

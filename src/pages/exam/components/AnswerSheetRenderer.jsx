@@ -173,9 +173,26 @@ const AnswerSheetRenderer = forwardRef(
             }
 
             // 更新位置信息
+            // 对于 longFillPositions 和 shortFillPositions，需要合并 positionsInfo
+            const needMergePositions = 
+              positionInfoWithPage.type === "longFillPositions" || 
+              positionInfoWithPage.type === "shortFillPositions";
+            
             return {
               ...prev,
-              [identifier]: positionInfoWithPage,
+              [identifier]: needMergePositions
+                ? {
+                    ...positionInfoWithPage,
+                    positionsInfo: {
+                      ...(prev[identifier]?.positionsInfo || {}),  // 保留已有的
+                      ...(positionInfoWithPage.positionsInfo || {}),  // 添加新的
+                    },
+                    shortFillPositionsInfo: {
+                      ...(prev[identifier]?.shortFillPositionsInfo || {}),  // 保留已有的
+                      ...(positionInfoWithPage.shortFillPositionsInfo || {}),  // 添加新的
+                    },
+                  }
+                : positionInfoWithPage,  // 其他类型直接覆盖
             };
           });
         };

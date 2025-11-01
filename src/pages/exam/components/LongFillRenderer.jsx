@@ -8,21 +8,12 @@ import { calculateElementPosition } from "../../../utils/tools";
 const LongFillRenderer = React.forwardRef(
   ({ questions, pageRef, onPositionUpdate }, ref) => {
     const { questions: subQuestions, sliceQuestion } = questions;
-    console.log(questions.questionNumber, subQuestions);
-    console.log(
-      "subQuestions 简答题渲染",
-      questions.questionNumber,
-      sliceQuestion,
-      questions
-    );
-    // debugger
 
     // 创建ref集合用于存储每个小题的DOM元素引用
     const questionItemRefs = useRef({});
 
     // 先处理数据数组，生成结构化的数据
     const processedQuestions = [];
-    // console.log("题目数据", subQuestions, questions);
     subQuestions.forEach((subItem) => {
       if (subItem.isAddSubQuestionClicked && subItem.subQuestions) {
         // 处理带有小题的情况
@@ -63,11 +54,6 @@ const LongFillRenderer = React.forwardRef(
         });
       }
     });
-    console.log(
-      "processedQuestions 简答题渲染 处理完的数据",
-      questions.questionNumber,
-      processedQuestions
-    );
     
     // 为每个小题计算位置并收集更新信息
     useEffect(() => {
@@ -78,40 +64,20 @@ const LongFillRenderer = React.forwardRef(
         const timer = setTimeout(() => {
           // 只获取位置信息，不修改subQuestions数据
           const positionsInfo = {};
-          // debugger;
 
-          // 遍历所有题目收集位置信息
-          subQuestions.forEach((subItem) => {
-            if (subItem.isAddSubQuestionClicked && subItem.subQuestions) {
-              // 处理带有小题的情况
-              subItem.subQuestions.forEach((subQuestion) => {
-                const questionRef = questionItemRefs.current[subQuestion.id];
-                if (questionRef) {
-                  const positionInfo = calculateElementPosition(
-                    questionRef,
-                    pageRef
-                  );
-
-                  positionsInfo[subQuestion.id] = {
-                    ...positionInfo,
-                    questionType: "longFillSubQuestion",
-                  };
-                }
-              });
-            } else if (subItem.linesPerQuestion) {
-              // 处理没有小题的情况
-              const questionRef = questionItemRefs.current[subItem.id];
-              if (questionRef) {
-                const positionInfo = calculateElementPosition(
-                  questionRef,
-                  pageRef
-                );
-
-                positionsInfo[subItem.id] = {
-                  ...positionInfo,
-                  questionType: "longFillQuestion",
-                };
-              }
+          // ✅ 修复：只遍历当前页面实际渲染的题目（processedQuestions）
+          processedQuestions.forEach((question) => {
+            const questionRef = questionItemRefs.current[question.id];
+            if (questionRef) {
+              const positionInfo = calculateElementPosition(
+                questionRef,
+                pageRef
+              );
+              const isSubQuestion = question.innerQuestionNumber !== undefined;
+              positionsInfo[question.id] = {
+                ...positionInfo,
+                questionType: isSubQuestion ? "longFillSubQuestion" : "longFillQuestion",
+              };
             }
           });
 
@@ -130,7 +96,7 @@ const LongFillRenderer = React.forwardRef(
         // 清理定时器
         return () => clearTimeout(timer);
       }
-    }, [onPositionUpdate, pageRef, questions]); // 添加依赖项，在数据编辑后重新计算位置信息
+    }, [onPositionUpdate, pageRef, questions, processedQuestions]); // 添加依赖项，在数据编辑后重新计算位置信息
 
     // 渲染函数，基于处理好的数据数组进行渲染
     const renderLongFillQuestions = () => {
@@ -171,7 +137,7 @@ const LongFillRenderer = React.forwardRef(
                   ? `(${question.innerQuestionNumber})`
                   : ""}
                 &nbsp;
-                {(question.innerQuestionNumber || question.questionNumber) && question.pointsPerLine
+                {questions.showSubQuestionScore && (question.innerQuestionNumber || question.questionNumber) && question.pointsPerLine
                   ? `(${question.pointsPerLine}分)`
                   : ""}
               </div>

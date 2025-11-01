@@ -787,25 +787,11 @@ const ShortFillQuestionSection = ({
             <Select.Option value={7}>7</Select.Option>
             <Select.Option value={8}>8</Select.Option>
             <Select.Option value={9}>9</Select.Option>
-            <Select.Option value={10}>10</Select.Option>
-          </Select>
-          <span>空</span>
-          <div
-            style={{
-              marginLeft: 50,
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <Checkbox
-              checked={showSubQuestionScore}
-              onChange={(e) => setShowSubQuestionScore(e.target.checked)}
-            >
-              小题显示分数
-            </Checkbox>
-          </div>
-        </div>
+          <Select.Option value={10}>10</Select.Option>
+        </Select>
+        <span>空</span>
       </div>
+    </div>
     </>
   );
 };
