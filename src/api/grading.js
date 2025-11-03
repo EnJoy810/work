@@ -55,6 +55,21 @@ export const alterSentenceFeedbacks = (params) => {
 };
 
 /**
+ * 修改作文分数（PUT请求）
+ * @param {Object} data - 请求参数（JSON body，使用下划线命名）
+ * @param {number} data.essay_result_id - 作文结果ID（必填）
+ * @param {string} data.grading_id - 批改会话ID（必填）
+ * @param {string} data.student_no - 学号（必填）
+ * @param {number} data.old_score - 旧分数（必填）
+ * @param {number} data.new_score - 新分数（必填）
+ * @returns {Promise} 返回Promise对象
+ */
+export const alterScore = (data) => {
+  // 直接传递下划线格式的参数给后端
+  return request.put("/essay-result/alter-score", data);
+};
+
+/**
  * 删除批改会话（DELETE请求）
  * @param {Object} data - 请求参数（JSON body）
  * @param {string} data.grading_id - 批改会话ID（必填，下划线命名）
@@ -80,6 +95,8 @@ export default {
   getGradingResults,
   getEssayResult,
   alterSentenceFeedbacks,
+  alterScore,
   deleteGrading,
   updateGuideline,
 };
+

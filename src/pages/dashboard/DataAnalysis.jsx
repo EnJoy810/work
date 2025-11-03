@@ -285,7 +285,7 @@ const DataAnalysis = () => {
         loading={loading}
         pagination={false}
         scroll={{ x: 1200 }}
-        rowKey="seat_number"
+        rowKey={(record, index) => record.seat_number || `student-${record.student_name || index}`}
         className="data-analysis-table"
       />
 
