@@ -55,6 +55,16 @@ export const alterSentenceFeedbacks = (params) => {
 };
 
 /**
+ * 删除批改会话（DELETE请求）
+ * @param {Object} data - 请求参数（JSON body）
+ * @param {string} data.grading_id - 批改会话ID（必填，下划线命名）
+ * @returns {Promise} 返回Promise对象
+ */
+export const deleteGrading = (data) => {
+  return request.delete("/grading", data);
+};
+
+/**
  * 更新评分细则（PUT请求）
  * @param {Object} data - 请求参数（JSON body）
  * @param {string} data.exam_id - 考试ID（必填）
@@ -70,5 +80,6 @@ export default {
   getGradingResults,
   getEssayResult,
   alterSentenceFeedbacks,
+  deleteGrading,
   updateGuideline,
 };

@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button } from "antd";
+import { Card, Button, Modal, message } from "antd";
 import {
   UploadOutlined,
   FileTextOutlined,
   ClockCircleOutlined,
   BarChartOutlined,
   ExclamationCircleOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import ScoreRulesModal from "./ScoreRulesModal";
 import { formatDate } from "../../../utils/tools";
+import { deleteGrading } from "../../../api/grading";
 import "../styles/ExamCard.css";
 
 /**
@@ -16,8 +18,9 @@ import "../styles/ExamCard.css";
  * @param {Object} props
  * @param {Object} props.exam - 考试数据
  * @param {Function} props.navigate - 路由导航函数
+ * @param {Function} props.onDelete - 删除后的回调函数
  */
-const ExamCard = ({ exam, navigate }) => {
+const ExamCard = ({ exam, navigate, onDelete }) => {
   // 控制评分细则弹窗的显示状态
   const [scoreRulesModalVisible, setScoreRulesModalVisible] = useState(false);
   // 控制评分过程显示的状态
@@ -58,6 +61,39 @@ const ExamCard = ({ exam, navigate }) => {
   }, [exam.status, scoreProcessSteps.length]);
 
   // 时间格式化函数：从utils/tools.js导入的公共方法
+
+  // 删除考试
+  const handleDeleteExam = () => {
+    if (!exam.grading_id) {
+      message.error("缺少考试ID");
+      return;
+    }
+
+    Modal.confirm({
+      title: "确认删除",
+      content: `确定要删除考试"${exam.paper_title}"吗？删除后将无法恢复，所有批改数据都会被清除。`,
+      okText: "确定删除",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: async () => {
+        try {
+          message.loading({ content: "正在删除考试...", key: "deleteExam" });
+          
+          await deleteGrading({ grading_id: exam.grading_id });
+          
+          message.success({ content: "考试已删除", key: "deleteExam", duration: 2 });
+          
+          // 调用父组件的刷新函数
+          if (onDelete) {
+            onDelete();
+          }
+        } catch (error) {
+          console.error("删除考试失败:", error);
+          message.error({ content: "删除考试失败，请稍后重试", key: "deleteExam" });
+        }
+      },
+    });
+  };
 
   // 根据状态获取对应的图标样式
   const getStatusIcon = (status) => {
@@ -203,8 +239,7 @@ const ExamCard = ({ exam, navigate }) => {
               color: "#666",
             }}
           >
-            <span>班级id： {exam.class_id}</span>
-            <span style={{ marginLeft: "20px" }}>
+            <span>
               创建时间: {formatDate(exam.created_time, "YYYY-MM-DD")}
             </span>
             {/* 学科: {exam.subject} 年级: {exam.grade} 总分:
@@ -212,6 +247,16 @@ const ExamCard = ({ exam, navigate }) => {
           </div>
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
+          {/* 删除按钮 - 所有状态都显示在最左边 */}
+          <Button
+            type="default"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleDeleteExam}
+          >
+            删除该考试
+          </Button>
+
           {/* 已完成状态显示查看评分细则、查看评分过程和数据分析 */}
           {/* 完成显示数据分析 */}
           {(exam.status === "READY" ||

@@ -166,7 +166,7 @@ const Home = () => {
                 style={{ border: "none" }}
                 className="recent-exam-item"
               >
-                <ExamCard exam={exam} navigate={navigate} />
+                <ExamCard exam={exam} navigate={navigate} onDelete={fetchExamList} />
               </List.Item>
             )}
             locale={{ emptyText: loading ? "" : "暂无考试数据" }}
