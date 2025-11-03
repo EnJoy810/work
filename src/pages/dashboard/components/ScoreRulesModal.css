@@ -1,0 +1,162 @@
+/* 评分细则模态框样式 */
+
+.score-rules-section {
+  margin-bottom: 20px;
+}
+
+.score-rules-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.score-rule-item {
+  margin-bottom: 15px;
+  padding: 15px;
+  background-color: #fafafa;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.score-rule-item:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.score-rule-item.editing {
+  border: 1px solid #1890ff;
+  background-color: #f6ffed;
+}
+
+.score-rule-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 10px;
+}
+
+.score-rule-title {
+  font-weight: bold;
+  font-size: 16px;
+  color: #262626;
+}
+
+.score-rule-score {
+  color: #1890ff;
+  font-weight: 600;
+}
+
+.score-rule-content {
+  margin-top: 8px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.score-rule-guideline {
+  margin-top: 8px;
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 4px;
+  border-left: 3px solid #1890ff;
+}
+
+.score-rule-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.empty-state-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.4;
+}
+
+/* 编辑模式表单样式 */
+.edit-form-item {
+  margin-bottom: 16px;
+}
+
+.edit-form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #262626;
+}
+
+.edit-form-input,
+.edit-form-textarea {
+  width: 100%;
+  transition: all 0.3s;
+}
+
+.edit-form-input:focus,
+.edit-form-textarea:focus {
+  border-color: #1890ff;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .score-rule-item-header {
+    flex-direction: column;
+  }
+
+  .score-rule-actions {
+    flex-direction: column;
+  }
+
+  .score-rules-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+/* 滚动条美化 */
+.score-rules-modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.score-rules-modal-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.score-rules-modal-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.score-rules-modal-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* 动画效果 */
+.score-rule-item-enter {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.score-rule-item-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 300ms, transform 300ms;
+}
+
+.score-rule-item-exit {
+  opacity: 1;
+}
+
+.score-rule-item-exit-active {
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 300ms, transform 300ms;
+}
+

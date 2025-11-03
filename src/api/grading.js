@@ -54,9 +54,21 @@ export const alterSentenceFeedbacks = (params) => {
   );
 };
 
+/**
+ * 更新评分细则（PUT请求）
+ * @param {Object} data - 请求参数（JSON body）
+ * @param {string} data.exam_id - 考试ID（必填）
+ * @param {string} data.subjective_guideline - 主观题评分细则（JSON字符串）
+ * @param {string} data.essay_guideline - 作文评分细则（JSON字符串）
+ * @returns {Promise} 返回Promise对象
+ */
+export const updateGuideline = (data) => {
+  return request.put("/grading/exam/guideline", data);
+};
+
 export default {
   getGradingResults,
   getEssayResult,
   alterSentenceFeedbacks,
+  updateGuideline,
 };
-
