@@ -190,17 +190,24 @@
 
 .essay-sentence {
   position: relative;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, transform 0.2s;
   cursor: pointer;
   padding: 2px 4px;
   border-radius: 3px;
 }
 
-/* 没有评语的句子悬停时显示灰色背景 - 参考demo */
-.essay-sentence:hover:not(.comment-blue):not(.comment-green):not(.comment-purple):not(.comment-orange):not(.comment-red) {
+/* 悬停状态 - 浅色背景 */
+.essay-sentence.hovered:not(.comment-blue):not(.comment-green):not(.comment-purple):not(.comment-orange):not(.comment-red) {
   background-color: #e5e7eb;
 }
 
+/* 选中状态 - 明显的高亮背景 */
+.essay-sentence.selected {
+  background-color: #bae7ff;
+  font-weight: 500;
+}
+
+/* 旧的highlighted类保持兼容（用于其他可能的场景） */
 .essay-sentence.highlighted {
   background-color: #bae7ff;
   font-weight: 500;
@@ -326,11 +333,12 @@
 
 /* 得分部分 */
 .score-section {
-  height: 70px;
+  height: auto;
+  min-height: 70px;
   margin-bottom: 10px;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .score-section h3 {
@@ -342,7 +350,13 @@
 .score-display {
   display: flex;
   align-items: baseline;
-  margin-bottom: 12px;
+  transition: all 0.2s;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+.score-display:hover {
+  background-color: #f5f5f5;
 }
 
 .score-number {
@@ -355,6 +369,57 @@
   font-size: 16px;
   color: #666;
   margin-left: 8px;
+}
+
+.score-edit-icon {
+  color: #999;
+  transition: color 0.2s;
+}
+
+.score-display:hover .score-edit-icon {
+  color: #1890ff;
+}
+
+/* 改分编辑模式 */
+.score-edit-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.score-input-wrapper {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.score-input {
+  font-size: 32px;
+  font-weight: 600;
+  color: #1890ff;
+  border: 2px solid #1890ff;
+  border-radius: 8px;
+  padding: 4px 12px;
+  width: 120px;
+  text-align: center;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.score-input:focus {
+  border-color: #096dd9;
+  box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
+}
+
+.score-input::-webkit-inner-spin-button,
+.score-input::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+.score-edit-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 /* 多维度评分 */
@@ -460,54 +525,72 @@
 
 /* 不同颜色的句子样式 */
 .essay-sentence.comment-blue {
-  /* 默认状态下没有背景色 */
+  /* 默认状态下没有背景色，只有下划线 */
 }
 
-.essay-sentence.comment-blue:hover {
+.essay-sentence.comment-blue.hovered {
   background-color: rgba(24, 144, 255, 0.1);
 }
 
+.essay-sentence.comment-blue.selected,
 .essay-sentence.comment-blue.highlighted {
   background-color: rgba(24, 144, 255, 0.2);
   font-weight: 500;
 }
 
 .essay-sentence.comment-green {
-  /* 默认状态下没有背景色 */
+  /* 默认状态下没有背景色，只有下划线 */
 }
 
-.essay-sentence.comment-green:hover {
+.essay-sentence.comment-green.hovered {
   background-color: rgba(82, 196, 26, 0.1);
 }
 
+.essay-sentence.comment-green.selected,
 .essay-sentence.comment-green.highlighted {
   background-color: rgba(82, 196, 26, 0.2);
   font-weight: 500;
 }
 
 .essay-sentence.comment-purple {
-  /* 默认状态下没有背景色 */
+  /* 默认状态下没有背景色，只有下划线 */
 }
 
-.essay-sentence.comment-purple:hover {
+.essay-sentence.comment-purple.hovered {
   background-color: rgba(114, 46, 209, 0.1);
 }
 
+.essay-sentence.comment-purple.selected,
 .essay-sentence.comment-purple.highlighted {
   background-color: rgba(114, 46, 209, 0.2);
   font-weight: 500;
 }
 
 .essay-sentence.comment-orange {
-  /* 默认状态下没有背景色 */
+  /* 默认状态下没有背景色，只有下划线 */
 }
 
-.essay-sentence.comment-orange:hover {
+.essay-sentence.comment-orange.hovered {
   background-color: rgba(250, 140, 22, 0.1);
 }
 
+.essay-sentence.comment-orange.selected,
 .essay-sentence.comment-orange.highlighted {
   background-color: rgba(250, 140, 22, 0.2);
+  font-weight: 500;
+}
+
+.essay-sentence.comment-red {
+  /* 默认状态下没有背景色，只有下划线 */
+}
+
+.essay-sentence.comment-red.hovered {
+  background-color: rgba(245, 34, 45, 0.1);
+}
+
+.essay-sentence.comment-red.selected,
+.essay-sentence.comment-red.highlighted {
+  background-color: rgba(245, 34, 45, 0.2);
   font-weight: 500;
 }
 

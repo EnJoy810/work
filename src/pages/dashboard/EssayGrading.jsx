@@ -21,8 +21,8 @@ import {
   UserSwitchOutlined,
   DeleteOutlined,
 } from "@ant-design/icons";
-import { useSearchParams } from "react-router-dom";
-import { getGradingResults, getEssayResult, alterSentenceFeedbacks } from "../../api/grading";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { getGradingResults, getEssayResult, alterSentenceFeedbacks, alterScore, deleteGrading } from "../../api/grading";
 import "./styles/EssayGrading.css";
 
 /**
@@ -31,6 +31,7 @@ import "./styles/EssayGrading.css";
  */
 const EssayGrading = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const grading_id = searchParams.get("grading_id");
   
   // 保存从后端获取的 essay_result_id
@@ -59,10 +60,15 @@ const EssayGrading = () => {
   const [animationKey, setAnimationKey] = useState(0);
  
   // 评分相关
-  const [score, setScore] = useState(currentStudent?.score || 0);
+  const [score, setScore] = useState(currentStudent?.score || 0); // 总分
+  const [essayScore, setEssayScore] = useState(0); // 作文分数
   const [evaluation, _setEvaluation] = useState(
     '文章紧扣"春天与希望"的主题，内容切题，主旨明确。'
   );
+  
+  // 改分相关状态
+  const [isEditingScore, setIsEditingScore] = useState(false);
+  const [editingScoreValue, setEditingScoreValue] = useState(0);
 
   // 可用的颜色池
   const availableColors = ["blue", "green", "purple", "orange", "red"];
@@ -134,7 +140,7 @@ const EssayGrading = () => {
   };
 
   // 加载批改结果列表（包含学生信息）
-  const loadStudentList = async () => {
+  const loadStudentList = async (keepCurrentStudent = false) => {
     if (!grading_id) {
       message.warning("缺少必要参数：grading_id");
       return;
@@ -162,8 +168,8 @@ const EssayGrading = () => {
 
       setStudents(formattedStudents);
 
-      // 默认选中第一个学生并加载其作文
-      if (formattedStudents.length > 0) {
+      // 如果不需要保持当前学生，则默认选中第一个学生并加载其作文
+      if (!keepCurrentStudent && formattedStudents.length > 0) {
         setCurrentStudentIndex(0);
         loadEssayData(formattedStudents[0].studentNo);
       }
@@ -184,7 +190,6 @@ const EssayGrading = () => {
       message.loading({ content: "正在加载作文数据...", key: "loadEssay" });
       const response = await getEssayResult({ grading_id, student_no: studentNo });
       const data = response.data;
-      console.log("data", data);
 
       // 保存 essay_result_id
       if (!data.id) {
@@ -208,11 +213,9 @@ const EssayGrading = () => {
       // 分割作文内容为句子
       const contentSentences = splitSentences(data.student_answer || "");
       setSentences(contentSentences);
-      console.log("contentSentences", contentSentences);
 
       // 转换评语格式：后端 → 前端
       const convertedComments = parsedFeedbacks.map((feedback) => {
-        console.log("feedback", feedback);
         // 在句子数组中查找匹配的句子索引
         const sentenceIndex = contentSentences.findIndex(
           (s) => s.trim() === feedback.sentence.trim()
@@ -232,8 +235,9 @@ const EssayGrading = () => {
         [studentNo]: convertedComments,
       });
 
-      // 更新分数
-      setScore(data.totalScore || 0);
+      // 更新分数（使用下划线命名的字段）
+      setScore(data.total_score || 0); // 总分
+      setEssayScore(data.ai_score || 0); // 作文分数（AI评分）
       
       // 设置作文标题（如果有的话）
       setCurrentEssayTitle(data.title || "作文批改");
@@ -268,6 +272,43 @@ const EssayGrading = () => {
       setShowAddComment(false);
     }
   }, [currentStudent]);
+
+  // 添加点击外部区域取消选中的事件监听
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // 检查点击是否在essay-content之外
+      const essayContent = essayContentRef.current;
+      if (!essayContent) return;
+
+      // 如果点击的是essay-content内的句子，不处理（由句子点击事件处理）
+      const clickedSentence = event.target.closest('.essay-sentence');
+      if (clickedSentence) return;
+
+      // 如果点击的是操作工具栏或弹窗，不处理
+      const clickedToolbar = event.target.closest('.sentence-selection-toolbar');
+      const clickedModal = event.target.closest('.color-selection-modal');
+      if (clickedToolbar || clickedModal) return;
+
+      // 检查当前选中的句子是否有评语
+      if (selectedSentenceIndex >= 0) {
+        const hasComment = getSentenceColor(selectedSentenceIndex) !== "";
+        
+        // 如果没有评语，则取消选中
+        if (!hasComment) {
+          setSelectedSentence(null);
+          setSelectedSentenceIndex(-1);
+          setShowAddComment(false);
+        }
+      }
+    };
+
+    // 添加全局点击监听
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [selectedSentenceIndex, sentenceComments, currentStudent]);
 
   // 处理句子高亮
   const handleSentenceMouseEnter = (index) => {
@@ -482,6 +523,98 @@ const EssayGrading = () => {
     setEditingContent("");
   };
 
+  // 开始编辑分数
+  const handleStartEditScore = () => {
+    setEditingScoreValue(essayScore); // 编辑作文分数
+    setIsEditingScore(true);
+  };
+
+  // 处理分数输入变化
+  const handleScoreInputChange = (e) => {
+    const value = e.target.value;
+    
+    // 允许空字符串（用户正在删除）
+    if (value === '') {
+      setEditingScoreValue('');
+      return;
+    }
+    
+    // 只允许输入数字
+    if (!/^\d+$/.test(value)) {
+      return;
+    }
+    
+    const numValue = parseInt(value, 10);
+    
+    // 验证范围：0-60的自然数
+    if (numValue >= 0 && numValue <= 60) {
+      setEditingScoreValue(numValue);
+    }
+  };
+
+  // 保存修改的分数
+  const handleSaveScore = async () => {
+    if (!essayResultId || !grading_id || !currentStudent) {
+      message.error("缺少必要参数，无法保存分数");
+      return;
+    }
+
+    // 验证分数是否为有效数字
+    if (editingScoreValue === '' || editingScoreValue === null || editingScoreValue === undefined) {
+      message.error("请输入有效的分数");
+      return;
+    }
+
+    const finalScore = typeof editingScoreValue === 'string' ? parseInt(editingScoreValue, 10) : editingScoreValue;
+
+    // 验证分数范围（0-60的自然数）
+    if (isNaN(finalScore) || finalScore < 0 || finalScore > 60) {
+      message.error("分数必须在0-60之间");
+      return;
+    }
+
+    // 如果分数没有变化，直接关闭编辑模式
+    if (finalScore === essayScore) {
+      setIsEditingScore(false);
+      message.info("分数未发生变化");
+      return;
+    }
+
+    try {
+      message.loading({ content: "正在保存分数...", key: "saveScore" });
+      
+      await alterScore({
+        essay_result_id: essayResultId,
+        grading_id: grading_id,
+        student_no: currentStudent.studentNo,
+        old_score: essayScore, // 传入旧的作文分数
+        new_score: finalScore,  // 传入新的作文分数
+      });
+
+      setIsEditingScore(false);
+      
+      // 直接更新本地的作文分数
+      setEssayScore(finalScore);
+      
+      message.success({ content: "分数保存成功", key: "saveScore", duration: 2 });
+      
+      // 重新加载学生列表以更新左侧的作文分数显示（保持当前选中的学生）
+      await loadStudentList(true);
+      
+      // 注意：不重新加载作文数据，因为后端的 ai_score 可能没有立即更新
+      // 直接使用本地更新的分数即可
+    } catch (error) {
+      console.error("保存分数失败:", error);
+      message.error({ content: "保存分数失败，请稍后重试", key: "saveScore" });
+    }
+  };
+
+  // 取消编辑分数
+  const handleCancelEditScore = () => {
+    setIsEditingScore(false);
+    setEditingScoreValue(essayScore); // 恢复为作文分数
+  };
+
   // 保存评语到服务器
   const saveSentenceFeedbacks = async (resultId, commentsArray) => {
     try {
@@ -517,6 +650,40 @@ const EssayGrading = () => {
       console.error("保存评语失败:", error);
       message.error("保存评语失败，请稍后重试");
     }
+  };
+
+  // 删除批改会话
+  const handleDeleteGrading = () => {
+    if (!grading_id) {
+      message.error("缺少批改会话ID");
+      return;
+    }
+
+    Modal.confirm({
+      title: "确认删除",
+      content: "确定要删除这个批改会话吗？删除后将无法恢复，所有批改数据都会被清除。",
+      okText: "确定删除",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: async () => {
+        try {
+          message.loading({ content: "正在删除批改会话...", key: "deleteGrading" });
+          
+          // 调用删除API，参数使用下划线命名
+          await deleteGrading({ grading_id });
+          
+          message.success({ content: "批改会话已删除", key: "deleteGrading", duration: 2 });
+          
+          // 删除成功后跳转回首页
+          setTimeout(() => {
+            navigate("/");
+          }, 500);
+        } catch (error) {
+          console.error("删除批改会话失败:", error);
+          message.error({ content: "删除批改会话失败，请稍后重试", key: "deleteGrading" });
+        }
+      },
+    });
   };
 
   return (
@@ -580,9 +747,19 @@ const EssayGrading = () => {
         <div className="center-panel" ref={essayContentRef}>
           <div className="essay-grading-header">
             <h3>作文批改</h3>
-            <Button type="default" onClick={() => (window.location.href = "/")}>
-              返回首页
-            </Button>
+            <div style={{ display: "flex", gap: "8px" }}>
+              <Button 
+                type="default" 
+                danger 
+                icon={<DeleteOutlined />}
+                onClick={handleDeleteGrading}
+              >
+                删除批改
+              </Button>
+              <Button type="default" onClick={() => navigate("/")}>
+                返回首页
+              </Button>
+            </div>
           </div>
           <div className="essay-card">
             <h3 className="essay-title">{currentEssayTitle}</h3>
@@ -595,15 +772,15 @@ const EssayGrading = () => {
               {sentences.map((sentence, index) => {
                 const color = getSentenceColor(index);
                 const hasComment = color !== "";
+                const isSelected = index === selectedSentenceIndex;
+                const isHovered = index === highlightedSentenceIndex;
+                
                 return (
                   <span
                     key={index}
                     className={`essay-sentence 
-                      ${
-                        index === highlightedSentenceIndex || hasComment
-                          ? "highlighted"
-                          : ""
-                      } 
+                      ${isSelected ? "selected" : ""}
+                      ${isHovered && !isSelected ? "hovered" : ""} 
                       ${hasComment ? `comment-${color}` : ""}`}
                     style={
                       hasComment
@@ -644,13 +821,58 @@ const EssayGrading = () => {
 
         {/* 右侧：评分内容 */}
         <div className="right-panel">
-          {/* <div className="score-section">
-            <h3>得分</h3>
-            <div className="score-display">
-              <span className="score-number">{score}</span>
-              <span className="score-max">/ 60</span>
-            </div>
-          </div> */}
+          <div className="score-section">
+            <h3>
+              <CheckCircleOutlined style={{ marginRight: "4px" }} /> 作文得分
+            </h3>
+            {isEditingScore ? (
+              <div className="score-edit-mode">
+                <div className="score-input-wrapper">
+                  <input
+                    type="text"
+                    value={editingScoreValue}
+                    onChange={handleScoreInputChange}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleSaveScore();
+                      } else if (e.key === 'Escape') {
+                        handleCancelEditScore();
+                      }
+                    }}
+                    className="score-input"
+                    placeholder="0-60"
+                    autoFocus
+                  />
+                  <span className="score-max">/ 60</span>
+                </div>
+                <div className="score-edit-actions">
+                  <Button
+                    size="small"
+                    onClick={handleCancelEditScore}
+                    className="edit-cancel-btn"
+                  >
+                    取消
+                  </Button>
+                  <Button
+                    size="small"
+                    type="primary"
+                    onClick={handleSaveScore}
+                    className="edit-save-btn"
+                  >
+                    保存
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="score-display" onClick={handleStartEditScore} style={{ cursor: "pointer" }}>
+                <span className="score-number">{essayScore}</span>
+                <span className="score-max">/ 60</span>
+                <EditOutlined className="score-edit-icon" style={{ marginLeft: "8px", fontSize: "16px" }} />
+              </div>
+            )}
+          </div>
+
+          <Divider />
 
           <div className="sentence-comments-section">
             <h4>按句评语</h4>
