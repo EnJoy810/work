@@ -23,6 +23,7 @@ const UploadAnswerSheet = () => {
   const location = useLocation();
   const [answerSheetFile, setAnswerSheetFile] = useState(null);
   const [gradingId, setGradingId] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const { showSuccess, showError, showInfo } = useMessageService();
 
   // 从URL参数中获取grading_id - 使用react-router-dom标准方法
@@ -56,6 +57,9 @@ const UploadAnswerSheet = () => {
     console.log("上传答题卡数据: 已准备FormData");
     console.log("grading_id:", gradingId);
 
+    // 设置上传中状态
+    setUploading(true);
+
     // 直接使用request.post方法调用/grading/grade接口，确保能传递多个参数
     request
       .post("/grading/grade", formData, {
@@ -67,11 +71,13 @@ const UploadAnswerSheet = () => {
         showSuccess("答题卡上传成功，请等候评分完成");
         // 重置状态
         setAnswerSheetFile(null);
+        setUploading(false);
         // 跳转到首页
         navigate("/");
       })
       .catch((error) => {
         console.error("答题卡上传失败:", error);
+        setUploading(false);
         // showError("答题卡上传失败，请重试");
       });
   };
@@ -187,10 +193,12 @@ const UploadAnswerSheet = () => {
           type="primary"
           size="large"
           onClick={handleUploadAnswerSheet}
+          loading={uploading}
+          disabled={uploading}
           style={{ width: "200px", height: "48px", fontSize: "16px" }}
-          icon={<PlusOutlined />}
+          icon={!uploading && <PlusOutlined />}
         >
-          上传答题卡
+          {uploading ? "上传中..." : "上传答题卡"}
         </Button>
       </div>
     </div>
