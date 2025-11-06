@@ -237,7 +237,7 @@ const EssayGrading = () => {
 
       // 更新分数（使用下划线命名的字段）
       setScore(data.total_score || 0); // 总分
-      setEssayScore(data.ai_score || 0); // 作文分数（AI评分）
+      setEssayScore(data.total_score || 0); // 作文分数（最终分数，包含人工修改）
       
       // 设置作文标题（如果有的话）
       setCurrentEssayTitle(data.title || "作文批改");
