@@ -1,75 +1,413 @@
-/* 数据分析页面样式 */
+/* 数据分析 - 专业版样式 */
+
+/* 容器 */
 .data-analysis-container {
   padding: 24px;
-  background-color: #f0f2f5;
+  background: #f0f2f5; /* 纯色背景，去掉渐变 */
   min-height: 100vh;
 }
 
-.data-analysis-header {
+/* 顶部操作栏 */
+.top-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 24px;
-  background-color: #fff;
   padding: 16px 24px;
-  border-radius: 6px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.page-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #262626; /* 去掉渐变，使用纯色 */
+}
+
+.update-time {
+  font-size: 12px;
+  color: #8c8c8c;
+}
+
+/* Tab样式 */
+.main-tabs {
+  background: #fff;
+  padding: 16px 24px 24px;
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+}
+
+.main-tabs .ant-tabs-nav {
+  margin-bottom: 24px;
+}
+
+/* 核心指标大卡片 */
+.core-metrics-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: none;
+  height: 100%;
+  min-height: 280px;
+}
+
+.metric-primary {
+  text-align: center;
+  padding: 24px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metric-primary .metric-label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #595959;
+  margin-bottom: 12px;
+}
+
+.metric-primary .metric-value {
+  font-size: 48px; /* 核心指标数值 */
+  font-weight: 600;
+  color: #1890ff;
+  line-height: 1;
+}
+
+.metric-primary .metric-unit {
+  font-size: 24px; /* 核心指标单位 */
+  font-weight: 500;
+  margin-left: 8px;
+  color: #595959;
+}
+
+/* 次级指标 */
+.metrics-secondary {
+  display: flex;
+  justify-content: space-around;
+  padding: 24px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.metric-item {
+  text-align: center;
+}
+
+.metric-item .metric-label {
+  font-size: 13px;
+  color: #8c8c8c;
+  margin-bottom: 8px;
+}
+
+.metric-value-small {
+  font-size: 24px;
+  font-weight: 600;
+  color: #262626;
+}
+
+.metric-value-small.success {
+  color: #52c41a;
+}
+
+.metric-value-small.warning {
+  color: #faad14;
+}
+
+/* 快速操作 */
+.quick-actions {
+  padding: 16px 20px;
+  background: #fafafa;
+  border-top: 1px solid #f0f0f0;
+}
+
+/* 统计卡片网格容器 */
+.stat-cards-grid {
+  height: 100%;
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stat-row-top,
+.stat-row-bottom {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 小统计卡片 */
+.stat-card-small {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: none;
+  transition: box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.stat-card-small .ant-card-body {
+  padding: 16px 20px;
+}
+
+/* 小卡片标题字体样式（与大卡片标题保持一致） */
+.stat-card-small .ant-statistic-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #595959;
+}
+
+.stat-card-small:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+}
+
+/* 图表卡片 */
+.chart-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.chart-card .ant-card-head {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.chart-card .ant-card-body {
+  padding: 24px;
+}
+
+/* 雷达图容器淡入动画 */
+.chart-card canvas {
+  animation: chartFadeIn 300ms ease-out;
+}
+
+@keyframes chartFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 排行榜卡片 */
+.ranking-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: none;
+  height: 100%;
+}
+
+.ranking-card .ant-card-body {
+  padding: 0;
+  height: calc(100% - 57px); /* 减去卡片头部高度 */
+  display: flex;
+  flex-direction: column;
+}
+
+.ranking-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  transition: background 0.2s ease;
+  flex: 1; /* 让每个条目平均分配空间 */
+}
+
+.ranking-item:last-child {
+  border-bottom: none;
+}
+
+.ranking-item:hover {
+  background: #fafafa;
+}
+
+.ranking-left {
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.ranking-number {
+  font-size: 18px; /* 次级数值 */
+  font-weight: 600;
+  color: #262626; /* 统一为深灰色，不强调排名 */
+  min-width: 32px;
+  text-align: center;
+}
+
+.student-name {
+  font-size: 15px; /* Body Large */
+  font-weight: 500;
+  color: #262626;
+}
+
+.ranking-score {
+  font-size: 18px; /* 次级数值 */
+  font-weight: 600;
+  color: #262626; /* 统一色调 */
+}
+
+/* 题型详情卡片 */
+.subject-detail-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: none;
+  height: 100%;
+}
+
+.subject-item {
+  padding: 16px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.subject-item:last-child {
+  border-bottom: none;
+}
+
+.subject-header {
+  display: flex;
   justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.statistics-row {
-  margin-bottom: 24px;
+.subject-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #262626;
 }
 
-.statistics-row .ant-card {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  border-radius: 8px;
-  transition: all 0.3s ease;
+.subject-rate {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1890ff;
 }
 
-.statistics-row .ant-card:hover {
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+.subject-rate.success {
+  color: #52c41a;
 }
 
-.data-analysis-table {
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+.subject-rate.warning {
+  color: #faad14;
+}
+
+/* 自定义进度条 */
+.subject-bar {
+  width: 100%;
+  height: 12px;
+  background: #f0f0f0;
+  border-radius: 6px;
   overflow: hidden;
 }
 
-.data-analysis-table .ant-table-thead > tr > th {
-  background-color: #fafafa;
-  font-weight: 600;
-  font-size: 14px;
-  color: #262626;
-  border-bottom: 1px solid #f0f0f0;
+.subject-bar-fill {
+  height: 100%;
+  background: #1890ff;
+  border-radius: 6px;
+  width: 0; /* 初始宽度为0 */
 }
 
-.data-analysis-table .ant-table-tbody > tr > td {
-  border-bottom: 1px solid #f0f0f0;
+/* 进度条动画 */
+.subject-bar-fill.animate {
+  animation: progressExpand 1000ms ease-out forwards;
 }
 
-.data-analysis-table .ant-table-tbody > tr:hover > td {
-  background-color: #fafafa;
-}
-
-.pagination-container {
-  margin-top: 16px;
-  background-color: #fff;
-  padding: 16px 24px;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-  display: flex;
-  justify-content: flex-end;
-}
-
-/* 响应式调整 */
-@media (max-width: 1200px) {
-  .statistics-row .ant-col {
-    margin-bottom: 16px;
+@keyframes progressExpand {
+  from {
+    width: 0;
   }
-  
-  .statistics-row .ant-col:last-child {
-    margin-bottom: 0;
+  to {
+    width: var(--target-width);
+  }
+}
+
+.subject-bar-fill.success {
+  background: #52c41a;
+}
+
+.subject-bar-fill.warning {
+  background: #faad14;
+}
+
+/* 诊断区域 */
+.diagnosis-section {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.diagnosis-section h4 {
+  margin-bottom: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #262626;
+}
+
+/* 学生明细卡片 */
+.student-detail-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.filter-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.result-count {
+  font-size: 13px;
+  color: #8c8c8c;
+}
+
+/* 表格优化 */
+.student-detail-card .ant-table {
+  font-size: 14px;
+}
+
+.student-detail-card .ant-table-thead > tr > th {
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.student-detail-card .ant-table-tbody > tr:hover > td {
+  background: #f5f5f5;
+}
+
+/* 响应式设计 */
+@media (max-width: 992px) {
+  .top-actions {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .metric-primary .metric-value {
+    font-size: 36px;
+  }
+
+  .metrics-secondary {
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .filter-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
   }
 }
 
@@ -77,8 +415,34 @@
   .data-analysis-container {
     padding: 16px;
   }
-  
-  .statistics-row .ant-col {
-    width: 100%;
+
+  .main-tabs {
+    padding: 12px 16px 16px;
   }
+
+  .metric-primary .metric-value {
+    font-size: 32px;
+  }
+}
+
+/* 加载状态优化 */
+.ant-skeleton {
+  padding: 24px;
+}
+
+/* Alert优化 */
+.ant-alert {
+  border-radius: 6px;
+}
+
+/* 空状态优化 */
+.ant-empty {
+  margin: 80px 0;
+}
+
+/* 表格卡片 */
+.table-card {
+  border-radius: 8px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  border: none;
 }

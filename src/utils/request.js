@@ -96,6 +96,16 @@ export default {
     });
   },
 
+  // GET请求 - JSON body格式
+  getWithBody(url, data = {}, config = {}) {
+    return request({
+      url,
+      method: "get",
+      data,
+      ...config,
+    });
+  },
+
   // POST请求
   post(url, data = {}, config = {}) {
     return request({
@@ -116,7 +126,7 @@ export default {
     });
   },
 
-  // DELETE请求
+  // DELETE请求 - 使用URL查询参数
   delete(url, params = {}, config = {}) {
     return request({
       url,

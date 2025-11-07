@@ -91,6 +91,102 @@ export const updateGuideline = (data) => {
   return request.put("/grading/exam/guideline", data);
 };
 
+/**
+ * 更新主观题评分细则（PUT请求）
+ * @param {Object} data - 请求参数（JSON body）
+ * @param {string} data.exam_id - 考试ID（必填）
+ * @param {Array} data.guidelines - 主观题评分细则数组
+ * @returns {Promise} 返回Promise对象
+ */
+export const updateSubjectiveGuideline = (data) => {
+  const { exam_id, guidelines } = data;
+  return request.put("/grading/exam/guideline", {
+    exam_id,
+    subjective_guideline: JSON.stringify(guidelines),
+  });
+};
+
+/**
+ * 更新作文评分细则（PUT请求）
+ * @param {Object} data - 请求参数（JSON body）
+ * @param {string} data.exam_id - 考试ID（必填）
+ * @param {Object} data.essay_guideline - 作文评分细则对象
+ * @returns {Promise} 返回Promise对象
+ */
+export const updateEssayGuideline = (data) => {
+  const { exam_id, essay_guideline } = data;
+  return request.put("/grading/exam/guideline", {
+    exam_id,
+    essay_guideline: JSON.stringify(essay_guideline),
+  });
+};
+
+/**
+ * 获取学生列表（用于数据分析）
+ * @param {Object} params - 请求参数
+ * @param {string} params.grading_id - 批改会话ID（必填）
+ * @param {number} params.score_min - 最低分数（可选）
+ * @param {number} params.score_max - 最高分数（可选）
+ * @returns {Promise} 返回Promise对象，包含学生列表
+ */
+export const getStudentsList = (params) => {
+  return request.get("/grading/analysis/students", params);
+};
+
+/**
+ * 获取历史对比数据
+ * @param {Object} params - 请求参数
+ * @param {string} params.grading_id - 批改会话ID（必填）
+ * @param {string} params.compare_type - 对比类型（可选，如 "previous"）
+ * @param {number} params.limit - 返回数量限制（可选）
+ * @returns {Promise} 返回Promise对象，包含对比数据
+ */
+export const getComparisonData = (params) => {
+  return request.get("/grading/analysis/comparison", params);
+};
+
+/**
+ * 导出批改信息（返回下载URL）
+ * @param {string} gradingId - 批改会话ID（必填）
+ * @param {string} studentNo - 学号（可选，如果all=false则必填）
+ * @param {boolean} all - 是否导出全部学生信息（必填，默认true）
+ * @returns {string} 返回下载URL
+ */
+export const exportGradingInfo = (gradingId, studentNo = '', all = true) => {
+  let url = `/api/exam-question/grading/export?grading_id=${gradingId}&all=${all}`;
+  if (studentNo) {
+    url += `&student_no=${studentNo}`;
+  }
+  return url;
+};
+
+/**
+ * 导出统计分析结果（返回下载URL）
+ * @param {string} gradingId - 批改会话ID
+ * @returns {string} 返回下载URL
+ */
+export const exportStatisticAnalysis = (gradingId) => {
+  return `/api/exam-question/grading/export/statistic-analysis?grading_id=${gradingId}`;
+};
+
+/**
+ * 导出作文结果（返回下载URL）
+ * @param {string} gradingId - 批改会话ID
+ * @returns {string} 返回下载URL
+ */
+export const exportEssayResults = (gradingId) => {
+  return `/api/exam-question/grading/export/essay?grading_id=${gradingId}`;
+};
+
+/**
+ * 导出简要学生分数结果（返回下载URL）
+ * @param {string} gradingId - 批改会话ID
+ * @returns {string} 返回下载URL
+ */
+export const exportSimpleScores = (gradingId) => {
+  return `/api/exam-question/grading/export-easy?grading_id=${gradingId}`;
+};
+
 export default {
   getGradingResults,
   getEssayResult,
@@ -98,5 +194,13 @@ export default {
   alterScore,
   deleteGrading,
   updateGuideline,
+  updateSubjectiveGuideline,
+  updateEssayGuideline,
+  getStudentsList,
+  getComparisonData,
+  exportGradingInfo,
+  exportStatisticAnalysis,
+  exportEssayResults,
+  exportSimpleScores,
 };
 

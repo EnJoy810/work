@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Modal, Typography, Button, Input, InputNumber, Form, Space, Popconfirm, message } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
 import request from "../../../utils/request";
-import { updateGuideline } from "../../../api/grading";
+import { updateSubjectiveGuideline, updateEssayGuideline } from "../../../api/grading";
 import "./ScoreRulesModal.css";
 
 const { Title, Text, Paragraph } = Typography;
@@ -108,11 +108,31 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
 
     setSaving(true);
     try {
-      await updateGuideline({
-        exam_id: exam.exam_id,
-        subjective_guideline: JSON.stringify(subjectiveGuidelines),
-        essay_guideline: essayGuideline ? JSON.stringify(essayGuideline) : null,
-      });
+      // 分别调用两个接口更新主观题和作文评分细则
+      const promises = [];
+
+      // 更新主观题评分细则
+      if (subjectiveGuidelines && subjectiveGuidelines.length > 0) {
+        promises.push(
+          updateSubjectiveGuideline({
+            exam_id: exam.exam_id,
+            guidelines: subjectiveGuidelines,
+          })
+        );
+      }
+
+      // 更新作文评分细则
+      if (essayGuideline) {
+        promises.push(
+          updateEssayGuideline({
+            exam_id: exam.exam_id,
+            essay_guideline: essayGuideline,
+          })
+        );
+      }
+
+      // 并行执行所有更新请求
+      await Promise.all(promises);
 
       message.success("评分细则保存成功");
       setIsEditing(false);
