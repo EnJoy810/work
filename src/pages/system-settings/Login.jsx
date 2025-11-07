@@ -94,9 +94,13 @@ const Login = () => {
             
             if (defaultClass && defaultClass.class_id) {
               const firstClassId = defaultClass.class_id;
+              // 先设置到Redux store
               dispatch(setSelectedClassId(firstClassId));
-              // 同步保存到localStorage
+              // 同步保存到localStorage，确保请求拦截器能立即读取
               localStorage.setItem('currentClassId', firstClassId);
+              
+              // 等待Redux Persist完成持久化（增加等待时间确保同步完成）
+              await new Promise(resolve => setTimeout(resolve, 300));
             }
           }
         } catch (classError) {
@@ -105,8 +109,8 @@ const Login = () => {
         }
       }
       
-      // 跳转到首页
-      navigate("/");
+      // 跳转到首页（使用replace避免返回到登录页）
+      navigate("/", { replace: true });
     } catch (error) {
       showError("登录失败，请检查用户名和密码");
       console.error("登录错误:", error);

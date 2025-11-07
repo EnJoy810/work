@@ -106,9 +106,24 @@ const Navbar = () => {
 
   const handleUserMenuClick = (e) => {
     if (e.key === "logout") {
-      // 退出登录逻辑 - 使用Redux清除用户信息和班级信息
+      // 退出登录逻辑 - 彻底清除所有用户和班级数据
+      
+      // 1. 清除Redux state
       dispatch(clearUserInfo());
       dispatch(clearClassInfo());
+      
+      // 2. 清除所有localStorage中的相关数据
+      localStorage.removeItem('currentClassId');
+      localStorage.removeItem('persist:class');
+      localStorage.removeItem('persist:user');
+      
+      // 3. 清除所有可能残留的persist数据
+      Object.keys(localStorage).forEach(key => {
+        if (key.startsWith('persist:')) {
+          localStorage.removeItem(key);
+        }
+      });
+      
       showSuccess("退出登录成功");
       navigate("/login", { replace: true });
     }

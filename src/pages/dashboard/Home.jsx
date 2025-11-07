@@ -36,6 +36,7 @@ const Home = () => {
   const [recentExams, setRecentExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const { userInfo } = useSelector((state) => state.user);
+  const { selectedClassId, classList } = useSelector((state) => state.class);
   const [shouldPoll, setShouldPoll] = useState(false);
 
   // 获取考试列表数据
@@ -56,8 +57,15 @@ const Home = () => {
   };
 
   useEffect(() => {
+    // 确保有班级ID后再发送请求，避免使用旧的班级ID
+    // 如果用户有班级列表但没有selectedClassId，等待Redux状态更新
+    if (classList && classList.length > 0 && !selectedClassId) {
+      console.log("等待班级ID初始化...");
+      return;
+    }
+    
     fetchExamList();
-  }, []);
+  }, [selectedClassId]);
 
   // 当shouldPoll为true时，每2分钟获取一次数据
   useEffect(() => {
