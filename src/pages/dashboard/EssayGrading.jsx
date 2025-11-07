@@ -12,6 +12,7 @@ import {
   Radio,
   Modal,
   message,
+  Image,
 } from "antd";
 import {
   LeftOutlined,
@@ -40,6 +41,15 @@ const EssayGrading = () => {
   // 当前作文信息
   const [currentEssayTitle, setCurrentEssayTitle] = useState("作文标题");
   
+  // 当前作文字数
+  const [currentWordCount, setCurrentWordCount] = useState(0);
+  
+  // 显示模式：识别结果 or 学生图片
+  const [viewMode, setViewMode] = useState("text"); // "text" | "image"
+  
+  // 学生图片 URL（可能是单个或数组）
+  const [studentImages, setStudentImages] = useState([]);
+  
   // 学生列表数据（从后端加载）
   const [students, setStudents] = useState([
 
@@ -60,11 +70,9 @@ const EssayGrading = () => {
   const [animationKey, setAnimationKey] = useState(0);
  
   // 评分相关
-  const [score, setScore] = useState(currentStudent?.score || 0); // 总分
   const [essayScore, setEssayScore] = useState(0); // 作文分数
-  const [evaluation, _setEvaluation] = useState(
-    '文章紧扣"春天与希望"的主题，内容切题，主旨明确。'
-  );
+  const [dimensions, setDimensions] = useState([]); // 维度评分
+  const [overallComment, setOverallComment] = useState(''); // 总评
   
   // 改分相关状态
   const [isEditingScore, setIsEditingScore] = useState(false);
@@ -157,14 +165,21 @@ const EssayGrading = () => {
       }
 
       // 转换学生数据格式
-      const formattedStudents = resultList.map((result) => ({
-        id: result.student_no || result.student_name, // 优先用学号，如果为空则用姓名
-        name: result.student_name,
-        score: result.essay_score || 0, // 显示作文分数
-        status: "待批改",
-        statusType: "warning",
-        studentNo: result.student_no || result.student_name, // 优先用学号，如果为空则用姓名
-      }));
+      const formattedStudents = resultList.map((result) => {
+        // 计算字数（去除空格和换行符）
+        const content = result.student_answer || "";
+        const wordCount = content.replace(/[\s\n\r]/g, "").length;
+        
+        return {
+          id: result.student_no || result.student_name, // 优先用学号，如果为空则用姓名
+          name: result.student_name,
+          score: result.essay_score || 0, // 显示作文分数
+          status: "待批改",
+          statusType: "warning",
+          studentNo: result.student_no || result.student_name, // 优先用学号，如果为空则用姓名
+          wordCount: wordCount, // 添加字数统计
+        };
+      });
 
       setStudents(formattedStudents);
 
@@ -187,6 +202,11 @@ const EssayGrading = () => {
     }
 
     try {
+      // 先清空旧数据，确保切换学生时能立即看到变化
+      setStudentImages([]);
+      setSentences([]);
+      setCurrentWordCount(0);
+      
       message.loading({ content: "正在加载作文数据...", key: "loadEssay" });
       const response = await getEssayResult({ grading_id, student_no: studentNo });
       const data = response.data;
@@ -210,9 +230,39 @@ const EssayGrading = () => {
         }
       }
 
+      // 解析维度评分
+      let parsedDimensions = [];
+      if (data.dimensions) {
+        try {
+          parsedDimensions = typeof data.dimensions === 'string' 
+            ? JSON.parse(data.dimensions) 
+            : data.dimensions;
+        } catch (error) {
+          console.error("解析维度评分失败:", error);
+        }
+      }
+
       // 分割作文内容为句子
       const contentSentences = splitSentences(data.student_answer || "");
       setSentences(contentSentences);
+      
+      // 计算字数（去除空格和换行符）
+      const wordCount = (data.student_answer || "").replace(/[\s\n\r]/g, "").length;
+      setCurrentWordCount(wordCount);
+      
+      // 获取学生图片（从 answer_photo_url 字段）
+      let images = [];
+      if (data.answer_photo_url) {
+        // 如果是字符串 URL，转为数组
+        if (typeof data.answer_photo_url === 'string') {
+          images = [data.answer_photo_url];
+        } else if (Array.isArray(data.answer_photo_url)) {
+          // 如果后端返回的是数组，直接使用
+          images = data.answer_photo_url;
+        }
+      }
+      console.log('学生图片 URL:', images); // 调试日志
+      setStudentImages(images);
 
       // 转换评语格式：后端 → 前端
       const convertedComments = parsedFeedbacks.map((feedback) => {
@@ -236,8 +286,11 @@ const EssayGrading = () => {
       });
 
       // 更新分数（使用下划线命名的字段）
-      setScore(data.total_score || 0); // 总分
       setEssayScore(data.total_score || 0); // 作文分数（最终分数，包含人工修改）
+      
+      // 更新维度评分和总评
+      setDimensions(parsedDimensions);
+      setOverallComment(data.overall_comment || "");
       
       // 设置作文标题（如果有的话）
       setCurrentEssayTitle(data.title || "作文批改");
@@ -262,7 +315,6 @@ const EssayGrading = () => {
     if (currentStudent?.essay?.content) {
       const split = splitSentences(currentStudent.essay.content);
       setSentences(split);
-      setScore(currentStudent.score);
       setHighlightedSentenceIndex(-1);
       setSelectedSentence(null);
       setSelectedSentenceIndex(-1);
@@ -308,6 +360,7 @@ const EssayGrading = () => {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedSentenceIndex, sentenceComments, currentStudent]);
 
   // 处理句子高亮
@@ -342,6 +395,11 @@ const EssayGrading = () => {
       default: "#d9d9d9",
     };
     return colorMap[colorName] || colorMap.default;
+  };
+
+  // 切换显示模式
+  const handleViewModeChange = (e) => {
+    setViewMode(e.target.value);
   };
 
   // 切换学生
@@ -746,7 +804,13 @@ const EssayGrading = () => {
         {/* 中间：作文内容 */}
         <div className="center-panel" ref={essayContentRef}>
           <div className="essay-grading-header">
-            <h3>作文批改</h3>
+            <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
+              <h3 style={{ margin: 0 }}>作文批改</h3>
+              <Radio.Group value={viewMode} onChange={handleViewModeChange} buttonStyle="solid" size="small">
+                <Radio.Button value="text">识别结果</Radio.Button>
+                <Radio.Button value="image">学生图片</Radio.Button>
+              </Radio.Group>
+            </div>
             <div style={{ display: "flex", gap: "8px" }}>
               <Button 
                 type="default" 
@@ -765,10 +829,13 @@ const EssayGrading = () => {
             <h3 className="essay-title">{currentEssayTitle}</h3>
             <div className="student-info-header">
               <div>姓名：{currentStudent?.name}</div>
-              <div>学号：{currentStudent?.id}</div>
+              <div>字数：{currentWordCount}字</div>
             </div>
             <Divider />
-            <div className="essay-content">
+            
+            {/* 根据 viewMode 显示不同内容 */}
+            {viewMode === "text" ? (
+              <div className="essay-content">
               {sentences.map((sentence, index) => {
                 const color = getSentenceColor(index);
                 const hasComment = color !== "";
@@ -798,10 +865,49 @@ const EssayGrading = () => {
                   </span>
                 );
               })}
-            </div>
+              </div>
+            ) : (
+              <div className="student-images-container">
+                {studentImages.length > 0 ? (
+                  <Image.PreviewGroup>
+                    <div className="images-grid">
+                      {studentImages.map((imageUrl, index) => (
+                        <div key={index} className="image-wrapper">
+                          <Image
+                            src={imageUrl}
+                            alt={`学生作答图片 ${index + 1}`}
+                            style={{ 
+                              width: "100%",
+                              borderRadius: "8px",
+                              border: "1px solid #e8e8e8"
+                            }}
+                            placeholder={
+                              <div style={{ 
+                                background: "#f5f5f5", 
+                                height: "400px", 
+                                display: "flex", 
+                                alignItems: "center", 
+                                justifyContent: "center" 
+                              }}>
+                                加载中...
+                              </div>
+                            }
+                          />
+                          <div className="image-label">图片 {index + 1}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </Image.PreviewGroup>
+                ) : (
+                  <div className="no-images-placeholder">
+                    <p>暂无学生图片</p>
+                  </div>
+                )}
+              </div>
+            )}
             
-            {/* 底部导航栏 - 参考demo */}
-            {selectedSentence && !showAddComment && (
+            {/* 底部导航栏 - 参考demo - 只在文字模式下显示 */}
+            {viewMode === "text" && selectedSentence && !showAddComment && (
               <div key={animationKey} className="sentence-selection-toolbar">
                 {/* 功能按钮栏 */}
                 <div className="toolbar-actions">
@@ -872,7 +978,62 @@ const EssayGrading = () => {
             )}
           </div>
 
-          <Divider />
+          <Divider style={{ margin: "12px 0" }} />
+
+          <div className="evaluation-section">
+            <h4>总评</h4>
+            <div className="evaluation-content">
+              {overallComment || "暂无总评"}
+            </div>
+          </div>
+
+          <Divider style={{ margin: "12px 0" }} />
+
+          <div className="evaluation-section">
+            <h4>多维度评分</h4>
+            {dimensions.length > 0 ? (
+              <div className="dimensions-list">
+                {dimensions.map((dimension, index) => {
+                  // 计算得分百分比
+                  const percentage = dimension.maxScore > 0 
+                    ? dimension.studentScore / dimension.maxScore 
+                    : 0;
+                  
+                  // 根据百分比确定等级
+                  let gradeLabel = '';
+                  let gradeColor = '';
+                  if (percentage < 0.5) {
+                    gradeLabel = '差';
+                    gradeColor = '#f5222d'; // 红色
+                  } else if (percentage < 0.8) {
+                    gradeLabel = '良';
+                    gradeColor = '#faad14'; // 黄色
+                  } else {
+                    gradeLabel = '优';
+                    gradeColor = '#1890ff'; // 蓝色
+                  }
+                  
+                  return (
+                    <div key={index} className="dimension-item">
+                      <div className="dimension-header">
+                        <span className="dimension-name">{dimension.dimensionName}</span>
+                        <span className="dimension-grade" style={{ color: gradeColor, fontWeight: 'bold' }}>
+                          {gradeLabel}
+                        </span>
+                      </div>
+                      {dimension.comment && (
+                        <div className="dimension-comment">{dimension.comment}</div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="evaluation-content">暂无维度评分</div>
+            )}
+          </div>
+
+          <Divider style={{ margin: "12px 0" }} />
 
           <div className="sentence-comments-section">
             <h4>按句评语</h4>
@@ -947,13 +1108,6 @@ const EssayGrading = () => {
                 );
               })}
             </div>
-          </div>
-
-          <Divider />
-
-          <div className="evaluation-section">
-            <h4>多维度评价</h4>
-            <div className="evaluation-content">{evaluation}</div>
           </div>
         </div>
       </div>

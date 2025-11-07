@@ -260,11 +260,11 @@
 
 /* 按句评语 */
 .sentence-comments-section {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .sentence-comments-section h4 {
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
   font-weight: 600;
 }
@@ -272,14 +272,14 @@
 .sentence-comments {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  height: 50vh; /* 设置固定高度 */
-  overflow-y: auto; /* 内容超出时显示滚动条 */
-  padding-right: 4px; /* 为滚动条留出空间 */
+  gap: 10px;
+  max-height: none; /* 移除固定高度，自适应内容 */
+  overflow-y: visible; /* 不需要滚动条，让右侧面板整体滚动 */
+  padding-right: 0;
 }
 
 .comment-item {
-  padding: 12px;
+  padding: 10px;
   border: 1px solid #e8e8e8;
   border-radius: 6px;
   transition: all 0.3s;
@@ -344,7 +344,7 @@
 .score-section {
   height: auto;
   min-height: 70px;
-  margin-bottom: 10px;
+  margin-bottom: 0;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -433,20 +433,26 @@
 
 /* 多维度评分 */
 .dimensions-section {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .dimensions-section h4 {
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   font-size: 16px;
   font-weight: 600;
 }
 
+.dimensions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .dimension-item {
-  margin-bottom: 16px;
-  padding: 12px;
+  margin-bottom: 0;
+  padding: 10px;
   background-color: #fafafa;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid #e8e8e8;
 }
 
@@ -454,7 +460,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .dimension-name {
@@ -467,6 +473,11 @@
   font-size: 14px;
   font-weight: 600;
   color: #1890ff;
+}
+
+.dimension-grade {
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .dimension-progress {
@@ -486,15 +497,15 @@
 
 .dimension-comment {
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.5;
   color: #666;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 
 /* 评价和改进建议 */
 .evaluation-section,
 .improvement-section {
-  margin-bottom: 20px;
+  margin-bottom: 0;
 }
 
 .evaluation-section h4,
@@ -506,11 +517,11 @@
 
 .evaluation-content,
 .improvement-content {
-  padding: 12px;
+  padding: 10px;
   background-color: #f5f5f5;
   border-radius: 6px;
   font-size: 14px;
-  line-height: 1.6;
+  line-height: 1.5;
 }
 
 /* 滚动条样式 */
@@ -915,4 +926,48 @@
 .edit-save-btn:hover {
   background-color: #2563eb;
   border-color: #2563eb;
+}
+
+/* ===== 学生图片显示区域样式 ===== */
+.student-images-container {
+  padding: 20px;
+  background-color: #fafafa;
+  border-radius: 6px;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.images-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.image-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.image-label {
+  text-align: center;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+}
+
+.no-images-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  font-size: 16px;
+}
+
+.no-images-placeholder p {
+  margin: 0;
 }
