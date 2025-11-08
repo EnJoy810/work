@@ -10,7 +10,7 @@ import {
 } from "../../store/slices/classSlice";
 import { useMessageService } from "../../components/common/message";
 import LogoIcon from "../../components/common/LogoIcon";
-import request from "../../utils/request";
+import { login, getClassList } from "../../api/auth";
 import { encryptPassword } from "../../utils/tools";
 import "../../App.css";
 import "./styles/loginWithShowcase.css";
@@ -54,7 +54,7 @@ const Login = () => {
       }
       
       // 调用后端登录 API
-      const response = await request.post("/auth/login", encryptedValues);
+      const response = await login(encryptedValues);
 
       // 登录成功提示
       showSuccess("登录成功");
@@ -71,10 +71,7 @@ const Login = () => {
       if (response.role === "TEACHER") {
         try {
           // 根据接口文档: GET /api/teacher-class/class_list?teacher_id={teacherId}
-          const classResponse = await request.get(
-            `/teacher-class/class_list`,
-            { teacher_id: response.userId }
-          );
+          const classResponse = await getClassList(response.userId);
 
           // 根据API文档，返回格式为: { code: 200, data: { teacherId, teacherName, classes: [...] }, message }
           // 但实际可能直接是: { code: 200, data: [...], message }

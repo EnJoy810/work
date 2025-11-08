@@ -134,6 +134,15 @@ export const getStudentsList = (params) => {
 };
 
 /**
+ * 获取批改数据分析
+ * @param {string} gradingId - 批改会话ID（必填）
+ * @returns {Promise} 返回Promise对象，包含数据分析结果
+ */
+export const getAnalysisData = (gradingId) => {
+  return request.get("/grading/analysis", { grading_id: gradingId });
+};
+
+/**
  * 获取历史对比数据
  * @param {Object} params - 请求参数
  * @param {string} params.grading_id - 批改会话ID（必填）
@@ -196,6 +205,7 @@ export default {
   updateGuideline,
   updateSubjectiveGuideline,
   updateEssayGuideline,
+  getAnalysisData,
   getStudentsList,
   getComparisonData,
   exportGradingInfo,

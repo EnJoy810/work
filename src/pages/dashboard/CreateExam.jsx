@@ -11,7 +11,7 @@ import {
   Radio,
 } from "antd";
 import { useMessageService } from "../../components/common/message";
-import request from "../../utils/request";
+import { getExamList, getAnswerSheetTemplates, createExam } from "../../api/exam";
 import {
   UploadOutlined,
   FileTextOutlined,
@@ -51,7 +51,7 @@ const CreateExam = () => {
     const fetchExams = async () => {
       setIsLoading(true);
       try {
-        const response = await request.get("/grading/exam/list");
+        const response = await getExamList();
         // 假设API返回的数据结构与现有数据结构一致
         setExistingExams(response.data || []);
       } catch (error) {
@@ -72,12 +72,7 @@ const CreateExam = () => {
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
-        const response = await request.get(
-          "/grading/answer-sheet-template/list",
-          {
-            limit: 50,
-          }
-        );
+        const response = await getAnswerSheetTemplates({ limit: 50 });
         // 假设API返回的数据结构与预期一致
         setTemplateList(response.data || []);
       } catch (error) {
@@ -120,12 +115,7 @@ const CreateExam = () => {
         console.log("创建新考试数据: 已准备FormData");
 
         // 提交到后端接口
-        request
-          .post("/grading/exam/create", formData, {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          })
+        createExam(formData)
           .then(() => {
             showSuccess("考试创建成功");
             navigate("/"); // 返回首页

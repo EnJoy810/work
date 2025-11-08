@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal, Typography, Button, Input, InputNumber, Form, Space, Popconfirm, message } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
-import request from "../../../utils/request";
+import { getExamGuideline } from "../../../api/exam";
 import { updateSubjectiveGuideline, updateEssayGuideline } from "../../../api/grading";
 import "./ScoreRulesModal.css";
 
@@ -42,9 +42,7 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
 
     try {
       // 调用API获取评分细则，传递exam_id参数
-      const response = await request.get("/grading/exam/guideline", {
-        exam_id: exam.exam_id,
-      });
+      const response = await getExamGuideline(exam.exam_id);
       // 假设接口返回的数据格式与模拟数据一致
       setScoreRules(response.data);
       

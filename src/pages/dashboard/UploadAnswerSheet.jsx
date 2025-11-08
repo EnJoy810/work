@@ -8,7 +8,7 @@ import {
   FileProtectOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import request from "../../utils/request";
+import { uploadAnswerSheet } from "../../api/upload";
 import "./styles/home.css";
 
 const { Title, Paragraph } = Typography;
@@ -60,13 +60,8 @@ const UploadAnswerSheet = () => {
     // 设置上传中状态
     setUploading(true);
 
-    // 直接使用request.post方法调用/grading/grade接口，确保能传递多个参数
-    request
-      .post("/grading/grade", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
+    // 调用封装的上传答题卡API
+    uploadAnswerSheet(formData)
       .then(() => {
         showSuccess("答题卡上传成功，请等候评分完成");
         // 重置状态

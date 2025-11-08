@@ -25,7 +25,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
-import request from "../../utils/request";
+import { getGradingList } from "../../api/exam";
 import "./styles/home.css";
 import ExamCard from "./components/ExamCard";
 
@@ -43,7 +43,7 @@ const Home = () => {
   const fetchExamList = async () => {
     try {
       setLoading(true);
-      const response = await request.get("/grading/grading/list");
+      const response = await getGradingList();
       const exams = response.data || [];
       setRecentExams(exams);
       // 检查是否有PENDING或PROCESSING状态的考试

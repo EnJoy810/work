@@ -22,7 +22,13 @@ import {
   SaveOutlined,
 } from "@ant-design/icons";
 import { useSearchParams } from "react-router-dom";
-import request from "../../utils/request";
+import { 
+  getExamQuestionList, 
+  getQuestionDetail, 
+  getStudentList, 
+  getStudentGrading,
+  updateQuestionScore 
+} from "../../api/question";
 import "./styles/QuestionAnalysis.css";
 
 /**
@@ -44,10 +50,7 @@ const QuestionAnalysis = () => {
     const fetchExamData = async () => {
       try {
         // 获取题目数据
-        const questionsRes = await request.get(
-          `/exam-question/exam-question-list`,
-          { exam_id: examId }
-        );
+        const questionsRes = await getExamQuestionList(examId);
         if (questionsRes.data && questionsRes.data.length > 0) {
           setQuestions(questionsRes.data);
           // 设置默认选中第一个题目
@@ -55,9 +58,7 @@ const QuestionAnalysis = () => {
         }
 
         // 获取学生数据
-        const studentsRes = await request.get(`/exam-question/student-list`, {
-          grading_id: gradingId,
-        });
+        const studentsRes = await getStudentList(gradingId);
         // console.log("studentsRes", studentsRes);
         if (studentsRes.data && studentsRes.data.length > 0) {
           setStudents(studentsRes.data);
@@ -96,7 +97,7 @@ const QuestionAnalysis = () => {
     const fetchQuestionDetail = async () => {
       if (currentQuestionId && examId) {
         try {
-          const detailRes = await request.get(`/exam-question`, {
+          const detailRes = await getQuestionDetail({
             exam_id: examId,
             question_id: currentQuestionId,
           });
@@ -134,7 +135,7 @@ const QuestionAnalysis = () => {
           }
 
           // 使用GET方法，参数作为查询参数
-          const answerRes = await request.get(`/exam-question/grading`, {
+          const answerRes = await getStudentGrading({
             grading_id: gradingId,
             student_no: studentNo,
             question_id: currentQuestionId,
@@ -208,7 +209,7 @@ const QuestionAnalysis = () => {
       };
       
       // 调用新的API接口提交手动改分（PUT方法）
-      const response = await request.put(`/exam-question/grading/score-update`, requestData);
+      const response = await updateQuestionScore(requestData);
 
       if (response.code === "200" || response.code === 200) {
         antdMessage.success("改分成功");
@@ -223,9 +224,7 @@ const QuestionAnalysis = () => {
         justUpdatedScoreRef.current = true;
 
         // 刷新学生列表以更新总分（不会影响当前答案显示）
-        request.get(`/exam-question/student-list`, {
-          grading_id: gradingId,
-        }).then((studentsRes) => {
+        getStudentList(gradingId).then((studentsRes) => {
           if (studentsRes.data && studentsRes.data.length > 0) {
             setStudents(studentsRes.data);
           }

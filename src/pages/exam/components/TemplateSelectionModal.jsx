@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Modal, List, Button, Space, Typography, Empty, Spin } from "antd";
 import { useMessageService } from "../../../components/common/message";
-import request from "../../../utils/request";
+import { getAnswerSheetTemplates } from "../../../api/exam";
 import { formatDate } from "../../../utils/tools";
 
 const { Text } = Typography;
@@ -28,12 +28,7 @@ const TemplateSelectionModal = ({ visible, onCancel, onSelect }) => {
 
       setIsLoading(true);
       try {
-        const response = await request.get(
-          "/grading/answer-sheet-template/list",
-          {
-            limit: 50, // 限制获取的模板数量
-          }
-        );
+        const response = await getAnswerSheetTemplates({ limit: 50 });
         // 假设API返回的数据结构与组件需求一致
         setTemplates(response.data || []);
       } catch (error) {

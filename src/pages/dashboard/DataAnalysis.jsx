@@ -42,8 +42,8 @@ import {
 } from "chart.js";
 import { Bar, Radar } from "react-chartjs-2";
 import "./styles/data-analysis.css";
-import request from "../../utils/request";
 import { 
+  getAnalysisData,
   getStudentsList, 
   getComparisonData,
   exportGradingInfo,
@@ -134,9 +134,7 @@ const DataAnalysis = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await request.get("/grading/analysis", {
-        grading_id: id,
-      });
+      const response = await getAnalysisData(id);
       if (response && response.data) {
         setRealData(response.data);
         setLastUpdateTime(new Date());
