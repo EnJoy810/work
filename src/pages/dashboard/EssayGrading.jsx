@@ -24,6 +24,14 @@ import {
 } from "@ant-design/icons";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { getGradingResults, getEssayResult, alterSentenceFeedbacks, alterScore, deleteGrading } from "../../api/grading";
+import {
+  StudentList,
+  EssayContent,
+  ScoreEditor,
+  DimensionScores,
+  SentenceComments,
+  ColorSelectionModal,
+} from "./components/EssayGrading";
 import "./styles/EssayGrading.css";
 
 /**
@@ -59,7 +67,7 @@ const EssayGrading = () => {
   // 视图模式
   const [viewMode, setViewMode] = useState("text"); // "text" | "image"
   
-  // 句子交互状态（合并冗余状态）
+  // 句子交互状态
   const [sentenceInteraction, setSentenceInteraction] = useState({
     highlightedIndex: -1,
     selectedIndex: -1, // 只需要索引，句子可以从 sentences[selectedIndex] 获取
@@ -67,7 +75,7 @@ const EssayGrading = () => {
     showAddComment: false,
   });
   
-  // 编辑状态（合并相关状态）
+  // 编辑状态
   const [editingState, setEditingState] = useState({
     score: null, // null 表示未编辑，数字表示正在编辑的分数
     comment: {
@@ -211,7 +219,6 @@ const EssayGrading = () => {
           images = data.answer_photo_url;
         }
       }
-      console.log('学生图片 URL:', images); // 调试日志
 
       // 转换评语格式：后端 → 前端
       const convertedComments = parsedFeedbacks.map((feedback) => {
@@ -443,6 +450,47 @@ const EssayGrading = () => {
       animationKey: prev.animationKey + 1, // 触发动画
     }));
   }, []); // 空依赖，因为只使用了 setState
+
+  // 使用 useMemo 缓存句子元素，优化渲染性能（必须在所有事件处理函数定义之后）
+  const sentenceElements = useMemo(() => {
+    return essayData.sentences.map((sentence, index) => {
+      const color = getSentenceColor(index);
+      const hasComment = color !== "";
+      const isSelected = index === sentenceInteraction.selectedIndex;
+      const isHovered = index === sentenceInteraction.highlightedIndex;
+      
+      return (
+        <span
+          key={index}
+          className={`essay-sentence 
+            ${isSelected ? "selected" : ""}
+            ${isHovered && !isSelected ? "hovered" : ""} 
+            ${hasComment ? `comment-${color}` : ""}`}
+          style={
+            hasComment
+              ? {
+                  borderBottom: `2px solid ${getColorValue(color)}`,
+                  cursor: "pointer",
+                }
+              : { cursor: "pointer" }
+          }
+          onMouseEnter={() => handleSentenceMouseEnter(index)}
+          onMouseLeave={handleSentenceMouseLeave}
+          onClick={() => handleSentenceClick(sentence, index)}
+        >
+          {sentence}
+        </span>
+      );
+    });
+  }, [
+    essayData.sentences,
+    sentenceInteraction.selectedIndex,
+    sentenceInteraction.highlightedIndex,
+    getSentenceColor, // getSentenceColor 函数（已用 useCallback 包装）
+    handleSentenceMouseEnter,
+    handleSentenceMouseLeave,
+    handleSentenceClick,
+  ]);
 
   // 关闭选中状态（使用 useCallback 优化性能）
   const _handleCloseSelection = useCallback(() => {
@@ -769,235 +817,43 @@ const EssayGrading = () => {
     <div className="essay-grading-container">
       <div className="essay-grading-content">
         {/* 左侧：学生信息 */}
-        <div className="left-panel">
-          <div className="student-navigation">
-            <h3>
-              <UserSwitchOutlined style={{ marginRight: "4px" }} /> 学生导航
-            </h3>
-            <div className="navigation-controls">
-              <Button
-                icon={<LeftOutlined />}
-                onClick={handlePrevStudent}
-                disabled={currentStudentIndex === 0}
-              />
-              <span>
-                {currentStudentIndex + 1}/{students.length}
-              </span>
-              <Button
-                icon={<RightOutlined />}
-                onClick={handleNextStudent}
-                disabled={currentStudentIndex === students.length - 1}
-              />
-            </div>
-          </div>
-          <div className="student-list">
-            {students.map((student, index) => (
-              <div
-                key={`student-${index}`}
-                className={`student-item ${
-                  index === currentStudentIndex ? "active" : ""
-                }`}
-                onClick={() => handleStudentClick(index)}
-              >
-                <div className="student-info">
-                  <div className="student-name">{student.name}</div>
-                  <div className="student-id">学号：{student.id}</div>
-                </div>
-                <div className="student-score-section">
-                  <div className="student-score">{student.score}分</div>
-                  <Badge
-                    status={
-                      student.statusType === "success"
-                        ? "success"
-                        : student.statusType === "processing"
-                        ? "processing"
-                        : "warning"
-                    }
-                    text={student.status}
-                    className="status-badge"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <StudentList
+          students={students}
+          currentStudentIndex={currentStudentIndex}
+          onPrevStudent={handlePrevStudent}
+          onNextStudent={handleNextStudent}
+          onStudentClick={handleStudentClick}
+        />
 
         {/* 中间：作文内容 */}
-        <div className="center-panel" ref={essayContentRef}>
-          <div className="essay-grading-header">
-            <div style={{ display: "flex", alignItems: "baseline", gap: "16px" }}>
-              <h3 style={{ margin: 0 }}>作文批改</h3>
-              <Radio.Group value={viewMode} onChange={handleViewModeChange} buttonStyle="solid" size="small">
-                <Radio.Button value="text">识别结果</Radio.Button>
-                <Radio.Button value="image">学生图片</Radio.Button>
-              </Radio.Group>
-            </div>
-            <div style={{ display: "flex", gap: "8px" }}>
-              <Button 
-                type="default" 
-                danger 
-                icon={<DeleteOutlined />}
-                onClick={handleDeleteGrading}
-              >
-                删除批改
-              </Button>
-              <Button type="default" onClick={() => navigate("/")}>
-                返回首页
-              </Button>
-            </div>
-          </div>
-          <div className="essay-card">
-            <h3 className="essay-title">{essayData.title}</h3>
-            <div className="student-info-header">
-              <div>姓名：{currentStudent?.name}</div>
-              <div>字数：{essayData.wordCount}字</div>
-            </div>
-            <Divider />
-            
-            {/* 根据 viewMode 显示不同内容 */}
-            {viewMode === "text" ? (
-              <div className="essay-content">
-              {essayData.sentences.map((sentence, index) => {
-                const color = getSentenceColor(index);
-                const hasComment = color !== "";
-                const isSelected = index === sentenceInteraction.selectedIndex;
-                const isHovered = index === sentenceInteraction.highlightedIndex;
-                
-                return (
-                  <span
-                    key={index}
-                    className={`essay-sentence 
-                      ${isSelected ? "selected" : ""}
-                      ${isHovered && !isSelected ? "hovered" : ""} 
-                      ${hasComment ? `comment-${color}` : ""}`}
-                    style={
-                      hasComment
-                        ? {
-                            borderBottom: `2px solid ${getColorValue(color)}`,
-                            cursor: "pointer",
-                          }
-                        : { cursor: "pointer" }
-                    }
-                    onMouseEnter={() => handleSentenceMouseEnter(index)}
-                    onMouseLeave={handleSentenceMouseLeave}
-                    onClick={() => handleSentenceClick(sentence, index)}
-                  >
-                    {sentence}
-                  </span>
-                );
-              })}
-              </div>
-            ) : (
-              <div className="student-images-container">
-                {essayData.studentImages.length > 0 ? (
-                  <Image.PreviewGroup>
-                    <div className="images-grid">
-                      {essayData.studentImages.map((imageUrl, index) => (
-                        <div key={index} className="image-wrapper">
-                          <Image
-                            src={imageUrl}
-                            alt={`学生作答图片 ${index + 1}`}
-                            style={{ 
-                              width: "100%",
-                              borderRadius: "8px",
-                              border: "1px solid #e8e8e8"
-                            }}
-                            placeholder={
-                              <div style={{ 
-                                background: "#f5f5f5", 
-                                height: "400px", 
-                                display: "flex", 
-                                alignItems: "center", 
-                                justifyContent: "center" 
-                              }}>
-                                加载中...
-                              </div>
-                            }
-                          />
-                          <div className="image-label">图片 {index + 1}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </Image.PreviewGroup>
-                ) : (
-                  <div className="no-images-placeholder">
-                    <p>暂无学生图片</p>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            {/* 底部导航栏 - 参考demo - 只在文字模式下显示 */}
-            {viewMode === "text" && selectedSentence && !sentenceInteraction.showAddComment && (
-              <div key={sentenceInteraction.animationKey} className="sentence-selection-toolbar">
-                {/* 功能按钮栏 */}
-                <div className="toolbar-actions">
-                  <button className="action-btn" onClick={handleOpenAddComment}>
-                    <EditOutlined className="action-icon" />
-                    <span>添加评语</span>
-                  </button>
-                  <button className="action-btn" onClick={handleDeleteComment}>
-                    <DeleteOutlined className="action-icon" />
-                    <span>删除评语</span>
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+        <EssayContent
+          ref={essayContentRef}
+            essayData={essayData}
+            currentStudent={currentStudent}
+            viewMode={viewMode}
+            sentenceElements={sentenceElements}
+            studentImages={essayData.studentImages}
+            selectedSentence={selectedSentence}
+            showAddComment={sentenceInteraction.showAddComment}
+            animationKey={sentenceInteraction.animationKey}
+            onViewModeChange={handleViewModeChange}
+            onDeleteGrading={handleDeleteGrading}
+            onNavigate={navigate}
+            onOpenAddComment={handleOpenAddComment}
+            onDeleteComment={handleDeleteComment}
+          />
 
         {/* 右侧：评分内容 */}
         <div className="right-panel">
-          <div className="score-section">
-            <h3>
-              <CheckCircleOutlined style={{ marginRight: "4px" }} /> 作文得分
-            </h3>
-            {editingState.score !== null ? (
-              <div className="score-edit-mode">
-                <div className="score-input-wrapper">
-                  <input
-                    type="text"
-                    value={editingState.score}
-                    onChange={handleScoreInputChange}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        handleSaveScore();
-                      } else if (e.key === 'Escape') {
-                        handleCancelEditScore();
-                      }
-                    }}
-                    className="score-input"
-                    placeholder="0-60"
-                    autoFocus
-                  />
-                  <span className="score-max">/ 60</span>
-                </div>
-                <div className="score-edit-actions">
-                  <Button
-                    size="small"
-                    onClick={handleCancelEditScore}
-                    className="edit-cancel-btn"
-                  >
-                    取消
-                  </Button>
-                  <Button
-                    size="small"
-                    type="primary"
-                    onClick={handleSaveScore}
-                    className="edit-save-btn"
-                  >
-                    保存
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <div className="score-display" onClick={handleStartEditScore} style={{ cursor: "pointer" }}>
-                <span className="score-number">{essayData.score}</span>
-                <span className="score-max">/ 60</span>
-                <EditOutlined className="score-edit-icon" style={{ marginLeft: "8px", fontSize: "16px" }} />
-              </div>
-            )}
-          </div>
+          <ScoreEditor
+            score={essayData.score}
+            isEditing={editingState.score !== null}
+            editingScore={editingState.score}
+            onStartEdit={handleStartEditScore}
+            onScoreChange={handleScoreInputChange}
+            onSave={handleSaveScore}
+            onCancel={handleCancelEditScore}
+          />
 
           <Divider style={{ margin: "12px 0" }} />
 
@@ -1010,175 +866,34 @@ const EssayGrading = () => {
 
           <Divider style={{ margin: "12px 0" }} />
 
-          <div className="evaluation-section">
-            <h4>多维度评分</h4>
-            {essayData.dimensions.length > 0 ? (
-              <div className="dimensions-list">
-                {essayData.dimensions.map((dimension, index) => {
-                  // 计算得分百分比
-                  const percentage = dimension.maxScore > 0 
-                    ? dimension.studentScore / dimension.maxScore 
-                    : 0;
-                  
-                  // 根据百分比确定等级
-                  let gradeLabel = '';
-                  let gradeColor = '';
-                  if (percentage < 0.5) {
-                    gradeLabel = '差';
-                    gradeColor = '#f5222d'; // 红色
-                  } else if (percentage < 0.8) {
-                    gradeLabel = '良';
-                    gradeColor = '#faad14'; // 黄色
-                  } else {
-                    gradeLabel = '优';
-                    gradeColor = '#1890ff'; // 蓝色
-                  }
-                  
-                  return (
-                    <div key={index} className="dimension-item">
-                      <div className="dimension-header">
-                        <span className="dimension-name">{dimension.dimensionName}</span>
-                        <span className="dimension-grade" style={{ color: gradeColor, fontWeight: 'bold' }}>
-                          {gradeLabel}
-                        </span>
-                      </div>
-                      {dimension.comment && (
-                        <div className="dimension-comment">{dimension.comment}</div>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="evaluation-content">暂无维度评分</div>
-            )}
-          </div>
+          <DimensionScores dimensions={essayData.dimensions} />
 
           <Divider style={{ margin: "12px 0" }} />
 
-          <div className="sentence-comments-section">
-            <h4>按句评语</h4>
-            <div className="sentence-comments">
-              {sentenceComments.map((comment, commentIndex) => {
-                const isEditing = editingState.comment.index === commentIndex;
-                
-                return (
-                  <div
-                    key={commentIndex}
-                    className={`comment-item  comment-${comment.color}`}
-                    style={{
-                      borderLeft: `4px solid ${getColorValue(comment.color)}`,
-                    }}
-                  >
-                    <div className="comment-header">
-                      <Tag color={comment.color}>带评语</Tag>
-                      <div className="comment-icons">
-                        <Badge dot>
-                          <span>AI</span>
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="original-sentence">
-                      {comment.originalSentence}
-                    </div>
-                    
-                    {isEditing ? (
-                      <div className="comment-edit-mode">
-                        <textarea
-                          value={editingState.comment.content}
-                          onChange={(e) => setEditingState(prev => ({
-                            ...prev,
-                            comment: { ...prev.comment, content: e.target.value }
-                          }))}
-                          className="comment-edit-textarea"
-                          rows={4}
-                          autoFocus
-                        />
-                        <div className="comment-edit-actions">
-                          <Button
-                            size="small"
-                            onClick={handleCancelEdit}
-                            className="edit-cancel-btn"
-                          >
-                            取消
-                          </Button>
-                          <Button
-                            size="small"
-                            type="primary"
-                            onClick={() => handleSaveEdit(commentIndex)}
-                            className="edit-save-btn"
-                          >
-                            保存
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div
-                        className={`comment-content comment-editable ${!comment.comment ? "comment-placeholder" : ""}`}
-                        onClick={() => handleStartEdit(commentIndex, comment.comment)}
-                        title="点击编辑评语"
-                      >
-                        {comment.comment || "请输入评语内容..."}
-                      </div>
-                    )}
-                    
-                    {comment.sentenceIndex === sentenceInteraction.highlightedIndex && !isEditing && (
-                      <div className="improvement-suggestion">
-                        <h5>建议修改：</h5>
-                        <p>段落一下面有冗余的感叹号，节省一点提问空间</p>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <SentenceComments
+            comments={sentenceComments}
+            highlightedIndex={sentenceInteraction.highlightedIndex}
+            editingIndex={editingState.comment.index}
+            editingContent={editingState.comment.content}
+            getColorValue={getColorValue}
+            onStartEdit={handleStartEdit}
+            onContentChange={(e) => setEditingState(prev => ({
+              ...prev,
+              comment: { ...prev.comment, content: e.target.value }
+            }))}
+            onSave={handleSaveEdit}
+            onCancel={handleCancelEdit}
+          />
         </div>
       </div>
 
       {/* 添加评语颜色选择弹窗 */}
-      {sentenceInteraction.showAddComment && (
-        <div className="color-selection-modal">
-          <div className="color-modal-content">
-            <h3 className="color-modal-title">选择评语颜色</h3>
-            <p className="color-modal-sentence">选中的句子：{selectedSentence}</p>
-            
-            <div className="color-buttons-grid">
-              <button
-                onClick={() => handleAddComment("orange")}
-                className="color-btn color-btn-orange"
-              >
-                橙色
-              </button>
-              <button
-                onClick={() => handleAddComment("green")}
-                className="color-btn color-btn-green"
-              >
-                绿色
-              </button>
-              <button
-                onClick={() => handleAddComment("blue")}
-                className="color-btn color-btn-blue"
-              >
-                蓝色
-              </button>
-              <button
-                onClick={() => handleAddComment("purple")}
-                className="color-btn color-btn-purple"
-              >
-                紫色
-              </button>
-            </div>
-            
-            <button
-              onClick={() => setSentenceInteraction(prev => ({ ...prev, showAddComment: false }))}
-              className="color-cancel-btn"
-            >
-              取消
-            </button>
-          </div>
-        </div>
-      )}
+      <ColorSelectionModal
+        selectedSentence={selectedSentence}
+        show={sentenceInteraction.showAddComment}
+        onSelectColor={handleAddComment}
+        onCancel={() => setSentenceInteraction(prev => ({ ...prev, showAddComment: false }))}
+      />
     </div>
   );
 };
