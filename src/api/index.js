@@ -23,3 +23,11 @@ export { default as uploadAPI } from './upload';
 export * from './question';
 export { default as questionAPI } from './question';
 
+// 学生相关API
+export * from './student';
+export { default as studentAPI } from './student';
+
+// 人工阅卷API
+export * from './manual';
+export { default as manualAPI } from './manual';
+

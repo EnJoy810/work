@@ -5,7 +5,7 @@ import { ProtectedRoute, LoginPage } from "./ProtectedRoutes.jsx";
 
 // 解构获取各个页面组件
 const { Home, CreateExam, UploadAnswerSheet, ScoreProcess, DataAnalysis, EssayGrading, QuestionAnalysis } = pages.dashboard;
-const { UserList } = pages.studentManagement;
+const { UserList, ClassManagement } = pages.studentManagement;
 const { NotFound, FeatureUnderDevelopment } = pages;
 const { MessageDemo } = pages.systemSettings;
 const {
@@ -15,6 +15,7 @@ const {
   EnglishPaperDesign,
   ExamPaperPreview,
 } = pages.exam;
+const { ManualReviewPage } = pages.manualReview;
 
 // 创建路由配置
 const router = createBrowserRouter([
@@ -41,6 +42,8 @@ const router = createBrowserRouter([
       { path: "settings", element: <FeatureUnderDevelopment /> },
       { path: "essay-grading", element: <EssayGrading /> },
       { path: "question-analysis", element: <QuestionAnalysis /> },
+      { path: "manual-review", element: <ManualReviewPage /> },
+      { path: "class-management", element: <ClassManagement /> },
       {
         path: "users",
         element: <UserList />,

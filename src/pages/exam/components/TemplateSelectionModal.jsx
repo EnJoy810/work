@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Modal, List, Button, Space, Typography, Empty, Spin } from "antd";
 import { useMessageService } from "../../../components/common/message";
 import { getAnswerSheetTemplates } from "../../../api/exam";
+import { deleteAnswerSheetTemplate } from "../../../api/grading";
 import { formatDate } from "../../../utils/tools";
 
 const { Text } = Typography;
@@ -59,8 +60,7 @@ const TemplateSelectionModal = ({ visible, onCancel, onSelect }) => {
       cancelText: "取消",
       onOk: () => {
         // 调用删除模板的API
-        request
-          .delete(`/grading/answer-sheet-template/${template.id}`)
+        deleteAnswerSheetTemplate({ id: template.id })
           .then(() => {
             // API调用成功后，从模板列表中移除该模板
             setTemplates((prevTemplates) =>

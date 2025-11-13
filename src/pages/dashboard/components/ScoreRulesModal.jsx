@@ -1,12 +1,13 @@
-import { useState, useEffect } from "react";
-import { Modal, Typography, Button, Input, InputNumber, Form, Space, Popconfirm, message } from "antd";
+import { useState, useEffect, useRef } from "react";
+import { Modal, Typography, Button, Input, InputNumber, Form, Space, Popconfirm, message, Tabs } from "antd";
 import { EditOutlined, DeleteOutlined, PlusOutlined, SaveOutlined, CloseOutlined } from "@ant-design/icons";
-import { getExamGuideline } from "../../../api/exam";
-import { updateSubjectiveGuideline, updateEssayGuideline } from "../../../api/grading";
+import { getExamGuideline, getExamPaperDetail } from "../../../api/exam";
+import { alterSubjectiveGuidelines, alterEssayGuidelines, alterChoiceAnswers } from "../../../api/paperDetail";
 import "./ScoreRulesModal.css";
 
 const { Title, Text, Paragraph } = Typography;
 const { TextArea } = Input;
+const { TabPane } = Tabs;
 
 /**
  * 评分细则弹窗组件
@@ -24,11 +25,22 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
   const [saving, setSaving] = useState(false);
   
   // 编辑中的数据
+  const [choiceGuidelines, setChoiceGuidelines] = useState([]); // 选择题评分细则
   const [subjectiveGuidelines, setSubjectiveGuidelines] = useState([]);
   const [essayGuideline, setEssayGuideline] = useState(null);
   
   // 编辑中的项索引
   const [editingIndex, setEditingIndex] = useState(null);
+  
+  // 当前选中的 Tab
+  const [activeTab, setActiveTab] = useState("choice");
+
+  // 从试卷详情中提取的选择题答案与题干映射
+  const [_choiceAnswerMap, setChoiceAnswerMap] = useState(new Map());
+  const [_questionMetaMap, setQuestionMetaMap] = useState(new Map()); // question_id -> { content, score }
+  const originalChoiceGuidelinesRef = useRef([]); // 选择题细则原始快照（用于取消编辑恢复）
+  const originalSubjectiveGuidelinesRef = useRef([]);
+  const originalEssayGuidelineRef = useRef(null);
 
   // 获取评分细则数据
   const fetchScoreRules = async () => {
@@ -41,22 +53,82 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
     setError(null);
 
     try {
-      // 调用API获取评分细则，传递exam_id参数
-      const response = await getExamGuideline(exam.exam_id);
-      // 假设接口返回的数据格式与模拟数据一致
-      setScoreRules(response.data);
-      
-      // 解析并设置编辑数据
-      const subjective = response.data?.subjective_guideline 
-        ? JSON.parse(response.data.subjective_guideline)
+      // 并行获取评分细则与试卷详情（包含 choice_answers、题干与分值）
+      const [guidelineRes, paperRes] = await Promise.all([
+        getExamGuideline(exam.exam_id),
+        getExamPaperDetail(exam.exam_id),
+      ]);
+
+      // 评分细则
+      setScoreRules(guidelineRes.data);
+
+      // 解析细则数据
+      const choice = guidelineRes.data?.choice_guideline
+        ? JSON.parse(guidelineRes.data.choice_guideline)
         : [];
-      setSubjectiveGuidelines(subjective);
-      
-      const essay = response.data?.essay_guideline 
-        ? JSON.parse(response.data.essay_guideline)
+      const subjective = guidelineRes.data?.subjective_guideline
+        ? JSON.parse(guidelineRes.data.subjective_guideline)
+        : [];
+      const essay = guidelineRes.data?.essay_guideline
+        ? JSON.parse(guidelineRes.data.essay_guideline)
         : null;
+
+      // 试卷详情中的答案与题干信息
+      const pa = paperRes?.data;
+      const choiceAnsMap = new Map(
+        (pa?.choice_answers || []).map((a) => [
+          String(a.question_id),
+          (a && (a.answer ?? a.standard_answer)) || "",
+        ])
+      );
+      const metaMap = new Map();
+      (pa?.origin_paper_sections || []).forEach((sec) => {
+        (sec?.question_list || []).forEach((q) => {
+          if (q?.question_id) {
+            metaMap.set(q.question_id, {
+              content: q.content || "",
+              score: q.score ?? 0,
+            });
+          }
+        });
+      });
+      setChoiceAnswerMap(choiceAnsMap);
+      setQuestionMetaMap(metaMap);
+
+      // 用试卷答案与题干补全/生成选择题细则项
+      let mergedChoice = choice.length > 0 ? [...choice] : [];
+
+      if (mergedChoice.length === 0 && choiceAnsMap.size > 0) {
+        // 如果细则里没有选择题项，则基于答案生成初始列表
+        mergedChoice = Array.from(choiceAnsMap.entries()).map(
+          ([qid, ans]) => ({
+            question_id: qid,
+            standard_answer: ans || "",
+          })
+        );
+      } else if (mergedChoice.length > 0) {
+        // 如果已有细则项，优先使用试卷详情中的最新答案；若后端返回空，则保留本地值，避免被清空
+        mergedChoice = mergedChoice.map((item) => {
+          const qid = item.question_id;
+          const fromMap = choiceAnsMap.get(String(qid));
+          const hasNonEmptyMap = typeof fromMap === "string" ? fromMap.trim().length > 0 : !!fromMap;
+          const latest = choiceAnsMap.has(String(qid)) && hasNonEmptyMap
+            ? fromMap
+            : (item.standard_answer || "");
+          return {
+            question_id: qid,
+            standard_answer: latest,
+          };
+        });
+      }
+
+      setChoiceGuidelines(mergedChoice);
+      originalChoiceGuidelinesRef.current = mergedChoice;
+      setSubjectiveGuidelines(subjective);
       setEssayGuideline(essay);
-      
+      originalSubjectiveGuidelinesRef.current = subjective;
+      originalEssayGuidelineRef.current = essay;
+
     } catch (err) {
       console.error("获取评分细则失败:", err);
       setError(err.message || "获取评分细则失败，请稍后重试");
@@ -72,6 +144,7 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
       setIsEditing(false);
       setEditingIndex(null);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, exam?.exam_id]);
 
   // 进入编辑模式
@@ -83,14 +156,34 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
   const handleCancelEdit = () => {
     setIsEditing(false);
     setEditingIndex(null);
-    // 重新从原始数据恢复
-    if (scoreRules) {
-      const subjective = scoreRules?.subjective_guideline 
+    // 优先使用合并后的原始快照进行还原，避免scoreRules缺失选择题导致清空
+    if (originalChoiceGuidelinesRef.current && Array.isArray(originalChoiceGuidelinesRef.current)) {
+      setChoiceGuidelines(originalChoiceGuidelinesRef.current);
+    } else if (scoreRules) {
+      const choice = scoreRules?.choice_guideline
+        ? JSON.parse(scoreRules.choice_guideline)
+        : [];
+      const simplifiedChoice = choice.map(item => ({
+        question_id: item.question_id,
+        standard_answer: item.standard_answer || ""
+      }));
+      setChoiceGuidelines(simplifiedChoice);
+    }
+ 
+    // 其余两类优先使用原始快照
+    if (originalSubjectiveGuidelinesRef.current && Array.isArray(originalSubjectiveGuidelinesRef.current)) {
+      setSubjectiveGuidelines(originalSubjectiveGuidelinesRef.current);
+    } else {
+      const subjective = scoreRules?.subjective_guideline
         ? JSON.parse(scoreRules.subjective_guideline)
         : [];
       setSubjectiveGuidelines(subjective);
-      
-      const essay = scoreRules?.essay_guideline 
+    }
+
+    if (originalEssayGuidelineRef.current) {
+      setEssayGuideline(originalEssayGuidelineRef.current);
+    } else {
+      const essay = scoreRules?.essay_guideline
         ? JSON.parse(scoreRules.essay_guideline)
         : null;
       setEssayGuideline(essay);
@@ -106,36 +199,72 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
 
     setSaving(true);
     try {
-      // 分别调用两个接口更新主观题和作文评分细则
-      const promises = [];
+      // 仅对有改动的模块发起保存请求（脏数据检测）
+      const examId = exam.exam_id; // 新接口要求 examId（驼峰）
+      const tasks = [];
 
-      // 更新主观题评分细则
-      if (subjectiveGuidelines && subjectiveGuidelines.length > 0) {
-        promises.push(
-          updateSubjectiveGuideline({
-            exam_id: exam.exam_id,
-            guidelines: subjectiveGuidelines,
-          })
-        );
+      const changedSubjective = JSON.stringify(subjectiveGuidelines) !== JSON.stringify(originalSubjectiveGuidelinesRef.current || []);
+      const changedEssay = JSON.stringify(essayGuideline) !== JSON.stringify(originalEssayGuidelineRef.current || null);
+      const changedChoice = JSON.stringify(choiceGuidelines) !== JSON.stringify(originalChoiceGuidelinesRef.current || []);
+
+      // 仅保存当前激活Tab的改动，避免多余请求
+      if (activeTab === "subjective") {
+        if (changedSubjective) {
+          tasks.push(
+            alterSubjectiveGuidelines({
+              exam_id: examId,
+              guidelines: subjectiveGuidelines || [],
+            })
+          );
+        }
+      } else if (activeTab === "essay") {
+        if (changedEssay) {
+          tasks.push(
+            alterEssayGuidelines({
+              exam_id: examId,
+              essay_guideline: essayGuideline
+                ? {
+                    question_content: essayGuideline.question_content || "",
+                    total_score: Number(essayGuideline.total_score ?? 0),
+                    grading_guideline: essayGuideline.grading_guideline || "",
+                  }
+                : null,
+            })
+          );
+        }
+      } else if (activeTab === "choice") {
+        if (changedChoice) {
+          tasks.push(
+            alterChoiceAnswers({
+              exam_id: examId,
+              choice_answers: Array.isArray(choiceGuidelines)
+                ? choiceGuidelines.map((it) => ({
+                    question_id: it.question_id,
+                    answer: it.standard_answer || "",
+                    standard_answer: it.standard_answer || "",
+                  }))
+                : [],
+            })
+          );
+        }
       }
 
-      // 更新作文评分细则
-      if (essayGuideline) {
-        promises.push(
-          updateEssayGuideline({
-            exam_id: exam.exam_id,
-            essay_guideline: essayGuideline,
-          })
-        );
+      // 若没有任何修改，直接返回
+      if (tasks.length === 0) {
+        message.info("无可保存的修改");
+        setSaving(false);
+        return;
       }
 
-      // 并行执行所有更新请求
-      await Promise.all(promises);
+      await Promise.all(tasks);
 
       message.success("评分细则保存成功");
       setIsEditing(false);
       setEditingIndex(null);
-      // 重新获取数据
+      // 成功后更新原始快照并可选地刷新
+      originalChoiceGuidelinesRef.current = choiceGuidelines;
+      originalSubjectiveGuidelinesRef.current = subjectiveGuidelines;
+      originalEssayGuidelineRef.current = essayGuideline;
       await fetchScoreRules();
     } catch (error) {
       console.error("保存评分细则失败:", error);
@@ -182,6 +311,48 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
     setSubjectiveGuidelines(updated);
   };
 
+  // 添加新的选择题评分细则
+  const handleAddChoice = () => {
+    // 从试卷详情中选择一个尚未使用的真实 question_id
+    const usedIds = new Set((choiceGuidelines || []).map((i) => i.question_id));
+    const allIds = Array.from(_choiceAnswerMap?.keys?.() ? _choiceAnswerMap.keys() : []);
+    const availableIds = allIds.filter((id) => !usedIds.has(id));
+
+    if (availableIds.length === 0) {
+      message.warning("没有可添加的选择题（已全部添加）");
+      return;
+    }
+
+    const pickId = availableIds[0];
+    const defaultAnswer = _choiceAnswerMap.get(pickId) || "";
+    const newItem = {
+      question_id: pickId,
+      standard_answer: defaultAnswer,
+    };
+    setChoiceGuidelines([...(choiceGuidelines || []), newItem]);
+    setEditingIndex((choiceGuidelines || []).length);
+  };
+
+  // 删除选择题评分细则
+  const handleDeleteChoice = (index) => {
+    const updated = choiceGuidelines.filter((_, i) => i !== index);
+    // 不进行重新编号，保持后端真实 question_id
+    setChoiceGuidelines(updated);
+    if (editingIndex === index) {
+      setEditingIndex(null);
+    }
+  };
+
+  // 更新选择题评分细则
+  const handleUpdateChoice = (index, field, value) => {
+    const updated = [...choiceGuidelines];
+    updated[index] = {
+      ...updated[index],
+      [field]: value,
+    };
+    setChoiceGuidelines(updated);
+  };
+
   // 更新作文评分细则
   const handleUpdateEssay = (field, value) => {
     setEssayGuideline({
@@ -192,7 +363,7 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
 
   return (
     <Modal
-      title={`${exam?.name || "考试"} 评分细则`}
+      title={`${exam?.name || "考试"}评分细则`}
       open={visible}
       onCancel={onCancel}
       footer={
@@ -232,21 +403,109 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
         </div>
       ) : scoreRules || isEditing ? (
         <div className="score-rules-modal-content" style={{ maxHeight: "600px", overflowY: "auto" }}>
-          {/* 主观题评分细则 */}
-          <div className="score-rules-section">
-            <div className="score-rules-header">
-              <Title level={5} style={{ margin: 0 }}>主观题评分细则</Title>
-              {isEditing && (
-                <Button 
-                  type="dashed" 
-                  icon={<PlusOutlined />} 
-                  onClick={handleAddSubjective}
-                  size="small"
-                >
-                  添加题目
-                </Button>
-              )}
-            </div>
+          <Tabs activeKey={activeTab} onChange={setActiveTab}>
+            {/* 选择题评分细则 */}
+            <TabPane tab="选择题" key="choice">
+              <div className="score-rules-section">
+                <div className="score-rules-header">
+                  <Title level={5} style={{ margin: 0 }}>选择题评分细则</Title>
+                  {isEditing && (
+                    <Button 
+                      type="dashed" 
+                      icon={<PlusOutlined />} 
+                      onClick={handleAddChoice}
+                      size="small"
+                    >
+                      添加题目
+                    </Button>
+                  )}
+                </div>
+                
+                {isEditing ? (
+                  <Space direction="vertical" style={{ width: "100%" }} size="middle">
+                    {choiceGuidelines.map((section, index) => (
+                      <div
+                        key={section.question_id || index}
+                        className="score-rule-item editing"
+                        style={{ display: "flex", gap: "10px", alignItems: "center", padding: "8px 0" }}
+                      >
+                        <Text strong>题号：</Text>
+                        <Text style={{ width: "80px" }}>{section.question_id}</Text>
+                        <Text strong>标准答案：</Text>
+                        <Input
+                          value={section.standard_answer}
+                          onChange={(e) => handleUpdateChoice(index, "standard_answer", e.target.value)}
+                          placeholder="请输入标准答案（如：A、B、C等）"
+                          style={{ width: "120px" }}
+                        />
+                        <div style={{ marginLeft: "auto" }}>
+                          <Popconfirm
+                            title="确定要删除这道题目吗？"
+                            onConfirm={() => handleDeleteChoice(index)}
+                            okText="确定"
+                            cancelText="取消"
+                          >
+                            <Button danger icon={<DeleteOutlined />} size="small">
+                              删除
+                            </Button>
+                          </Popconfirm>
+                        </div>
+                      </div>
+                    ))}
+                  </Space>
+                ) : (
+                  <div className="answer-sheet-grid" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, 60px)", gap: "8px", justifyContent: "center" }}>
+                    {choiceGuidelines.map((section, index) => (
+                      <div
+                        key={section.question_id || index}
+                        style={{
+                          border: "1px solid #d9d9d9",
+                          borderRadius: "4px",
+                          padding: "4px",
+                          textAlign: "center",
+                          backgroundColor: "#fafafa",
+                          width: "60px",
+                          height: "60px",
+                          display: "flex",
+                          flexDirection: "column",
+                          justifyContent: "space-between"
+                        }}
+                      >
+                        <div style={{ fontWeight: "bold", fontSize: "12px", color: "#666", flex: "1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {section.question_id}
+                        </div>
+                        <div style={{ fontSize: "18px", fontWeight: "bold", color: "#1890ff", flex: "1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          {section.standard_answer || "__"}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {!isEditing && choiceGuidelines.length === 0 && (
+                  <div className="empty-state">
+                    暂无选择题评分细则
+                  </div>
+                )}
+              </div>
+            </TabPane>
+
+            {/* 主观题评分细则 */}
+            <TabPane tab="主观题" key="subjective">
+              <div className="score-rules-section">
+                <div className="score-rules-header">
+                  <Title level={5} style={{ margin: 0 }}>主观题评分细则</Title>
+                  {isEditing && (
+                    <Button 
+                      type="dashed" 
+                      icon={<PlusOutlined />} 
+                      onClick={handleAddSubjective}
+                      size="small"
+                    >
+                      添加题目
+                    </Button>
+                  )}
+                </div>
             
             {subjectiveGuidelines.map((section, index) => (
               <div
@@ -337,16 +596,18 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
               </div>
             ))}
             
-            {!isEditing && subjectiveGuidelines.length === 0 && (
-              <div className="empty-state">
-                暂无主观题评分细则
+                {!isEditing && subjectiveGuidelines.length === 0 && (
+                  <div className="empty-state">
+                    暂无主观题评分细则
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </TabPane>
 
-          {/* 作文评分标准 */}
-          <div className="score-rules-section">
-            <Title level={5} style={{ marginBottom: "10px" }}>作文评分细则</Title>
+            {/* 作文评分标准 */}
+            <TabPane tab="作文" key="essay">
+              <div className="score-rules-section">
+                <Title level={5} style={{ marginBottom: "10px" }}>作文评分细则</Title>
             
             {essayGuideline ? (
               <div
@@ -410,7 +671,9 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
                 暂无作文评分细则
               </div>
             )}
-          </div>
+              </div>
+            </TabPane>
+          </Tabs>
 
           {!isEditing && (
             <div
@@ -420,9 +683,6 @@ const ScoreRulesModal = ({ visible, onCancel, exam }) => {
                 borderTop: "1px solid #eee",
               }}
             >
-              <Text type="secondary">
-                注：最终评分结果以系统实际计算为准，如有疑问请联系管理员。
-              </Text>
             </div>
           )}
         </div>

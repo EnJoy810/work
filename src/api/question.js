@@ -47,39 +47,19 @@ export const getStudentGrading = (params) => {
 
 /**
  * 修改学生答题分数
- * @param {Object} data - 请求数据
- * @param {string} data.grading_id - 批改会话ID
- * @param {string} data.student_no - 学号
- * @param {string} data.question_id - 题目ID
- * @param {string} data.question_type - 题目类型
- * @param {number} data.old_score - 旧分数
- * @param {number} data.new_score - 新分数
- * @returns {Promise} 返回Promise对象
+ * 文档字段: grading_id, paper_id, question_id, question_type, old_score, new_score
  */
 export const updateQuestionScore = (data) => {
   return request.put("/exam-question/grading/score-update", data);
 };
 
 /**
- * 批量修改分数
- * @param {Object} data - 请求数据
- * @param {string} data.grading_id - 批改会话ID
- * @param {Array} data.score_changes - 分数修改列表
- * @returns {Promise} 返回Promise对象
+ * 获取班级学生列表
+ * @returns {Promise} 返回Promise对象，包含班级学生列表
+ * 注意：class_id通过请求头X-Current-Class自动传递
  */
-export const batchUpdateScores = (data) => {
-  return request.put("/exam-question/batch-alter-score", data);
-};
-
-/**
- * 获取题目统计信息
- * @param {Object} params - 查询参数
- * @param {string} params.grading_id - 批改会话ID
- * @param {string} params.question_id - 题目ID
- * @returns {Promise} 返回Promise对象，包含统计信息
- */
-export const getQuestionStatistics = (params) => {
-  return request.get("/exam-question/statistics", params);
+export const getStudentListByClassId = () => {
+  return request.get("/grading/list-by-class-id");
 };
 
 export default {
@@ -88,7 +68,6 @@ export default {
   getStudentList,
   getStudentGrading,
   updateQuestionScore,
-  batchUpdateScores,
-  getQuestionStatistics,
+  getStudentListByClassId,
 };
 

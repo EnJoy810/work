@@ -971,3 +971,42 @@
 .no-images-placeholder p {
   margin: 0;
 }
+
+/* 学生筛选 Tab 栏（与学生导航对齐） */
+.student-filter-tabs {
+  width: 100%;
+  padding: 0 0 12px 0;
+}
+
+.student-filter-tabs .ant-tabs-nav {
+  margin: 0;
+  padding: 0;
+}
+
+.student-filter-tabs .ant-tabs-nav-list {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.student-filter-tabs .ant-tabs-nav-operations {
+  display: none !important;
+}
+
+.student-filter-tabs .ant-tabs-tab {
+  flex: 1;
+  margin: 0;
+  padding: 6px 4px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.student-filter-tabs .ant-tabs-tab-btn {
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+
+.student-filter-tabs .ant-tabs-content-holder {
+  display: none;
+}

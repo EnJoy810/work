@@ -3,7 +3,6 @@ import {
   HomeOutlined,
   UserOutlined,
   FileTextOutlined,
-  DatabaseOutlined,
   UserAddOutlined,
   SettingOutlined,
   ToolOutlined,
@@ -11,6 +10,7 @@ import {
   DownOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  TeamOutlined,
 } from "@ant-design/icons";
 import { APP_VERSION } from "../utils/appConfig";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -85,10 +85,10 @@ const Navbar = () => {
       path: "/exam-paper-design",
     },
     {
-      key: "3",
-      icon: <DatabaseOutlined />,
-      label: "题库",
-      path: "/questions",
+      key: "7",
+      icon: <TeamOutlined />,
+      label: "班级管理",
+      path: "/class-management",
     },
     // {
     //   key: "4",
@@ -96,12 +96,6 @@ const Navbar = () => {
     //   label: "学生管理",
     //   path: "/users",
     // },
-    {
-      key: "5",
-      icon: <SettingOutlined />,
-      label: "系统设置",
-      path: "/settings",
-    },
   ];
 
   const handleUserMenuClick = (e) => {
@@ -135,6 +129,10 @@ const Navbar = () => {
    * 班级列表在登录时通过接口 GET /api/teacher-class/class_list 获取
    */
   const handleClassChange = (value) => {
+    if (value === selectedClassId) {
+      return;
+    }
+
     const classItem = classList.find((c) => c.class_id === value);
     if (!classItem) return;
     
@@ -145,10 +143,8 @@ const Navbar = () => {
     // 显示切换成功提示
     showSuccess(`已切换到班级：${classItem.name}`);
     
-    // 延迟刷新页面以重新加载班级相关数据
-    setTimeout(() => {
-      window.location.reload();
-    }, 500);
+    // 关闭移动端抽屉菜单（如果打开）
+    setIsMenuOpen(false);
   };
 
   // 监听窗口尺寸变化

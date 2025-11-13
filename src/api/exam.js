@@ -29,9 +29,22 @@ export const getGradingList = () => {
  * @returns {Promise} 返回Promise对象，包含新建考试的ID
  */
 export const createExam = (formData) => {
+  // 期望: query 传 subject/paper_title/answer_sheet_template_id，表单包含 origin_paper 和 standard_answer
+  // 允许调用者把这三个参数附在 formData.meta 中或通过第二个可选入参传入
+  const meta = formData?.meta || {};
+  const { subject, paper_title, answer_sheet_template_id } = meta;
+  // 清理以避免被当作 multipart 字段发送
+  if (formData && formData.meta) {
+    delete formData.meta;
+  }
   return request.post("/grading/exam/create", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
+    },
+    params: {
+      subject,
+      paper_title,
+      answer_sheet_template_id,
     },
   });
 };
@@ -52,7 +65,8 @@ export const getAnswerSheetTemplates = (params = { limit: 50 }) => {
  * @returns {Promise} 返回Promise对象，包含考试详细信息
  */
 export const getExamDetail = (examId) => {
-  return request.get("/grading/exam/detail", { exam_id: examId });
+  // 对齐文档使用 /grading/exam/paper-detail
+  return request.get("/grading/exam/paper-detail", { exam_id: examId });
 };
 
 /**
@@ -70,9 +84,7 @@ export const updateExam = (data) => {
  * @param {string} examId - 考试ID
  * @returns {Promise} 返回Promise对象
  */
-export const deleteExam = (examId) => {
-  return request.delete("/grading/exam/delete", { exam_id: examId });
-};
+// 删除考试接口已在 grading.js 中提供并已对齐文档，此处不再重复导出
 
 /**
  * 获取考试评分细则
@@ -84,6 +96,15 @@ export const getExamGuideline = (examId) => {
 };
 
 /**
+ * 获取试卷详情（包含 choice_answers 与题干分值等）
+ * @param {string} examId - 考试ID
+ * @returns {Promise} 返回Promise对象，包含试卷详情
+ */
+export const getExamPaperDetail = (examId) => {
+  return request.get("/grading/exam/paper-detail", { exam_id: examId });
+};
+
+/**
  * 更新评分细则（通用方法）
  * @param {Object} data - 请求参数
  * @param {string} data.exam_id - 考试ID
@@ -91,9 +112,7 @@ export const getExamGuideline = (examId) => {
  * @param {string} data.essay_guideline - 作文评分细则（JSON字符串）
  * @returns {Promise} 返回Promise对象
  */
-export const updateGuideline = (data) => {
-  return request.put("/grading/exam/guideline", data);
-};
+// 评分细则更新请改用 paperDetail.js 或 grading.js 中的聚合方法
 
 export default {
   getExamList,
@@ -102,8 +121,7 @@ export default {
   getAnswerSheetTemplates,
   getExamDetail,
   updateExam,
-  deleteExam,
   getExamGuideline,
-  updateGuideline,
+  getExamPaperDetail,
 };
 

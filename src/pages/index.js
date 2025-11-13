@@ -4,6 +4,7 @@ import exam from './exam';
 import questionBank from './question-bank';
 import studentManagement from './student-management';
 import systemSettings from './system-settings';
+import manualReview from './manual-review';
 import NotFound from './NotFound';
 import FeatureUnderDevelopment from './FeatureUnderDevelopment';
 
@@ -13,6 +14,7 @@ export default {
   questionBank,
   studentManagement,
   systemSettings,
+  manualReview,
   NotFound,
   FeatureUnderDevelopment
 };

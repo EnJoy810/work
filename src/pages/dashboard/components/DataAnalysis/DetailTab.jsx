@@ -143,7 +143,7 @@ const DetailTab = memo(({
         <Table
           columns={columns}
           dataSource={studentsData.students}
-          rowKey={(record, index) => `student-${index}-${record.student_no || record.student_id || ''}`}
+          rowKey={(record, index) => `student-${index}-${record.paper_id || record.student_id || ''}`}
           pagination={{
             current: currentPage,
             pageSize: pageSize,

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   Typography,
   Upload,
@@ -12,6 +13,7 @@ import {
 } from "antd";
 import { useMessageService } from "../../components/common/message";
 import { getExamList, getAnswerSheetTemplates, createExam } from "../../api/exam";
+import { createGradingFromExam } from "../../api/grading";
 import {
   UploadOutlined,
   FileTextOutlined,
@@ -36,6 +38,8 @@ const CreateExam = () => {
   const [paperFile, setPaperFile] = useState(null);
   const [answerFile, setAnswerFile] = useState(null);
   const { showSuccess, showError, showInfo } = useMessageService();
+  // 获取当前选中的班级ID
+  const selectedClassId = useSelector((state) => state.class.selectedClassId) || localStorage.getItem('currentClassId');
 
   // 考试创建类型：新建或选择已有
   const [examType, setExamType] = useState("new"); // 'new' 或 'existing'
@@ -223,11 +227,13 @@ const CreateExam = () => {
       (exam) => exam.exam_id === selectedExamId
     );
     if (selectedExam) {
-      // 调用接口根据exam_id创建考试信息
-      request
-        .post("/grading/create-grading?exam_id=" + selectedExamId, {
-          // exam_id: selectedExamId,
-        })
+      // 检查是否有班级ID
+      if (!selectedClassId) {
+        showError("请先选择班级");
+        return;
+      }
+      // 调用接口根据exam_id和class_id创建考试信息
+      createGradingFromExam(selectedExamId, selectedClassId)
         .then(() => {
           showSuccess(`已成功创建考试：${selectedExam.title}`);
           // 创建成功后返回首页
@@ -235,7 +241,7 @@ const CreateExam = () => {
         })
         .catch((error) => {
           console.error("创建考试失败:", error);
-          // showError("创建考试失败，请重试");
+          showError("创建考试失败，请重试");
         });
     }
   };
@@ -562,6 +568,7 @@ const CreateExam = () => {
               display: "flex",
               justifyContent: "end",
             }}
+
           >
             <Button
               type="primary"
@@ -653,3 +660,4 @@ const CreateExam = () => {
 };
 
 export default CreateExam;
+

@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, useEffect } from 'react';
 import { message } from 'antd';
 // 导入默认导出以重新导出
 import messageUtils from './messageUtils';
@@ -16,6 +16,12 @@ export const MessageContext = createContext(null);
  */
 export const MessageProvider = ({ children }) => {
   const [messageApi, contextHolder] = message.useMessage();
+
+  useEffect(() => {
+    if (messageUtils?._setApi) {
+      messageUtils._setApi(messageApi);
+    }
+  }, [messageApi]);
   
   return (
     <MessageContext.Provider value={messageApi}>

@@ -11,7 +11,7 @@ import request from "../utils/request";
  * @returns {Promise} 返回Promise对象，包含学生批改结果列表
  */
 export const getGradingResults = (params) => {
-  return request.get("/grading/result", params);
+  return request.get("/grading/result/v2", params);
 };
 
 /**
@@ -22,6 +22,7 @@ export const getGradingResults = (params) => {
  * @returns {Promise} 返回Promise对象，包含作文结果和评语
  */
 export const getEssayResult = (params) => {
+  // 文档要求: 使用 paper_id 作为学生标识
   return request.get("/exam-question/essay-result", params);
 };
 
@@ -34,24 +35,14 @@ export const getEssayResult = (params) => {
  */
 export const alterSentenceFeedbacks = (params) => {
   const { essay_result_id, sentence_feedbacks } = params;
-  
-  // 将评语数组转换为JSON字符串
-  const sentenceFeedbacksStr = Array.isArray(sentence_feedbacks) 
-    ? JSON.stringify(sentence_feedbacks) 
-    : sentence_feedbacks;
-  
-  const requestConfig = {
-    params: {
-      essay_result_id,
-      sentence_feedbacks: sentenceFeedbacksStr,
-    },
+  const data = {
+    essay_result_id,
+    sentence_feedbacks: Array.isArray(sentence_feedbacks)
+      ? JSON.stringify(sentence_feedbacks)
+      : sentence_feedbacks,
   };
-  
-  return request.put(
-    "/essay-result/alter-sentence-feedbacks",
-    {},
-    requestConfig
-  );
+  // 文档定义为 JSON body，这里采用 body（保持下划线命名）
+  return request.put("/essay-result/alter-sentence-feedbacks", data);
 };
 
 /**
@@ -70,16 +61,6 @@ export const alterScore = (data) => {
 };
 
 /**
- * 删除批改会话（DELETE请求）
- * @param {Object} data - 请求参数（JSON body）
- * @param {string} data.grading_id - 批改会话ID（必填，下划线命名）
- * @returns {Promise} 返回Promise对象
- */
-export const deleteGrading = (data) => {
-  return request.delete("/grading", data);
-};
-
-/**
  * 更新评分细则（PUT请求）
  * @param {Object} data - 请求参数（JSON body）
  * @param {string} data.exam_id - 考试ID（必填）
@@ -87,8 +68,28 @@ export const deleteGrading = (data) => {
  * @param {string} data.essay_guideline - 作文评分细则（JSON字符串）
  * @returns {Promise} 返回Promise对象
  */
+// 聚合更新评分细则：根据传入字段路由至正确 endpoint
 export const updateGuideline = (data) => {
-  return request.put("/grading/exam/guideline", data);
+  const { exam_id, subjective_guideline, essay_guideline, choice_answers } = data || {};
+  if (subjective_guideline) {
+    return request.put("/paper-detail/alter/subjective-guidelines", {
+      exam_id,
+      guidelines: typeof subjective_guideline === "string" ? JSON.parse(subjective_guideline) : subjective_guideline,
+    });
+  }
+  if (essay_guideline) {
+    return request.put("/paper-detail/alter/essay-guidelines", {
+      exam_id,
+      essay_guideline: typeof essay_guideline === "string" ? JSON.parse(essay_guideline) : essay_guideline,
+    });
+  }
+  if (choice_answers) {
+    return request.put("/paper-detail/alter/choice-answers", {
+      exam_id,
+      choice_answers,
+    });
+  }
+  return Promise.reject(new Error("No guideline payload found"));
 };
 
 /**
@@ -100,9 +101,9 @@ export const updateGuideline = (data) => {
  */
 export const updateSubjectiveGuideline = (data) => {
   const { exam_id, guidelines } = data;
-  return request.put("/grading/exam/guideline", {
+  return request.put("/paper-detail/alter/subjective-guidelines", {
     exam_id,
-    subjective_guideline: JSON.stringify(guidelines),
+    guidelines,
   });
 };
 
@@ -115,9 +116,9 @@ export const updateSubjectiveGuideline = (data) => {
  */
 export const updateEssayGuideline = (data) => {
   const { exam_id, essay_guideline } = data;
-  return request.put("/grading/exam/guideline", {
+  return request.put("/paper-detail/alter/essay-guidelines", {
     exam_id,
-    essay_guideline: JSON.stringify(essay_guideline),
+    essay_guideline,
   });
 };
 
@@ -164,7 +165,8 @@ export const getComparisonData = (params) => {
 export const exportGradingInfo = (gradingId, studentNo = '', all = true) => {
   let url = `/api/exam-question/grading/export?grading_id=${gradingId}&all=${all}`;
   if (studentNo) {
-    url += `&student_no=${studentNo}`;
+    // 文档字段为 paper_id
+    url += `&paper_id=${studentNo}`;
   }
   return url;
 };
@@ -196,12 +198,99 @@ export const exportSimpleScores = (gradingId) => {
   return `/api/exam-question/grading/export-easy?grading_id=${gradingId}`;
 };
 
+/**
+ * 获取批改结果（V2，含学生状态）
+ * @param {string} gradingId - 批改会话ID
+ * @returns {Promise} 返回Promise对象，包含学生批改结果与状态
+ */
+export const getGradingResultsV2 = (gradingId) => {
+  return request.get("/grading/result/v2", { grading_id: gradingId });
+};
+
+/**
+ * 根据gradingId删除指定批改
+ * @param {Object} params - 请求参数
+ * @param {string} params.grading_id - 批改会话ID（必填，示例：550e8400-e29b-41d4-a716-446655440001）
+ * @returns {Promise} 返回Promise对象
+ */
+export const deleteGrading = (params) => {
+  // 直接传平铺参数对象
+  return request.delete("/grading", params);
+};
+
+/**
+ * 通过paper_id删除学生信息
+ * @param {Object} params - 请求参数
+ * @param {string} params.paper_id - 学生信息paper_id（必填）
+ * @returns {Promise} 返回Promise对象
+ */
+export const deleteAllInfoByPaperId = (params) => {
+  // 直接传平铺参数对象
+  return request.delete("/grading/remove-all-info-by-paper-id", params);
+};
+
+/**
+ * 修改学生信息（通过paper_id修改匹配关系）
+ * @param {Object} data - 请求参数
+ * @param {string} data.paperId - 答题卡paper_id（必填）
+ * @param {string} data.studentNo - 新的学号（必填）
+ * @param {string} data.studentName - 新的姓名（必填）
+ * @returns {Promise} 返回Promise对象
+ */
+export const alterStudentInfoByPaperId = (data) => {
+  if (!data) {
+    return Promise.reject(new Error("缺少请求参数"));
+  }
+  const { paperId, studentNo, studentName } = data;
+  return request.put("/grading/alter/student-info-by-paper-id", {
+    paper_id: paperId,
+    student_no: studentNo,
+    student_name: studentName,
+  });
+};
+
+/**
+ * 通过exam_id删除考试
+ * @param {Object} params - 请求参数
+ * @param {string} params.exam_id - 考试id（必填）
+ * @returns {Promise} 返回Promise对象
+ */
+export const deleteExam = (params) => {
+  return request.delete("/grading/exam", { params });
+};
+
+/**
+ * 根据模板ID删除指定的答题卡模板
+ * @param {Object} params - 请求参数
+ * @param {number} params.id - 答题卡模板ID（必填）
+ * @returns {Promise} 返回Promise对象
+ */
+export const deleteAnswerSheetTemplate = (params) => {
+  return request.delete(`/grading/answer-sheet-template/${params.id}`);
+};
+
+/**
+ * 根据已有考试ID创建批改会话
+ * @param {string} examId - 考试ID
+ * @param {string} classId - 班级ID
+ * @returns {Promise} 返回Promise对象
+ */
+export const createGradingFromExam = (examId, classId) => {
+  return request.post(`/grading/create-grading?exam_id=${examId}&class_id=${classId}`, {});
+};
+export const createHumanGrading = (data) => {
+  return request.post("/grading/human-grading", data);
+};
+
 export default {
   getGradingResults,
   getEssayResult,
   alterSentenceFeedbacks,
   alterScore,
   deleteGrading,
+  deleteAllInfoByPaperId,
+  deleteExam,
+  deleteAnswerSheetTemplate,
   updateGuideline,
   updateSubjectiveGuideline,
   updateEssayGuideline,
@@ -212,5 +301,9 @@ export default {
   exportStatisticAnalysis,
   exportEssayResults,
   exportSimpleScores,
+  getGradingResultsV2,
+  alterStudentInfoByPaperId,
+  createGradingFromExam,
+  createHumanGrading,
 };
 

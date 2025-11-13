@@ -1,0 +1,87 @@
+.class-management-page {
+  padding: 24px;
+  min-height: 100vh;
+  background: #f5f6fb;
+}
+
+.class-student-card {
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+}
+
+.class-student-card .ant-card-body {
+  padding: 20px 24px;
+}
+
+.class-card-header {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  gap: 6px;
+}
+
+.class-card-header h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.class-card-header span {
+  color: #8c8c8c;
+  font-size: 13px;
+}
+
+.class-table-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.class-table-equal .ant-table-container table colgroup col {
+  width: 33.3333% !important;
+}
+
+.class-table-equal .ant-table-thead > tr > th,
+.class-table-equal .ant-table-tbody > tr > td {
+  width: 33.3333%;
+  text-align: center;
+}
+
+.class-table-equal .ant-table-cell {
+  text-align: center;
+}
+
+.class-empty-hint {
+  padding: 12px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: #fff1f0;
+  border: 1px solid #ffa39e;
+  color: #a8071a;
+  font-size: 13px;
+}
+
+.class-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.class-form-grid .ant-form-item {
+  margin-bottom: 14px;
+}
+
+.class-form-grid .form-item-full {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 768px) {
+  .class-management-page {
+    padding: 16px;
+  }
+
+  .class-student-card .ant-card-body {
+    padding: 16px;
+  }
+}

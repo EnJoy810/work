@@ -23,7 +23,7 @@ import {
   DeleteOutlined,
 } from "@ant-design/icons";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { getGradingResults, getEssayResult, alterSentenceFeedbacks, alterScore, deleteGrading } from "../../api/grading";
+import { getEssayResult, alterSentenceFeedbacks, alterScore, deleteGrading, getGradingResultsV2 } from "../../api/grading";
 import {
   StudentList,
   EssayContent,
@@ -42,6 +42,8 @@ const EssayGrading = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const grading_id = searchParams.get("grading_id");
+  const paper_id = searchParams.get("paper_id");
+  const student_no = searchParams.get("student_no");
   
   // ========== 数据状态 ==========
   // 作文基础数据
@@ -59,6 +61,28 @@ const EssayGrading = () => {
   // 学生相关数据
   const [students, setStudents] = useState([]);
   const [currentStudentIndex, setCurrentStudentIndex] = useState(0);
+  const studentsRef = useRef([]);
+  const currentStudentIndexRef = useRef(0);
+
+  useEffect(() => {
+    studentsRef.current = students;
+  }, [students]);
+
+  useEffect(() => {
+    currentStudentIndexRef.current = currentStudentIndex;
+  }, [currentStudentIndex]);
+
+  const resolveStatusInfo = useCallback((statusValue) => {
+    const raw = statusValue !== undefined && statusValue !== null ? String(statusValue).trim() : "";
+    const lower = raw.toLowerCase();
+    if (raw === "异常" || lower === "abnormal" || lower === "1") {
+      return { type: "abnormal", statusText: "异常", badge: "error" };
+    }
+    if (raw === "缺考" || lower === "absent" || lower === "2") {
+      return { type: "absent", statusText: "缺考", badge: "warning" };
+    }
+    return { type: "matched", statusText: "正常", badge: "success" };
+  }, []);
   
   // 评语数据（按学生存储）
   const [studentComments, setStudentComments] = useState({});
@@ -87,178 +111,409 @@ const EssayGrading = () => {
   // ========== 计算派生状态 ==========
   // 当前选中的学生（从 students 和 currentStudentIndex 计算）
   const currentStudent = students[currentStudentIndex] || null;
-  
-  // 当前学生的评语（基于 studentNo）
-  const sentenceComments = studentComments[currentStudent?.studentNo] || [];
+  const lastLoadedStudentKeyRef = useRef(null);
+  const inflightKeyRef = useRef(null);
+  const essayContentRef = useRef(null);
+  const [studentFilterTab, setStudentFilterTab] = useState("all");
 
-  // 可用的颜色池
-  const availableColors = ["blue", "green", "purple", "orange", "red"];
+  const resolveStudentKey = useCallback((student) => {
+     if (!student) return "";
+     if (Array.isArray(student.candidateIds) && student.candidateIds.length > 0) {
+       return student.candidateIds[0];
+     }
+     return (
+       student.paperId ||
+       student.studentNo ||
+       student.student_no ||
+       student.id ||
+       ""
+     );
+   }, []);
 
-  // 随机选择颜色的函数，尽量避免重复
-  const _getRandomColor = (usedColors = []) => {
-    // 找出尚未使用的颜色
-    const unusedColors = availableColors.filter(
-      (color) => !usedColors.includes(color)
-    );
+  // 当前学生的评语列表（按学生聚合）
+  const sentenceComments = useMemo(() => {
+    const key = resolveStudentKey(currentStudent);
+    if (!key) return [];
+    return studentComments[key] || [];
+  }, [studentComments, currentStudent, resolveStudentKey]);
 
-    // 如果还有未使用的颜色，从中随机选择
-    if (unusedColors.length > 0) {
-      return unusedColors[Math.floor(Math.random() * unusedColors.length)];
-    }
-
-    // 如果所有颜色都用过了，从所有可用颜色中随机选择
-    return availableColors[Math.floor(Math.random() * availableColors.length)];
-  };
-
-  // 获取句子的颜色（使用 useCallback 优化，避免在 useEffect 中产生依赖问题）
+  // 根据质量标记查询该句子的颜色
   const getSentenceColor = useCallback((index) => {
-    const comment = sentenceComments.find(
-      (item) => item.sentenceIndex === index
-    );
-    return comment ? comment.color : "";
+    const item = sentenceComments.find((it) => it.sentenceIndex === index);
+    return item ? item.color : "";
   }, [sentenceComments]);
-  
-  // 获取选中的句子（从索引计算，使用 useMemo 优化）
+
+  // 选中的句子文本
   const selectedSentence = useMemo(() => {
-    return sentenceInteraction.selectedIndex >= 0 
-      ? essayData.sentences[sentenceInteraction.selectedIndex] 
+    return sentenceInteraction.selectedIndex >= 0
+      ? essayData.sentences[sentenceInteraction.selectedIndex]
       : null;
   }, [sentenceInteraction.selectedIndex, essayData.sentences]);
 
-  const essayContentRef = useRef(null);
-
-  // 分割句子函数
-  const splitSentences = (text) => {
-    // 使用正则表达式分割句子，识别句号、问号、感叹号
-    const regex = /([。！？])/;
+  const splitSentences = useCallback((text) => {
+    if (!text) return [];
+    const regex = /([。！？!?])/;
     const result = [];
-    let remainingText = text;
-
-    while (remainingText) {
-      const match = remainingText.match(regex);
-      if (match) {
-        const index = match.index;
-        const sentence = remainingText.slice(0, index + 1);
-        result.push(sentence);
-        remainingText = remainingText.slice(index + 1).trim();
-      } else {
-        if (remainingText.trim()) {
-          result.push(remainingText.trim());
-        }
+    let remaining = String(text);
+    while (remaining) {
+      const match = remaining.match(regex);
+      if (!match) {
+        const rest = remaining.trim();
+        if (rest) result.push(rest);
         break;
       }
+      const index = match.index ?? 0;
+      const sentence = remaining.slice(0, index + 1);
+      result.push(sentence);
+      remaining = remaining.slice(index + 1).trim();
     }
-
     return result;
-  };
+  }, []);
 
-  // 从后端加载作文数据（使用 useCallback 优化，修复依赖问题）
+  // 从后端加载作文数据（使用 useCallback 优化，修复依赖问题），使用 paper_id
   // 注意：此函数需要在 loadStudentList 之前定义，因为 loadStudentList 依赖它
-  const loadEssayData = useCallback(async (studentNo) => {
-    if (!grading_id || !studentNo) {
-      message.warning("缺少必要参数：grading_id 或 student_no");
+  const loadEssayData = useCallback(
+    async (student) => {
+      if (!grading_id) {
+        message.warning("缺少必要参数：grading_id 或学生信息");
+        return;
+      }
+
+      const studentKey = resolveStudentKey(student);
+      // 跟 in-flight key 去重（同一个学生未完成前不重复发）
+      if (studentKey && inflightKeyRef.current === studentKey) {
+        return;
+      }
+      inflightKeyRef.current = studentKey || null;
+
+      const candidates = [];
+      if (student) {
+        const maybePaperId = student.paperId || student.v2Data?.paper_id;
+        if (maybePaperId) candidates.push(String(maybePaperId));
+        if (student.studentNo || student.student_no) candidates.push(String(student.studentNo || student.student_no));
+        if (student.id) candidates.push(String(student.id));
+        // never push name to candidates
+      }
+
+      const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
+      if (uniqueCandidates.length === 0) {
+        message.warning("未找到有效的学生标识，无法加载作文数据");
+        inflightKeyRef.current = null;
+        return;
+      }
+
+      const safeParseArray = (payload) => {
+        if (!payload) return [];
+        if (Array.isArray(payload)) return payload;
+        if (typeof payload === "string") {
+          const trimmed = payload.trim();
+          if (!trimmed) return [];
+          try {
+            const parsed = JSON.parse(trimmed);
+            return Array.isArray(parsed) ? parsed : [];
+          } catch {
+            return [];
+          }
+        }
+        return [];
+      };
+
+      const toNumber = (value, fallback = 0) => {
+        const num = Number(value);
+        return Number.isFinite(num) ? num : fallback;
+      };
+
+      const normalizeAnswerText = (value) => {
+        if (value === undefined || value === null) return "";
+        if (typeof value === "string") return value;
+        if (Array.isArray(value)) {
+          return value
+            .map((item) => (typeof item === "string" ? item.trim() : ""))
+            .filter(Boolean)
+            .join(" ");
+        }
+        if (typeof value === "object") {
+          return (
+            value.student_answer ||
+            value.studentAnswer ||
+            value.content ||
+            value.text ||
+            value.answer ||
+            value.value ||
+            ""
+          );
+        }
+        return String(value);
+      };
+
+      const normalizeImages = (candidates) => {
+        const list = [];
+        const pushValue = (value) => {
+          if (value === undefined || value === null) return;
+          if (Array.isArray(value)) {
+            value.forEach(pushValue);
+            return;
+          }
+          if (typeof value === "object") {
+            const nested = value.url || value.src || value.path || value.imageUrl || value.answer_photo_url;
+            if (nested) {
+              pushValue(nested);
+            }
+            return;
+          }
+          let str = String(value).trim();
+          if (!str) return;
+          if (
+            (str.startsWith("[") && str.endsWith("]")) ||
+            (str.startsWith("{") && str.endsWith("}"))
+          ) {
+            try {
+              const parsed = JSON.parse(str);
+              pushValue(parsed);
+              return;
+            } catch {
+              // fall through
+            }
+          }
+          str
+            .split(/[,;\n]/)
+            .map((segment) => segment.trim())
+            .filter(Boolean)
+            .forEach((segment) => {
+              if (!list.includes(segment)) {
+                list.push(segment);
+              }
+            });
+        };
+        candidates.forEach(pushValue);
+        return list;
+      };
+
+      try {
+        // 先清空旧数据，确保切换学生时能立即看到变化
+        setEssayData((prev) => ({
+          ...prev,
+          sentences: [],
+          studentImages: [],
+          wordCount: 0,
+        }));
+ 
+        message.loading({ content: "正在加载作文数据...", key: "loadEssay" });
+        let response = null;
+        let lastError = null;
+        for (const candidate of uniqueCandidates) {
+          if (!candidate) continue;
+          console.log("[EssayGrading] 请求作文数据", { grading_id, paper_id: candidate });
+          try {
+            response = await getEssayResult({ grading_id, paper_id: candidate });
+            if (response?.data) {
+              lastError = null;
+              break;
+            }
+          } catch (err) {
+            lastError = err;
+            console.warn("[EssayGrading] 使用标识加载失败，尝试下一个", candidate, err);
+          }
+        }
+ 
+        if (!response?.data) {
+          const msg = lastError?.message || "未找到该学生的作文数据";
+          console.warn("[EssayGrading] 未加载到作文数据", { grading_id, student, candidates: uniqueCandidates }, lastError);
+          message.warning({ content: msg, key: "loadEssay" });
+          inflightKeyRef.current = null;
+          return;
+        }
+
+        const data = response.data || {};
+
+        const essayResultId =
+          data.id ?? data.essay_result_id ?? data.essayResultId ?? data.tempId ?? null;
+        if (!essayResultId) {
+          console.error("后端返回的数据中没有 essay_result_id / id 字段");
+          message.error("无法获取作文ID，请检查后端返回数据");
+          inflightKeyRef.current = null;
+          return;
+        }
+
+        const studentAnswerText = normalizeAnswerText(
+          data.student_answer ??
+            data.studentAnswer ??
+            data.student_content ??
+            data.studentContent ??
+            data.answer_content ??
+            data.answer ??
+            "",
+        );
+
+        // 分割作文内容为句子
+        const contentSentences = splitSentences(studentAnswerText);
+
+        // 计算字数（去除空格和换行符）
+        const wordCount = studentAnswerText.replace(/[\s\n\r]/g, "").length;
+
+        const parsedFeedbacks = safeParseArray(
+          data.sentences ??
+            data.sentence_feedbacks ??
+            data.sentenceFeedbacks ??
+            data.sentence_feedback_list ??
+            data.sentenceFeedbackList,
+        );
+
+        const parsedDimensionsRaw = safeParseArray(
+          data.dimensions ?? data.dimension_list ?? data.dimensionList,
+        );
+        const parsedDimensions = parsedDimensionsRaw.map((item) => ({
+          dimensionName: item.dimensionName || item.name || item.dimension || "",
+          maxScore: toNumber(item.maxScore ?? item.fullScore ?? item.max_score),
+          studentScore: toNumber(item.studentScore ?? item.score ?? item.student_score),
+          comment: item.comment || item.scoreReason || item.score_reason || "",
+        }));
+
+        const images = normalizeImages([
+          data.imgUrl,
+          data.img_url,
+          data.imgUrls,
+          data.img_urls,
+          data.answer_photo_url,
+          data.answer_photo_urls,
+          data.answerPhotoUrl,
+          data.answerPhotoUrls,
+          data.student_images,
+          data.studentImages,
+        ]);
+
+        // 转换评语格式：后端 -> 前端
+        const convertedComments = parsedFeedbacks
+          .map((feedback) => {
+            const sentenceText = (feedback?.sentence || "").trim();
+            if (!sentenceText) return null;
+            // 在句子数组中查找匹配的句子索引
+            const sentenceIndex = contentSentences.findIndex((s) => s.trim() === sentenceText);
+            const color =
+              qualityToColor(
+                feedback?.quality || feedback?.scoreQuality || feedback?.level || "",
+              ) || "blue";
+            return {
+              sentenceIndex: sentenceIndex >= 0 ? sentenceIndex : -1,
+              originalSentence: sentenceText,
+              comment: feedback?.comment || "",
+              color,
+            };
+          })
+          .filter((comment) => comment && comment.sentenceIndex >= 0);
+
+        // 更新当前学生的评语缓存，paperId 优先，其次学生唯一信息
+        const fallbackKey =
+          data.student_no || data.studentNo || data.student_name || data.studentName || "";
+        setStudentComments((prev) => {
+          const next = { ...prev };
+          const primaryKey = resolveStudentKey(student);
+          if (primaryKey) {
+            next[primaryKey] = convertedComments;
+          }
+          if (fallbackKey && fallbackKey !== primaryKey) {
+            next[fallbackKey] = convertedComments;
+          }
+          return next;
+        });
+
+        // 一次性更新所有作文数据
+        const resolvedScore = toNumber(
+          data.total_score ??
+            data.totalScore ??
+            data.essay_score ??
+            data.essayScore ??
+            data.score,
+        );
+        setEssayData({
+          essayResultId,
+          title:
+            data.title ||
+            data.question_title ||
+            data.questionTitle ||
+            data.question_content ||
+            "作文批改",
+          wordCount,
+          sentences: contentSentences,
+          studentImages: images,
+          score: resolvedScore,
+          dimensions: parsedDimensions,
+          overallComment: data.overall_comment || data.overallComment || "",
+        });
+
+        message.success({ content: "作文数据加载成功", key: "loadEssay", duration: 2 });
+      } catch (error) {
+        console.error("加载作文数据失败:", error);
+        message.error({ content: error?.message || "加载作文数据失败，请稍后重试", key: "loadEssay" });
+      }
+      // 请求结束，释放 in-flight 标记
+      inflightKeyRef.current = null;
+    },
+    [grading_id, splitSentences, resolveStudentKey]
+  ); // 只依赖 grading_id，其他都使用函数式更新或稳定的 setState
+
+  useEffect(() => {
+    if (!currentStudent) {
+      lastLoadedStudentKeyRef.current = null;
       return;
     }
+    const studentKey = resolveStudentKey(currentStudent);
+    if (lastLoadedStudentKeyRef.current === studentKey) {
+      return;
+    }
+    lastLoadedStudentKeyRef.current = studentKey;
+    loadEssayData(currentStudent);
+  }, [currentStudent, loadEssayData, resolveStudentKey]);
 
-    try {
-      // 先清空旧数据，确保切换学生时能立即看到变化
+  // 当切到某个tab且该列表为空时，清空中间显示
+  useEffect(() => {
+    const getCountByTab = () => {
+      if (!Array.isArray(students)) return 0;
+      switch (studentFilterTab) {
+        case "matched":
+          return students.filter(s => s.type === "matched").length;
+        case "absent":
+          return students.filter(s => s.type === "absent").length;
+        case "abnormal":
+          return students.filter(s => s.type === "abnormal").length;
+        case "all":
+        default:
+          return students.length;
+      }
+    };
+    const count = getCountByTab();
+    if (count === 0) {
       setEssayData(prev => ({
         ...prev,
         sentences: [],
         studentImages: [],
         wordCount: 0,
+        overallComment: "",
       }));
-      
-      message.loading({ content: "正在加载作文数据...", key: "loadEssay" });
-      const response = await getEssayResult({ grading_id, student_no: studentNo });
-      const data = response.data;
+    }
+  }, [studentFilterTab, students]);
 
-      // 保存 essay_result_id
-      if (!data.id) {
-        console.error("后端返回的数据中没有 id 字段");
-        message.error("无法获取作文ID，请检查后端返回数据");
+  // 如果 URL 携带了 paper_id 或 student_no，根据学生列表定位并加载对应作文
+  useEffect(() => {
+    if (!students || students.length === 0) return;
+    // 优先 paper_id
+    if (paper_id) {
+      const idx = students.findIndex(s => String(s.paperId) === String(paper_id));
+      if (idx >= 0) {
+        setCurrentStudentIndex(idx);
+        // 仅设置索引，实际加载统一由监听 currentStudent 的 useEffect 触发
         return;
       }
-
-      // 解析评语
-      let parsedFeedbacks = [];
-      if (data.sentence_feedbacks) {
-        try {
-          parsedFeedbacks = JSON.parse(data.sentence_feedbacks);
-        } catch (error) {
-          console.error("解析评语失败:", error);
-        }
-      }
-
-      // 解析维度评分
-      let parsedDimensions = [];
-      if (data.dimensions) {
-        try {
-          parsedDimensions = typeof data.dimensions === 'string' 
-            ? JSON.parse(data.dimensions) 
-            : data.dimensions;
-        } catch (error) {
-          console.error("解析维度评分失败:", error);
-        }
-      }
-
-      // 分割作文内容为句子
-      const contentSentences = splitSentences(data.student_answer || "");
-      
-      // 计算字数（去除空格和换行符）
-      const wordCount = (data.student_answer || "").replace(/[\s\n\r]/g, "").length;
-      
-      // 获取学生图片（从 answer_photo_url 字段）
-      let images = [];
-      if (data.answer_photo_url) {
-        // 如果是字符串 URL，转为数组
-        if (typeof data.answer_photo_url === 'string') {
-          images = [data.answer_photo_url];
-        } else if (Array.isArray(data.answer_photo_url)) {
-          // 如果后端返回的是数组，直接使用
-          images = data.answer_photo_url;
-        }
-      }
-
-      // 转换评语格式：后端 → 前端
-      const convertedComments = parsedFeedbacks.map((feedback) => {
-        // 在句子数组中查找匹配的句子索引
-        const sentenceIndex = contentSentences.findIndex(
-          (s) => s.trim() === feedback.sentence.trim()
-        );
-
-        return {
-          sentenceIndex: sentenceIndex >= 0 ? sentenceIndex : -1,
-          originalSentence: feedback.sentence,
-          comment: feedback.comment || "",
-          color: qualityToColor(feedback.quality),
-        };
-      }).filter(comment => comment.sentenceIndex >= 0); // 只保留找到索引的评语
-
-      // 更新当前学生的评语（基于 studentNo）- 使用函数式更新避免依赖 studentComments
-      setStudentComments(prev => ({
-        ...prev,
-        [studentNo]: convertedComments,
-      }));
-
-      // 一次性更新所有作文数据
-      setEssayData({
-        essayResultId: data.id,
-        title: data.title || "作文批改",
-        wordCount: wordCount,
-        sentences: contentSentences,
-        studentImages: images,
-        score: data.total_score || 0,
-        dimensions: parsedDimensions,
-        overallComment: data.overall_comment || "",
-      });
-
-      message.success({ content: "作文数据加载成功", key: "loadEssay", duration: 2 });
-    } catch (error) {
-      console.error("加载作文数据失败:", error);
-      message.error({ content: "加载作文数据失败，请稍后重试", key: "loadEssay" });
     }
-  }, [grading_id]); // 只依赖 grading_id，其他都使用函数式更新或稳定的 setState
+    // 回退 student_no
+    if (student_no) {
+      const idx = students.findIndex(s => String(s.studentNo) === String(student_no));
+      if (idx >= 0 && students[idx].paperId) {
+        setCurrentStudentIndex(idx);
+        // 仅设置索引，实际加载统一由监听 currentStudent 的 useEffect 触发
+      }
+    }
+  }, [paper_id, student_no, students, resolveStudentKey]);
 
   // 加载批改结果列表（包含学生信息）- 使用 useCallback 优化，修复依赖问题
   const loadStudentList = useCallback(async (keepCurrentStudent = false) => {
@@ -268,44 +523,108 @@ const EssayGrading = () => {
     }
 
     try {
-      const response = await getGradingResults({ grading_id });
-      const resultList = response.data || [];
-      
-      if (resultList.length === 0) {
+      const previousStudent = keepCurrentStudent
+        ? studentsRef.current[currentStudentIndexRef.current]
+        : null;
+      const previousStudentKey = resolveStudentKey(previousStudent);
+
+      const v2Res = await getGradingResultsV2(grading_id).catch(() => ({ data: {} }));
+
+      const v2Data = v2Res?.data || {};
+      const v2Normal = Array.isArray(v2Data?.normal) ? v2Data.normal : [];
+      const v2Abnormal = Array.isArray(v2Data?.abnormal) ? v2Data.abnormal : [];
+      const v2Exceptional = Array.isArray(v2Data?.exceptional) ? v2Data.exceptional : [];
+      const v2Absent = Array.isArray(v2Data?.absent) ? v2Data.absent : [];
+
+      const v2List = [...v2Normal, ...v2Abnormal, ...v2Exceptional];
+
+      if (v2List.length === 0 && v2Absent.length === 0) {
         message.warning("该批改会话暂无学生数据");
         setStudents([]);
         return;
       }
 
-      // 转换学生数据格式
-      const formattedStudents = resultList.map((result) => {
-        // 计算字数（去除空格和换行符）
-        const content = result.student_answer || "";
-        const wordCount = content.replace(/[\s\n\r]/g, "").length;
-        
+      // 统一将 v2 数据转换为学生数据格式
+      const mapV2ItemToStudent = (item) => {
+        const pid = item.paper_id || item.paperId || null;
+        const sno = item.student_no || item.studentNo || "";
+        const name = item.student_name || item.studentName || "未知";
+        const { type, statusText, badge } = resolveStatusInfo(item?.status);
+        const score = Number(
+          item.essay_score ?? item.essayScore ?? 0
+        ) || 0;
+        const candidateIds = [pid, sno, item.id]
+          .map((v) => (v === undefined || v === null ? "" : String(v)))
+          .filter(Boolean);
         return {
-          id: result.student_no || result.student_name, // 优先用学号，如果为空则用姓名
-          name: result.student_name,
-          score: result.essay_score || 0, // 显示作文分数
-          status: "待批改",
-          statusType: "warning",
-          studentNo: result.student_no || result.student_name, // 优先用学号，如果为空则用姓名
-          wordCount: wordCount, // 添加字数统计
+          id: pid || sno || name,
+          name,
+          score,
+          status: statusText,
+          statusBadge: badge,
+          studentNo: sno || name,
+          paperId: pid || null,
+          wordCount: 0,
+          type,
+          v2Data: item,
+          candidateIds: Array.from(new Set(candidateIds)),
+          nameImageUrl: item.student_name_img_url || "",
+        };
+      };
+
+      const formattedStudents = v2List.map(mapV2ItemToStudent);
+
+      const absentStudents = v2Absent.map((item, idx) => {
+        const base = mapV2ItemToStudent(item);
+        return {
+          ...base,
+          id: base.studentNo || base.name || `absent-${idx}`,
+          type: "absent",
+          status: "缺考",
+          statusBadge: "warning",
+          paperId: null,
+          score: Number(item.essay_score ?? item.essayScore ?? 0) || 0,
         };
       });
 
-      setStudents(formattedStudents);
+      const combinedStudents = [...formattedStudents, ...absentStudents];
 
-      // 如果不需要保持当前学生，则默认选中第一个学生并加载其作文
-      if (!keepCurrentStudent && formattedStudents.length > 0) {
-        setCurrentStudentIndex(0);
-        loadEssayData(formattedStudents[0].studentNo);
+      const typeOrder = { matched: 0, absent: 1, abnormal: 2 };
+      combinedStudents.sort((a, b) => {
+        const diff = (typeOrder[a.type] ?? 3) - (typeOrder[b.type] ?? 3);
+        if (diff !== 0) return diff;
+        return (a.name || "").localeCompare(b.name || "");
+      });
+
+      setStudents(combinedStudents);
+
+      const findFirstEssayIndex = () => {
+        const idx = combinedStudents.findIndex((student) => student.paperId);
+        return idx >= 0 ? idx : 0;
+      };
+
+      if (keepCurrentStudent && previousStudentKey) {
+        const stayIndex = combinedStudents.findIndex(
+          (student) => resolveStudentKey(student) === previousStudentKey
+        );
+        if (stayIndex >= 0) {
+          setCurrentStudentIndex(stayIndex);
+          // 仅设置索引，实际加载统一由监听 currentStudent 的 useEffect 触发
+        } else {
+          const fallbackIndex = findFirstEssayIndex();
+          setCurrentStudentIndex(fallbackIndex);
+          // 仅设置索引，实际加载统一由监听 currentStudent 的 useEffect 触发
+        }
+      } else if (!keepCurrentStudent) {
+        const initialIndex = findFirstEssayIndex();
+        setCurrentStudentIndex(initialIndex);
+        // 仅设置索引，实际加载统一由监听 currentStudent 的 useEffect 触发
       }
     } catch (error) {
       console.error("加载批改结果列表失败:", error);
       message.error("加载学生数据失败，请稍后重试");
     }
-  }, [grading_id, loadEssayData]); // 依赖 grading_id 和 loadEssayData
+  }, [grading_id, resolveStatusInfo, resolveStudentKey]);
 
   // 组件挂载时加载学生列表
   useEffect(() => {
@@ -410,37 +729,10 @@ const EssayGrading = () => {
     setViewMode(e.target.value);
   }, []); // 空依赖，因为只使用了 setState
 
-  // 切换学生（使用 useCallback 优化性能）
-  const handlePrevStudent = useCallback(() => {
-    if (currentStudentIndex > 0) {
-      const newIndex = currentStudentIndex - 1;
-      setCurrentStudentIndex(newIndex);
-      const student = students[newIndex];
-      if (student?.studentNo) {
-        loadEssayData(student.studentNo);
-      }
-    }
-  }, [currentStudentIndex, students, loadEssayData]); // 依赖相关状态和函数
-
-  const handleNextStudent = useCallback(() => {
-    if (currentStudentIndex < students.length - 1) {
-      const newIndex = currentStudentIndex + 1;
-      setCurrentStudentIndex(newIndex);
-      const student = students[newIndex];
-      if (student?.studentNo) {
-        loadEssayData(student.studentNo);
-      }
-    }
-  }, [currentStudentIndex, students, loadEssayData]); // 依赖相关状态和函数
-
   // 点击学生列表切换学生（使用 useCallback 优化性能）
   const handleStudentClick = useCallback((index) => {
     setCurrentStudentIndex(index);
-    const student = students[index];
-    if (student?.studentNo) {
-      loadEssayData(student.studentNo);
-    }
-  }, [students, loadEssayData]); // 依赖相关状态和函数
+  }, [setCurrentStudentIndex]); // 依赖相关状态和函数
 
   // 点击句子选中（使用 useCallback 优化性能）
   const handleSentenceClick = useCallback((sentence, index) => {
@@ -530,9 +822,10 @@ const EssayGrading = () => {
 
     // 更新当前学生的评语
     const updatedComments = [...sentenceComments, newComment];
+    const key = resolveStudentKey(currentStudent);
     setStudentComments(prev => ({
       ...prev,
-      [currentStudent.studentNo]: updatedComments,
+      [key]: updatedComments,
     }));
     
     // 重置选中状态并进入编辑模式
@@ -555,7 +848,7 @@ const EssayGrading = () => {
     }
     
     message.success("评语已添加，请输入内容");
-  }, [selectedSentence, currentStudent, sentenceComments, sentenceInteraction.selectedIndex, essayData.essayResultId]); // 依赖所有使用的状态
+  }, [selectedSentence, currentStudent, sentenceComments, sentenceInteraction.selectedIndex, essayData.essayResultId, resolveStudentKey]); // 依赖所有使用的状态
 
   // 删除评语（使用 useCallback 优化性能）
   const handleDeleteComment = useCallback(() => {
@@ -576,11 +869,12 @@ const EssayGrading = () => {
           const updatedComments = sentenceComments.filter(
             (item) => item.originalSentence !== selectedSentence
           );
-          
+          const key = resolveStudentKey(currentStudent);
+
           // 更新当前学生的评语
           setStudentComments(prev => ({
             ...prev,
-            [currentStudent.studentNo]: updatedComments,
+            [key]: updatedComments,
           }));
           
           // 重置选中状态
@@ -600,7 +894,7 @@ const EssayGrading = () => {
     } else {
       message.info("该句子没有评语");
     }
-  }, [selectedSentence, currentStudent, sentenceComments, essayData.essayResultId]); // 依赖所有使用的状态
+  }, [selectedSentence, currentStudent, sentenceComments, essayData.essayResultId, resolveStudentKey]); // 依赖所有使用的状态
 
   // 开始编辑评语（使用 useCallback 优化性能）
   const handleStartEdit = useCallback((index, content) => {
@@ -621,11 +915,12 @@ const EssayGrading = () => {
       ...updatedComments[index],
       comment: editingState.comment.content,
     };
+    const key = resolveStudentKey(currentStudent);
     
     // 更新当前学生的评语
     setStudentComments(prev => ({
       ...prev,
-      [currentStudent.studentNo]: updatedComments,
+      [key]: updatedComments,
     }));
     
     // 重置编辑状态
@@ -640,7 +935,7 @@ const EssayGrading = () => {
     }
     
     message.success("评语已更新");
-  }, [currentStudent, sentenceComments, editingState.comment.content, essayData.essayResultId]); // 依赖所有使用的状态
+  }, [currentStudent, sentenceComments, editingState.comment.content, essayData.essayResultId, resolveStudentKey]); // 依赖所有使用的状态
 
   // 取消编辑（使用 useCallback 优化性能）
   const handleCancelEdit = useCallback(() => {
@@ -715,7 +1010,7 @@ const EssayGrading = () => {
       await alterScore({
         essay_result_id: essayData.essayResultId,
         grading_id: grading_id,
-        student_no: currentStudent.studentNo,
+        paper_id: currentStudent.paperId,
         old_score: essayData.score, // 传入旧的作文分数
         new_score: finalScore,  // 传入新的作文分数
       });
@@ -820,9 +1115,8 @@ const EssayGrading = () => {
         <StudentList
           students={students}
           currentStudentIndex={currentStudentIndex}
-          onPrevStudent={handlePrevStudent}
-          onNextStudent={handleNextStudent}
           onStudentClick={handleStudentClick}
+          onFilterChange={setStudentFilterTab}
         />
 
         {/* 中间：作文内容 */}

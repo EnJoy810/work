@@ -95,6 +95,26 @@ const Home = () => {
     return `今天是${year}年${month}月${day}日星期${weekday}`;
   };
 
+  // 获取显示名称：优先真名，其次姓，都没有则显示"老师"
+  const getDisplayName = () => {
+    if (!userInfo) return '老师';
+    
+    // 优先使用真名
+    const realName = userInfo.real_name || userInfo.realName || userInfo.name;
+    if (realName && realName.trim()) {
+      return `${realName.trim()}老师`;
+    }
+    
+    // 如果没有真名，尝试使用姓
+    const surname = userInfo.surname || userInfo.last_name || userInfo.lastName;
+    if (surname && surname.trim()) {
+      return `${surname.trim()}老师`;
+    }
+    
+    // 如果都没有，显示"老师"
+    return '老师';
+  };
+
   return (
     <div className="home-container">
       {/* 顶部欢迎信息 */}
@@ -108,7 +128,7 @@ const Home = () => {
       >
         <div>
           <Title level={3} style={{ margin: 0 }}>
-            欢迎回来，{userInfo?.username || '老师'}
+            欢迎回来，{getDisplayName()}
           </Title>
           <Text type="secondary">{getCurrentDate()}</Text>
         </div>

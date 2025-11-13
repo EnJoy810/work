@@ -1,6 +1,6 @@
 import axios from "axios";
 import { store } from "../store";
-import { message } from "antd";
+import messageUtil from "../components/common/messageUtils";
 import { clearUserInfo } from "../store/slices/userSlice";
 
 // 创建axios实例
@@ -41,14 +41,23 @@ request.interceptors.response.use(
     // 根据后端接口规范处理响应数据
     const res = response.data;
     
-    if (res.code !== "200") {
+    const code = res?.code ?? response.status;
+    const isSuccess =
+      code === 200 ||
+      code === "200" ||
+      code === 0 ||
+      code === "0" ||
+      code === undefined ||
+      code === null;
+
+    if (!isSuccess) {
       // 处理错误情况
-      console.error("请求错误:", res.message);
-      // 使用antd的message组件显示错误提示
-      if (res.message) {
-        message.error(res.message);
+      const errorMessage = res?.message || "请求失败";
+      console.error("请求错误:", errorMessage);
+      if (errorMessage) {
+        messageUtil.error(errorMessage);
       }
-      return Promise.reject(new Error(res.message));
+      return Promise.reject(new Error(errorMessage));
     }
     return res;
   },
@@ -56,15 +65,23 @@ request.interceptors.response.use(
     // 处理网络错误
     console.error("网络错误:", error);
     if (error.response) {
+      const errorMsg =
+        error.response.data?.message ||
+        {
+          401: "未授权，请重新登录",
+          403: "拒绝访问",
+          404: "请求地址不存在",
+          500: "服务器错误",
+        }[error.response.status] ||
+        "请求失败";
+
+      messageUtil.error(errorMsg);
+
       switch (error.response.status) {
         case 401:
           // 未授权，清除用户信息并跳转到登录页
           console.error("未授权，请重新登录");
-
-          // 清除用户登录信息和token
           store.dispatch(clearUserInfo());
-
-          // 跳转到登录页
           window.location.href = "/login";
           break;
         case 403:

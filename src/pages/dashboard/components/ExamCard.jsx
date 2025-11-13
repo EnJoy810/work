@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 import ScoreRulesModal from "./ScoreRulesModal";
 import { formatDate } from "../../../utils/tools";
-import { deleteGrading } from "../../../api/grading";
+import gradingApi from "../../../api/grading";
 import "../styles/ExamCard.css";
 
 /**
@@ -79,7 +79,7 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
         try {
           message.loading({ content: "正在删除考试...", key: "deleteExam" });
           
-          await deleteGrading({ grading_id: exam.grading_id });
+          await gradingApi.deleteGrading({ grading_id: exam.grading_id });
           
           message.success({ content: "考试已删除", key: "deleteExam", duration: 2 });
           
@@ -334,6 +334,18 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                 }}
               >
                 查看题目分析
+              </Button>
+
+              <Button
+                type="default"
+                icon={<FileTextOutlined />}
+                onClick={() => {
+                  navigate(
+                    `/manual-review?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`
+                  );
+                }}
+              >
+                人工阅卷
               </Button>
             </>
           )}

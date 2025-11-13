@@ -27,6 +27,8 @@ import {
   exportEssayResults,
   exportSimpleScores
 } from "../../api/grading";
+import { getGradingResults } from "../../api/grading";
+import { getGradingList } from "../../api/exam";
 import { useAnalysisData } from "../../hooks/useAnalysisData";
 import { OverviewTab, SubjectTab, DetailTab } from "./components/DataAnalysis";
 
@@ -236,36 +238,28 @@ const DataAnalysis = () => {
     try {
       message.loading({ content: "正在导出...", key: "export" });
 
-      // 原有的GET导出接口 - 使用axios下载以携带token
-      let downloadUrl = "";
-      let fileName = "";
-
-      switch (exportType) {
-        case "grading":
-          downloadUrl = exportGradingInfo(gradingId);
-          fileName = "批改信息.xlsx";
-          break;
-        case "analysis":
-          downloadUrl = exportStatisticAnalysis(gradingId);
-          fileName = "统计分析结果.xlsx";
-          break;
-        case "essay":
-          downloadUrl = exportEssayResults(gradingId);
-          fileName = "作文结果.xlsx";
-          break;
-        case "simple":
-          downloadUrl = exportSimpleScores(gradingId);
-          fileName = "学生分数.xlsx";
-          break;
-        default:
-          message.error("未知的导出类型");
-          return;
-      }
-
-      // 使用axios下载文件（会自动携带token和班级ID）
+      // 预取鉴权与班级信息
       const state = store.getState();
       const token = state.user.token;
       const currentClassId = state.class.selectedClassId || localStorage.getItem('currentClassId');
+      const classList = state.class.classList || [];
+      
+      // 获取当前班级名称
+      const currentClass = classList.find(c => c.class_id === currentClassId);
+      const className = currentClass?.name || currentClass?.class_name || "未知班级";
+      
+      // 获取考试名称
+      let examName = "未知考试";
+      try {
+        const gradingListResponse = await getGradingList();
+        const gradingList = gradingListResponse.data || [];
+        const currentGrading = gradingList.find(g => g.grading_id === gradingId);
+        if (currentGrading) {
+          examName = currentGrading.paper_title || currentGrading.exam_name || "未知考试";
+        }
+      } catch (err) {
+        console.warn("获取考试信息失败，使用默认名称:", err);
+      }
       
       const headers = {
         'Authorization': `Bearer ${token}`,
@@ -274,7 +268,49 @@ const DataAnalysis = () => {
       if (currentClassId && currentClassId !== 'undefined') {
         headers['X-Current-Class'] = currentClassId;
       }
-      
+
+      // 原有的GET导出接口 - 使用axios下载以携带token
+      let downloadUrl = "";
+      let tableName = "";
+
+      switch (exportType) {
+        case "grading":
+          downloadUrl = exportGradingInfo(gradingId);
+          tableName = "批改信息";
+          break;
+        case "analysis":
+          downloadUrl = exportStatisticAnalysis(gradingId);
+          tableName = "统计分析结果";
+          break;
+        case "essay":
+          downloadUrl = exportEssayResults(gradingId);
+          tableName = "作文结果";
+          break;
+        case "simple":
+          downloadUrl = exportSimpleScores(gradingId);
+          tableName = "学生分数";
+          break;
+        default:
+          message.error("未知的导出类型");
+          return;
+      }
+
+      // 组合文件名：班级-考试名称-表格名称
+      // 清理文件名中的非法字符（Windows不允许的字符：\ / : * ? " < > |）
+      const sanitizeFileName = (name) => {
+        return name.replace(/[\\/:*?"<>|]/g, '-').trim();
+      };
+      const sanitizedClassName = sanitizeFileName(className);
+      const sanitizedExamName = sanitizeFileName(examName);
+      const sanitizedTableName = sanitizeFileName(tableName);
+      const fileName = `${sanitizedClassName}-${sanitizedExamName}-${sanitizedTableName}.xlsx`;
+
+      // 兼容后端使用 getParameter("X-Current-Class") 的读取方式：将班级ID追加到查询参数
+      if (currentClassId && currentClassId !== 'undefined') {
+        downloadUrl += `&X-Current-Class=${encodeURIComponent(currentClassId)}`;
+      }
+
+      // 使用axios下载文件（会自动携带token和班级ID）
       const response = await axios({
         url: downloadUrl,
         method: 'GET',
