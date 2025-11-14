@@ -70,9 +70,28 @@ export const deleteStudent = (studentNo) => {
   return request.delete("/student", { student_no: studentNo });
 };
 
+/**
+ * 导入学生（上传文件）
+ * @param {FormData} formData - 需包含键 student_file 的 FormData
+ * @param {string} [classId] - 班级ID，可选；将用于设置 X-Current-Class
+ * @returns {Promise}
+ */
+export const importStudent = (formData, classId) => {
+  const config = {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  };
+  if (classId) {
+    config.headers["X-Current-Class"] = classId;
+  }
+  return request.post("/admin/import-student", formData, config);
+};
+
 export default {
   getStudentsByClassId,
   saveStudent,
   updateStudent,
   deleteStudent,
+  importStudent,
 };

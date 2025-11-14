@@ -172,6 +172,9 @@ const AnswerPreview = ({
         <div className="answer-preview__controls">
           {showNavigation && (
             <>
+              {(answerDetail?.teacher_alter || answerDetail?.teacherAlter) ? (
+                <span style={{ marginRight: 8, color: '#16a34a' }}>已批改</span>
+              ) : null}
               <button
                 type="button"
                 onClick={onToggleAutoAdvance}

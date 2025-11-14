@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Card,
   Table,
@@ -8,11 +8,13 @@ import {
   Form,
   Input,
   message,
+  Upload,
 } from "antd";
 import {
   PlusOutlined,
   EditOutlined,
   DeleteOutlined,
+  UploadOutlined,
 } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import {
@@ -20,7 +22,10 @@ import {
   saveStudent,
   updateStudent,
   deleteStudent,
+  importStudent,
 } from "../../api/student";
+import ExcelFormatImg from "../../assets/Excel文件格式.png";
+import TxtFormatImg from "../../assets/txt文件格式.png";
 import "./ClassManagement.css";
 
 const getStudentName = (record) =>
@@ -83,6 +88,9 @@ const ClassManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState(null);
   const [form] = Form.useForm();
+  const [uploading, setUploading] = useState(false);
+  const [uploadInfoVisible, setUploadInfoVisible] = useState(false);
+  const fileInputRef = useRef(null);
 
   const currentClass = useMemo(() => {
     if (!classList || !classList.length) {
@@ -133,10 +141,142 @@ const ClassManagement = () => {
     setModalOpen(true);
   };
 
+
   const closeModal = () => {
     setModalOpen(false);
     setEditingStudent(null);
     form.resetFields();
+  };
+
+  const openUploadInfo = () => {
+    setUploadInfoVisible(true);
+  };
+
+  const closeUploadInfo = () => {
+    setUploadInfoVisible(false);
+  };
+
+  const handleUploadConfirm = () => {
+    setUploadInfoVisible(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+      fileInputRef.current.click();
+    }
+  };
+
+  const beforeUpload = async (file) => {
+    const ext = (file.name.split(".").pop() || "").toLowerCase();
+    const allow = ["txt", "xls", "xlsx"].includes(ext);
+    if (!allow) {
+      message.error("仅支持 .txt/.xls/.xlsx 文件");
+      return Upload.LIST_IGNORE;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      message.error("文件大小不能超过10MB");
+      return Upload.LIST_IGNORE;
+    }
+    if (ext !== "txt") {
+      return true;
+    }
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const text = String(reader.result || "");
+          const lines = text.split(/\r?\n/).map((l) => l.trim());
+          const errs = [];
+          let nonEmpty = 0;
+          for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            if (!line) continue;
+            nonEmpty++;
+            const parts = line.split(/[，,]/).map((s) => s.trim());
+            if (parts.length !== 3) {
+              errs.push(`第${i + 1}行格式不正确`);
+              if (errs.length >= 3) break;
+              continue;
+            }
+            const [name, gender, sno] = parts;
+            if (!name) {
+              errs.push(`第${i + 1}行姓名为空`);
+              if (errs.length >= 3) break;
+            }
+            if (!["男", "女"].includes(gender)) {
+              errs.push(`第${i + 1}行性别必须为男/女`);
+              if (errs.length >= 3) break;
+            }
+            if (!sno) {
+              errs.push(`第${i + 1}行学号为空`);
+              if (errs.length >= 3) break;
+            }
+          }
+          if (nonEmpty === 0) {
+            message.error("txt 文件内容为空");
+            resolve(Upload.LIST_IGNORE);
+            return;
+          }
+          if (errs.length) {
+            message.error(errs.join("；"));
+            resolve(Upload.LIST_IGNORE);
+            return;
+          }
+          resolve(true);
+        } catch (e) {
+          console.error("txt 读取失败:", e);
+          message.error("txt 读取失败");
+          resolve(Upload.LIST_IGNORE);
+        }
+      };
+      reader.onerror = () => {
+        message.error("txt 读取失败");
+        resolve(Upload.LIST_IGNORE);
+      };
+      reader.readAsText(file, "utf-8");
+    });
+  };
+
+  const doCustomUpload = async ({ file, onSuccess, onError }) => {
+    if (!currentClass?.class_id) {
+      message.warning("请先选择班级");
+      onError?.(new Error("no-class"));
+      return;
+    }
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("student_file", file);
+      const res = await importStudent(fd, currentClass.class_id);
+      message.success(res?.message || "导入成功");
+      onSuccess?.(res, file);
+      loadStudents();
+    } catch (err) {
+      message.error(err?.message || "导入失败");
+      onError?.(err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleFileInputChange = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    try {
+      const result = await beforeUpload(file);
+      if (result === Upload.LIST_IGNORE || result === false) return;
+      await doCustomUpload({ file });
+      setUploadInfoVisible(false);
+    } finally {
+      e.target.value = "";
+    }
+  };
+
+  const handleDraggerChange = async (info) => {
+    const file = info?.file?.originFileObj || info?.file;
+    if (!file) return;
+    const result = await beforeUpload(file);
+    if (result === Upload.LIST_IGNORE || result === false) return;
+    await doCustomUpload({ file });
+    setUploadInfoVisible(false);
   };
 
   const handleSubmit = async () => {
@@ -257,6 +397,22 @@ const ClassManagement = () => {
         </div>
 
         <div className="class-table-actions">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".txt,.xls,.xlsx"
+            style={{ display: "none" }}
+            onChange={handleFileInputChange}
+          />
+          <Button
+            icon={<UploadOutlined />}
+            disabled={!currentClass}
+            loading={uploading}
+            onClick={openUploadInfo}
+            style={{ marginRight: 8 }}
+          >
+            上传学生名单
+          </Button>
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -266,6 +422,75 @@ const ClassManagement = () => {
             新增学生
           </Button>
         </div>
+
+        <Modal
+          open={uploadInfoVisible}
+          onOk={handleUploadConfirm}
+          onCancel={closeUploadInfo}
+          okText="选择文件"
+          cancelText="取消"
+          title={null}
+          closable={false}
+          maskClosable={false}
+          width={900}
+        >
+          <div
+            style={{
+              fontSize: 14,
+              lineHeight: 1.6,
+              display: "grid",
+              gap: 16,
+              gridTemplateColumns: "1fr 1fr",
+              alignItems: "stretch",
+              minHeight: 360,
+            }}
+          >
+            <div>
+              <div style={{ marginBottom: 6, fontWeight: 600 }}>Excel 格式示意</div>
+              <div style={{ marginBottom: 6, color: "#595959", fontSize: 13 }}>必须要表头</div>
+              <img
+                src={ExcelFormatImg}
+                alt="Excel格式示例"
+                style={{ width: "100%", border: "1px solid #f0f0f0", borderRadius: 6 }}
+              />
+              <div style={{ marginTop: 16, marginBottom: 6, fontWeight: 600 }}>TXT 格式示意</div>
+              <div style={{ marginBottom: 6, color: "#595959", fontSize: 13 }}>
+                TXT 文件每行一名学生，顺序固定为“姓名，性别，学号”，性别仅限“男/女”，分隔符支持中文逗号（，）或英文逗号（,）。
+              </div>
+              <img
+                src={TxtFormatImg}
+                alt="TXT格式示例"
+                style={{ width: "100%", border: "1px solid #f0f0f0", borderRadius: 6 }}
+              />
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+              }}
+            >
+              <div style={{ flex: 1, minHeight: 0 }}>
+              <Upload.Dragger
+                accept=".txt,.xls,.xlsx"
+                multiple={false}
+                maxCount={1}
+                showUploadList={false}
+                beforeUpload={() => false}
+                onChange={handleDraggerChange}
+                disabled={!currentClass || uploading}
+                style={{ height: "100%" }}
+              >
+                <p className="ant-upload-drag-icon">
+                  <UploadOutlined />
+                </p>
+                <p className="ant-upload-text">点击或将文件拖拽到此处上传</p>
+                <p className="ant-upload-hint">支持 .txt/.xls/.xlsx，大小≤10MB</p>
+              </Upload.Dragger>
+              </div>
+            </div>
+          </div>
+        </Modal>
 
         <Table
           className="class-table-equal"
