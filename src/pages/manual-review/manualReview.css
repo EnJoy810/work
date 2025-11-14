@@ -14,6 +14,14 @@
   overflow: hidden;
 }
 
+/* 左侧面板，与题目分析保持一致 */
+.left-panel {
+  width: 280px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
 .manual-review__canvas {
   flex: 0 0 75%; /* 占75%宽度 (3/4) */
   background-color: #edf1f7;
@@ -182,38 +190,89 @@
   border-color: #b7bfd0;
 }
 
-.student-list {
-  position: fixed;
-  inset: 0 auto 0 0;
-  width: 260px;
-  background-color: #fff;
-  border-right: 1px solid #e4e7ec;
-  box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 40;
-  display: flex;
-  flex-direction: column;
-}
-
-.student-list--open {
-  transform: translateX(0);
-}
-
-@media (min-width: 1200px) {
-  .student-list {
-    position: relative;
-    transform: none;
-    flex: 0 0 25%; /* 占25%宽度 (1/4) */
-    width: auto; /* 让flex控制宽度 */
-    box-shadow: none;
-  }
+/* 仅针对手动评审页左侧面板内的 student-list，移除抽屉样式，保持静态布局 */
+.manual-review .left-panel .student-list {
+  position: static;
+  inset: auto;
+  width: 100%;
+  transform: none !important;
+  transition: none !important;
+  box-shadow: none;
+  border-right: none;
+  display: block;
 }
 
 .student-list__scroll {
   flex: 1;
-  overflow-y: auto; /* ensure left list scrolls */
+  /* 由 .student-list 承担滚动，这里避免嵌套滚动 */
+  overflow: visible;
   padding: 16px;
+}
+
+/* 左侧学生导航（与题目分析一致的 sticky 行为） */
+.left-panel .student-navigation {
+  height: 74px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 12px 12px 0;
+}
+
+.left-panel .student-navigation h3 {
+  font-size: 18px;
+  margin: 0;
+}
+
+.left-panel .navigation-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.manual-review .student-list__nav-btn {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 2px 8px;
+  background-color: #fff;
+  cursor: pointer;
+  height: 28px;
+}
+
+.manual-review .student-list__nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.manual-review .student-list__nav-index {
+  font-weight: 500;
+}
+
+/* 左侧学生筛选 Tabs（粘性，紧贴导航下方） */
+.left-panel .student-filter-tabs {
+  position: sticky;
+  top: 74px;
+  z-index: 9;
+  background-color: #fff;
+  padding: 0 0 12px 0;
+}
+
+.manual-review .student-filter-tabs .ant-tabs-nav {
+  margin: 0;
+}
+
+.manual-review .student-filter-tabs .ant-tabs-nav-list {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+
+.manual-review .student-filter-tabs .ant-tabs-nav-operations {
+  display: none !important;
 }
 
 .student-list__section {

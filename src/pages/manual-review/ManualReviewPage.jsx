@@ -6,6 +6,7 @@ import QuestionNavigator from "./components/QuestionNavigator";
 import StudentList from "./components/StudentList";
 import AnswerPreview from "./components/AnswerPreview";
 import ScoringPanel from "./components/ScoringPanel";
+import StudentFilterTabs from "../dashboard/components/QuestionAnalysis/StudentFilterTabs";
 import {
   fetchManualStudents,
   fetchManualQuestions,
@@ -127,9 +128,25 @@ const ManualReviewPage = () => {
   const [currentStudentId, setCurrentStudentId] = useState(null);
   const [currentQuestionId, setCurrentQuestionId] = useState(null);
   const [currentAnswerDetail, setCurrentAnswerDetail] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [isAutoAdvanceEnabled, setIsAutoAdvanceEnabled] = useState(true);
+  // 左侧列表对齐题目分析：Tab与键
+  const [activeTab, setActiveTab] = useState("all"); // all | matched | absent | abnormal
+  const [selectedStudentKey, setSelectedStudentKey] = useState(undefined);
+
+  const getStudentItemKey = useCallback((s, idx) => {
+    return String(
+      s?.paperId || s?.paper_id || s?.id || s?.studentNo || `${s?.name || "unknown"}-${idx || 0}`
+    );
+  }, []);
+
+  const getStudentType = useCallback((s) => {
+    const st = String(s?.status || "");
+    if (/^\s*正常\s*$/.test(st)) return "matched";
+    if (/缺考|缺席|未到|未交/.test(st)) return "absent";
+    if (/异常|待匹配|录入|错误|无效/.test(st)) return "abnormal";
+    return "matched";
+  }, []);
 
   const currentStudent = useMemo(
     () => students.find((student) => student.id === currentStudentId) || null,
@@ -303,18 +320,41 @@ const ManualReviewPage = () => {
 
       if (paperToStudent.size > 0) {
         setStudents((prev) => {
-          const prevAllHavePaperId = Array.isArray(prev) && prev.length > 0 && prev.every((s) => s.paperId);
-          const prevPaperSet = new Set(prev.map((s) => s.paperId));
-          const nextStudents = Array.from(paperToStudent.values());
-          const nextPaperSet = new Set(nextStudents.map((s) => s.paperId));
+          const prevList = Array.isArray(prev) ? prev : [];
+          const getKey = (s) => String(s?.paperId ?? s?.id ?? "").trim();
+          const prevMap = new Map(prevList.map((s) => [getKey(s), s]));
 
-          // 如果现有列表缺少 paperId 或者 paperId 集不同，则用权威列表覆盖
-          const needReplace = !prevAllHavePaperId || prevPaperSet.size !== nextPaperSet.size || [...prevPaperSet].some((k) => !nextPaperSet.has(k));
-          if (!needReplace) return prev;
+          // 合并/更新来自权威列表的信息，但不移除现有的缺考学生
+          paperToStudent.forEach((stu, key) => {
+            const existing = prevMap.get(key);
+            if (existing) {
+              prevMap.set(key, { ...existing, ...stu });
+            } else {
+              prevMap.set(key, stu);
+            }
+          });
 
-          // 尽量保留当前选中项
-          setCurrentStudentId((prevId) => (prevId && nextPaperSet.has(prevId) ? prevId : (nextStudents[0]?.id ?? null)));
-          return nextStudents;
+          // 保留顺序：先按原有顺序输出（已更新），再补充新增项
+          const result = [];
+          const seen = new Set();
+          prevList.forEach((s) => {
+            const key = getKey(s);
+            const updated = prevMap.get(key);
+            if (updated && !seen.has(key)) {
+              result.push(updated);
+              seen.add(key);
+            }
+          });
+          paperToStudent.forEach((stu, key) => {
+            if (!seen.has(key)) {
+              result.push(stu);
+              seen.add(key);
+            }
+          });
+
+          // 保留当前选中项（若仍存在于合并后的列表）
+          setCurrentStudentId((prevId) => (prevId && result.some((s) => s.id === prevId) ? prevId : (result[0]?.id ?? null)));
+          return result;
         });
       }
     } catch (error) {
@@ -337,8 +377,8 @@ const ManualReviewPage = () => {
   }, [loadScoreMap]);
 
   useEffect(() => {
+    setCurrentAnswerDetail(null);
     if (!currentStudent || !currentQuestionId || !gradingId) {
-      setCurrentAnswerDetail(null);
       return;
     }
 
@@ -419,9 +459,22 @@ const ManualReviewPage = () => {
           next[currentQuestionId] = bucket;
           return next;
         });
-        setCurrentAnswerDetail((prev) =>
-          prev ? { ...prev, score: Number(newScore), manual_score: Number(newScore) } : prev
-        );
+        // 乐观更新：仅当分数发生变化时，将 teacher_alter 标记为 true
+        const prevNumeric = Number.isFinite(previousScore) ? Number(previousScore) : NaN;
+        const newNumeric = Number(newScore);
+        const changed = !Number.isFinite(prevNumeric) || Math.abs(newNumeric - prevNumeric) > 1e-9;
+        setCurrentAnswerDetail((prev) => {
+          if (!prev) return prev;
+          const alreadyTrue = Boolean(prev?.teacher_alter || prev?.teacherAlter);
+          const nextAlter = alreadyTrue || changed;
+          return {
+            ...prev,
+            score: newNumeric,
+            manual_score: newNumeric,
+            teacher_alter: nextAlter,
+            teacherAlter: nextAlter,
+          };
+        });
         
         // 提交成功后根据开关自动跳转到下一个学生
         if (isAutoAdvanceEnabled) {
@@ -458,11 +511,6 @@ const ManualReviewPage = () => {
     }
   }, [students, currentStudent]);
 
-  const handleStudentSelect = useCallback((studentId) => {
-    setCurrentStudentId(studentId);
-    setIsSidebarOpen(false);
-  }, []);
-
   const handleQuestionSelect = useCallback((questionId) => {
     setCurrentQuestionId(questionId);
   }, []);
@@ -472,9 +520,78 @@ const ManualReviewPage = () => {
     return students.findIndex((student) => student.id === currentStudent.id);
   }, [students, currentStudent]);
 
-  const toggleSidebar = useCallback(() => {
-    setIsSidebarOpen((prev) => !prev);
-  }, []);
+  const toggleSidebar = useCallback(() => {}, []);
+
+  // 过滤学生列表（与题目分析一致）
+  const filteredStudents = useMemo(() => {
+    const withType = students.map((s) => ({ ...s, __type__: getStudentType(s) }));
+    if (activeTab === "matched") return withType.filter((s) => s.__type__ === "matched");
+    if (activeTab === "absent") return withType.filter((s) => s.__type__ === "absent");
+    if (activeTab === "abnormal") return withType.filter((s) => s.__type__ === "abnormal");
+    return withType;
+  }, [students, activeTab, getStudentType]);
+
+  // key -> 索引映射与当前索引
+  const keyToFilteredIndex = useMemo(() => {
+    const m = new Map();
+    filteredStudents.forEach((s, i) => m.set(getStudentItemKey(s, i), i));
+    return m;
+  }, [filteredStudents, getStudentItemKey]);
+
+  const currentFilteredIndex = useMemo(() => {
+    if (!filteredStudents || filteredStudents.length === 0) return 0;
+    if (selectedStudentKey && keyToFilteredIndex.has(selectedStudentKey)) {
+      return keyToFilteredIndex.get(selectedStudentKey);
+    }
+    // 若无selectedKey，尝试用当前选中的学生匹配
+    if (currentStudent) {
+      const tmpKey = getStudentItemKey(currentStudent, 0);
+      if (keyToFilteredIndex.has(tmpKey)) return keyToFilteredIndex.get(tmpKey);
+    }
+    return 0;
+  }, [filteredStudents, selectedStudentKey, keyToFilteredIndex, currentStudent, getStudentItemKey]);
+
+  // 当过滤列表或选中学生变化时，保证 selectedStudentKey 有效
+  useEffect(() => {
+    if (!filteredStudents || filteredStudents.length === 0) {
+      setSelectedStudentKey(undefined);
+      return;
+    }
+    if (!selectedStudentKey || !keyToFilteredIndex.has(selectedStudentKey)) {
+      const firstKey = getStudentItemKey(filteredStudents[0], 0);
+      setSelectedStudentKey(firstKey);
+      setCurrentStudentId(filteredStudents[0].id);
+    }
+  }, [filteredStudents, selectedStudentKey, keyToFilteredIndex, getStudentItemKey]);
+
+  const handleSelectKey = useCallback((key) => {
+    setSelectedStudentKey(String(key));
+    // 映射到具体学生并更新 currentStudentId
+    const idx = keyToFilteredIndex.get(String(key));
+    if (typeof idx === "number" && filteredStudents[idx]) {
+      setCurrentStudentId(filteredStudents[idx].id);
+    }
+  }, [keyToFilteredIndex, filteredStudents]);
+
+  const handlePrevFiltered = useCallback(() => {
+    if (!filteredStudents || filteredStudents.length === 0) return;
+    const idx = currentFilteredIndex;
+    if (idx > 0) {
+      const target = filteredStudents[idx - 1];
+      setSelectedStudentKey(getStudentItemKey(target, idx - 1));
+      setCurrentStudentId(target.id);
+    }
+  }, [filteredStudents, currentFilteredIndex, getStudentItemKey]);
+
+  const handleNextFiltered = useCallback(() => {
+    if (!filteredStudents || filteredStudents.length === 0) return;
+    const idx = currentFilteredIndex;
+    if (idx < filteredStudents.length - 1) {
+      const target = filteredStudents[idx + 1];
+      setSelectedStudentKey(getStudentItemKey(target, idx + 1));
+      setCurrentStudentId(target.id);
+    }
+  }, [filteredStudents, currentFilteredIndex, getStudentItemKey]);
 
   return (
     <div className="manual-review">
@@ -486,15 +603,59 @@ const ManualReviewPage = () => {
       />
 
       <div className="manual-review__body">
-        <StudentList
-          students={students}
-          currentStudentId={currentStudentId}
-          currentQuestionId={currentQuestionId}
-          onStudentSelect={handleStudentSelect}
-          isOpen={isSidebarOpen}
-          isLoading={isLoadingStudents}
-          resolveScore={resolveScore}
-        />
+        <div className="left-panel">
+          <div className="student-navigation">
+            <h3>学生导航</h3>
+            <div className="navigation-controls">
+              <button
+                type="button"
+                className="student-list__nav-btn"
+                onClick={handlePrevFiltered}
+                disabled={currentFilteredIndex === 0 || filteredStudents.length === 0}
+              >
+                ‹
+              </button>
+              <span className="student-list__nav-index">
+                {filteredStudents.length > 0 ? `${currentFilteredIndex + 1}/${filteredStudents.length}` : "0/0"}
+              </span>
+              <button
+                type="button"
+                className="student-list__nav-btn"
+                onClick={handleNextFiltered}
+                disabled={currentFilteredIndex >= filteredStudents.length - 1 || filteredStudents.length === 0}
+              >
+                ›
+              </button>
+            </div>
+          </div>
+          <div className="student-filter-tabs">
+            <StudentFilterTabs
+              activeKey={activeTab}
+              onChange={(key) => {
+                setActiveTab(key);
+                const next = key === "all"
+                  ? students.map((s) => ({ ...s, __type__: getStudentType(s) }))
+                  : students.map((s) => ({ ...s, __type__: getStudentType(s) })).filter((s) => s.__type__ === key);
+                if (next && next.length > 0) {
+                  setSelectedStudentKey(getStudentItemKey(next[0], 0));
+                  setCurrentStudentId(next[0].id);
+                } else {
+                  setSelectedStudentKey(undefined);
+                  setCurrentStudentId(null);
+                }
+              }}
+            />
+          </div>
+          <div className="student-list">
+            <StudentList
+              students={filteredStudents}
+              selectedKey={selectedStudentKey}
+              onSelectKey={handleSelectKey}
+              getKeyFn={(s, i) => getStudentItemKey(s, i)}
+              isLoading={isLoadingStudents}
+            />
+          </div>
+        </div>
 
         <div className="manual-review__canvas">
           <div className="manual-review__canvas-inner">
@@ -519,6 +680,7 @@ const ManualReviewPage = () => {
                 onSubmit={handleScoreSubmit}
                 studentName={currentStudent.name}
                 questionTitle={currentQuestion.title}
+                disabled={!currentAnswerDetail}
               />
             ) : null}
           </div>

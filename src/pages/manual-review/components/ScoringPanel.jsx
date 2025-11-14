@@ -1,6 +1,6 @@
 import { GripVertical, Pencil } from "lucide-react";
 import { message as antdMessage } from "antd";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "../styles/scoring-panel.css";
 
 const getInitialPosition = () => {
@@ -10,7 +10,7 @@ const getInitialPosition = () => {
   return { x: window.innerWidth - 360, y: window.innerHeight - 420 };
 };
 
-const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionTitle }) => {
+const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionTitle, disabled = false }) => {
   const [manualScore, setManualScore] = useState("0");
   // eslint-disable-next-line no-unused-vars
   const [inputHistory, setInputHistory] = useState([]);
@@ -22,6 +22,11 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
   const safeMaxScore = Number.isFinite(maxScore) && maxScore > 0 ? maxScore : null;
 
   useEffect(() => {
+    if (disabled) {
+      setManualScore("");
+      setInputHistory([]);
+      return;
+    }
     if (typeof currentScore === "number" && !Number.isNaN(currentScore)) {
       setManualScore(String(currentScore));
       setInputHistory([String(currentScore)]);
@@ -29,7 +34,7 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
       setManualScore("0");
       setInputHistory([]);
     }
-  }, [currentScore, studentName, questionTitle]);
+  }, [disabled, currentScore, studentName, questionTitle]);
 
   const handleMouseDown = (event) => {
     // 如果点击的是可交互元素（按钮、输入框等），不触发拖拽
@@ -72,7 +77,8 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
     };
   }, [isDragging, dragOffset.x, dragOffset.y]);
 
-  const handleNumberClick = (num) => {
+  const handleNumberClick = useCallback((num) => {
+    if (disabled) return;
     if (safeMaxScore === null) {
       antdMessage.warning("无法获取题目满分信息");
       return;
@@ -110,9 +116,10 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
       setManualScore(num);
       setInputHistory([num]);
     }
-  };
+  }, [disabled, safeMaxScore, manualScore]);
 
-  const handleBackspace = () => {
+  const handleBackspace = useCallback(() => {
+    if (disabled) return;
     if (manualScore === "0") {
       return;
     }
@@ -126,9 +133,10 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
       setManualScore("0");
       setInputHistory([]);
     }
-  };
+  }, [disabled, manualScore]);
 
-  const handleFullScore = () => {
+  const handleFullScore = useCallback(() => {
+    if (disabled) return;
     if (safeMaxScore === null) {
       antdMessage.warning("无法获取题目满分信息");
       return;
@@ -136,14 +144,16 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
     const formatted = String(safeMaxScore);
     setManualScore(formatted);
     setInputHistory([formatted]);
-  };
+  }, [disabled, safeMaxScore]);
 
-  const handleZeroScore = () => {
+  const handleZeroScore = useCallback(() => {
+    if (disabled) return;
     setManualScore("0");
     setInputHistory(["0"]);
-  };
+  }, [disabled]);
 
-  const handleSubmit = async () => {
+  const handleSubmit = useCallback(async () => {
+    if (disabled) return;
     if (safeMaxScore === null) {
       antdMessage.warning("无法获取题目满分信息");
       return;
@@ -175,10 +185,11 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
     } finally {
       setIsSubmittingScore(false);
     }
-  };
+  }, [disabled, safeMaxScore, manualScore, currentScore, onSubmit]);
 
   useEffect(() => {
     const handleKeyPress = (event) => {
+      if (disabled) return;
       if (event.key === "Enter") {
         handleSubmit();
       } else if (/^[0-9]$/.test(event.key)) {
@@ -190,7 +201,7 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
 
     window.addEventListener("keydown", handleKeyPress);
     return () => window.removeEventListener("keydown", handleKeyPress);
-  }, [manualScore, safeMaxScore, currentScore]);
+  }, [manualScore, safeMaxScore, currentScore, disabled, handleBackspace, handleNumberClick, handleSubmit]);
 
   const keypadNumbers = useMemo(() => ["0", "1", "2", "3", "4", "5", "6", "7", "8"], []);
 
@@ -198,9 +209,9 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
   const invalidNumber = manualScore === "" || Number.isNaN(numericScore);
   const exceedsLimit = safeMaxScore !== null && numericScore > safeMaxScore;
   const sameAsCurrent = Number.isFinite(currentScore) && numericScore === currentScore;
-  const isSubmitDisabled = isSubmittingScore || invalidNumber || exceedsLimit || sameAsCurrent;
-  const displayScore = manualScore || "0";
-  const displayMaxScore = safeMaxScore !== null ? `${safeMaxScore} 分` : "未知满分";
+  const isSubmitDisabled = isSubmittingScore || invalidNumber || exceedsLimit || sameAsCurrent || disabled;
+  const displayScore = disabled ? "" : (manualScore || "0");
+  const DISPLAY_MAX_SCORE = safeMaxScore !== null ? `${safeMaxScore} 分` : "未知满分";
 
   return (
     <div
@@ -227,7 +238,7 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
                 type="button"
                 className="score-btn score-btn-backspace"
                 onClick={handleBackspace}
-                disabled={isSubmittingScore || manualScore === "0"}
+                disabled={isSubmittingScore || disabled || manualScore === "0"}
                 title="退格"
               >
                 ⌫
@@ -239,7 +250,7 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
                 type="button"
                 className="score-btn score-btn-quick"
                 onClick={handleFullScore}
-                disabled={isSubmittingScore}
+                disabled={isSubmittingScore || disabled}
               >
                 满分
               </button>
@@ -247,7 +258,7 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
                 type="button"
                 className="score-btn score-btn-quick"
                 onClick={handleZeroScore}
-                disabled={isSubmittingScore}
+                disabled={isSubmittingScore || disabled}
               >
                 零分
               </button>
@@ -255,7 +266,7 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
                 type="button"
                 className="score-btn score-btn-quick"
                 onClick={() => handleNumberClick(".5")}
-                disabled={isSubmittingScore}
+                disabled={isSubmittingScore || disabled}
               >
                 .5
               </button>
@@ -268,7 +279,7 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
                   type="button"
                   className="score-btn score-btn-number"
                   onClick={() => handleNumberClick(num)}
-                  disabled={isSubmittingScore}
+                  disabled={isSubmittingScore || disabled}
                 >
                   {num}
                 </button>
@@ -280,7 +291,7 @@ const ScoringPanel = ({ maxScore, currentScore, onSubmit, studentName, questionT
                 type="button"
                 className="score-btn score-btn-number"
                 onClick={() => handleNumberClick("9")}
-                disabled={isSubmittingScore}
+                disabled={isSubmittingScore || disabled}
               >
                 9
               </button>

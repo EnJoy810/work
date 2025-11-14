@@ -189,15 +189,36 @@ const EssayGrading = () => {
       const candidates = [];
       if (student) {
         const maybePaperId = student.paperId || student.v2Data?.paper_id;
-        if (maybePaperId) candidates.push(String(maybePaperId));
-        if (student.studentNo || student.student_no) candidates.push(String(student.studentNo || student.student_no));
-        if (student.id) candidates.push(String(student.id));
-        // never push name to candidates
+        // 缺考或没有 paperId 时，直接重置并返回，不发请求
+        if (student.type === "absent" || !maybePaperId) {
+          setEssayData({
+            essayResultId: null,
+            title: "作文标题",
+            wordCount: 0,
+            sentences: [],
+            studentImages: [],
+            score: null,
+            dimensions: [],
+            overallComment: "",
+          });
+          inflightKeyRef.current = null;
+          return;
+        }
+        candidates.push(String(maybePaperId));
       }
 
       const uniqueCandidates = [...new Set(candidates.filter(Boolean))];
       if (uniqueCandidates.length === 0) {
-        message.warning("未找到有效的学生标识，无法加载作文数据");
+        setEssayData({
+          essayResultId: null,
+          title: "作文标题",
+          wordCount: 0,
+          sentences: [],
+          studentImages: [],
+          score: null,
+          dimensions: [],
+          overallComment: "",
+        });
         inflightKeyRef.current = null;
         return;
       }
@@ -290,13 +311,17 @@ const EssayGrading = () => {
       };
 
       try {
-        // 先清空旧数据，确保切换学生时能立即看到变化
-        setEssayData((prev) => ({
-          ...prev,
+        // 先全量重置，确保切换学生时不会展示上一位数据
+        setEssayData({
+          essayResultId: null,
+          title: "作文标题",
+          wordCount: 0,
           sentences: [],
           studentImages: [],
-          wordCount: 0,
-        }));
+          score: null,
+          dimensions: [],
+          overallComment: "",
+        });
  
         message.loading({ content: "正在加载作文数据...", key: "loadEssay" });
         let response = null;
@@ -320,6 +345,17 @@ const EssayGrading = () => {
           const msg = lastError?.message || "未找到该学生的作文数据";
           console.warn("[EssayGrading] 未加载到作文数据", { grading_id, student, candidates: uniqueCandidates }, lastError);
           message.warning({ content: msg, key: "loadEssay" });
+          // 再次确保重置为空态
+          setEssayData({
+            essayResultId: null,
+            title: "作文标题",
+            wordCount: 0,
+            sentences: [],
+            studentImages: [],
+            score: null,
+            dimensions: [],
+            overallComment: "",
+          });
           inflightKeyRef.current = null;
           return;
         }
@@ -445,6 +481,17 @@ const EssayGrading = () => {
       } catch (error) {
         console.error("加载作文数据失败:", error);
         message.error({ content: error?.message || "加载作文数据失败，请稍后重试", key: "loadEssay" });
+        // 失败时保持空态
+        setEssayData({
+          essayResultId: null,
+          title: "作文标题",
+          wordCount: 0,
+          sentences: [],
+          studentImages: [],
+          score: null,
+          dimensions: [],
+          overallComment: "",
+        });
       }
       // 请求结束，释放 in-flight 标记
       inflightKeyRef.current = null;
