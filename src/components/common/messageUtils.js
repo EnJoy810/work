@@ -1,6 +1,6 @@
 import { useContext, useMemo } from 'react';
 import { message } from 'antd';
-import { MessageContext } from './message';
+import { MessageContext } from './messageContext';
 
 /**
  * 自定义Hook - 获取message API实例

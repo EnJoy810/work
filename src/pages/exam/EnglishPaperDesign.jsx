@@ -59,12 +59,12 @@ const EnglishPaperDesign = () => {
       title: '操作',
       key: 'action',
       width: 120,
-      render: (_, record) => (
+      render: (_, rec) => (
           <Space size="middle">
-            <Button type="link" icon={<EditOutlined />} onClick={() => handleEditQuestion(record)}>
+            <Button type="link" icon={<EditOutlined />} onClick={() => handleEditQuestion()}>
               编辑
             </Button>
-            <Button type="link" danger onClick={() => handleDeleteQuestion(record.key)}>
+            <Button type="link" danger onClick={() => handleDeleteQuestion(rec.key)}>
               删除
             </Button>
           </Space>
@@ -137,7 +137,7 @@ const EnglishPaperDesign = () => {
   };
 
   // 编辑题目
-  const handleEditQuestion = (record) => {
+  const handleEditQuestion = () => {
     showInfo('编辑题目功能待实现');
   };
 

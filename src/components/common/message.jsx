@@ -1,18 +1,12 @@
-import { createContext, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import { useEffect } from 'react';
 import { message } from 'antd';
-// 导入默认导出以重新导出
+import { MessageContext } from './messageContext';
 import messageUtils from './messageUtils';
 
 /**
- * 消息提示工具 - 基于Ant Design的message组件，使用message.useMessage()实现
- */
-
-// 创建消息上下文
-export const MessageContext = createContext(null);
-
-/**
  * 消息提供者组件
- * 用于在应用顶层提供message API
+ * 用于在应用顶层提供 AntD message API
  */
 export const MessageProvider = ({ children }) => {
   const [messageApi, contextHolder] = message.useMessage();
@@ -22,7 +16,7 @@ export const MessageProvider = ({ children }) => {
       messageUtils._setApi(messageApi);
     }
   }, [messageApi]);
-  
+
   return (
     <MessageContext.Provider value={messageApi}>
       {contextHolder}
@@ -31,8 +25,7 @@ export const MessageProvider = ({ children }) => {
   );
 };
 
-// 从messageUtils.js重新导出所有工具函数和hooks
+// 保留向后兼容的命名导出（hooks/工具）
 export { useMessage, useMessageService, MessageUtil, configMessage } from './messageUtils';
 
-// 重新导出默认导出
-export default messageUtils;
+export default MessageProvider;

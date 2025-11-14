@@ -27,7 +27,6 @@ import {
   exportEssayResults,
   exportSimpleScores
 } from "../../api/grading";
-import { getGradingResults } from "../../api/grading";
 import { getGradingList } from "../../api/exam";
 import { useAnalysisData } from "../../hooks/useAnalysisData";
 import { OverviewTab, SubjectTab, DetailTab } from "./components/DataAnalysis";
