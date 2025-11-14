@@ -1249,6 +1249,27 @@ const QuestionAnalysis = () => {
                           </Button>
                         </div>
                       )}
+                      {student.type === "matched" && (
+                        <div style={{ display: "flex", gap: 6 }}>
+                          <Button
+                            size="small"
+                            type="text"
+                            icon={<UserOutlined />}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleModifyMatch(student);
+                            }}
+                            style={{
+                              fontSize: 12,
+                              padding: "2px 6px",
+                              height: 24,
+                              color: "#595959",
+                            }}
+                          >
+                            修改
+                          </Button>
+                        </div>
+                      )}
                       {student.type === "absent" && (
                         <Button
                           size="small"
