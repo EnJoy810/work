@@ -5,7 +5,7 @@ import { clearUserInfo } from "../store/slices/userSlice";
 
 // 创建axios实例
 const request = axios.create({
-  baseURL: "/api", // 默认API基础路径
+  baseURL: import.meta.env.VITE_API_BASE || "/api", // 默认API基础路径
   timeout: 300000, // 超时时间 300s
   headers: {
     "Content-Type": "application/json",

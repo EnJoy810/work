@@ -12,7 +12,8 @@ import {
   Radio,
 } from "antd";
 import { useMessageService } from "../../components/common/message";
-import { getExamList, getAnswerSheetTemplates, createExam } from "../../api/exam";
+import { getExamList, getAnswerSheetTemplates, createExamWithObjectKeys } from "../../api/exam";
+import { uploadWithInit } from "../../services/ossUpload";
 import { createGradingFromExam } from "../../api/grading";
 import {
   UploadOutlined,
@@ -104,30 +105,34 @@ const CreateExam = () => {
           return;
         }
 
-        // 创建FormData对象
-        const formData = new FormData();
+        (async () => {
+          try {
+            // 先直传 Origin Paper
+            const originRes = await uploadWithInit(paperFile, {
+              contentType: paperFile.type || "application/pdf",
+            });
+            // 再直传 Standard Answer
+            const answerRes = await uploadWithInit(answerFile, {
+              contentType: answerFile.type || "application/pdf",
+            });
 
-        // 添加考试信息
-        formData.append("subject", values.examSubject);
-        formData.append("paper_title", values.examName);
-        formData.append("answer_sheet_template_id", values.examTemplate);
-
-        // 添加文件数据
-        formData.append("origin_paper", paperFile);
-        formData.append("standard_answer", answerFile);
-
-        console.log("创建新考试数据: 已准备FormData");
-
-        // 提交到后端接口
-        createExam(formData)
-          .then(() => {
+            // 业务提交：使用 object_key 创建考试
+            await createExamWithObjectKeys({
+              subject: values.examSubject,
+              paper_title: values.examName,
+              answer_sheet_template_id: values.examTemplate,
+              origin_paper_object_key: originRes.objectKey,
+              standard_answer_object_key: answerRes.objectKey,
+              origin_paper_file_name: paperFile.name,
+              standard_answer_file_name: answerFile.name,
+            });
             showSuccess("考试创建成功");
-            navigate("/"); // 返回首页
-          })
-          .catch((error) => {
+            navigate("/");
+          } catch (error) {
             console.error("考试创建失败:", error);
-            // showError("考试创建失败，请重试");
-          });
+            showError(error?.message || "考试创建失败，请重试");
+          }
+        })();
       })
       .catch((info) => {
         console.log("表单验证失败:", info);

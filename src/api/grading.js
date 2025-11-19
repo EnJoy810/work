@@ -282,6 +282,34 @@ export const createHumanGrading = (data) => {
   return request.post("/grading/human-grading", data);
 };
 
+/**
+ * 使用 OSS 对象直传后的 object_key 触发评分
+ * @param {Object} data
+ * @param {string} data.grading_id
+ * @param {string} data.object_key
+ * @param {string} [data.file_name]
+ * @param {string} [data.content_type]
+ * @param {number} [data.file_size]
+ */
+export const gradeWithObjectKey = (data) => {
+  return request.post("/grading/grade-oss", data);
+};
+
+/**
+ * 提交 OSS object_key 列表以触发评分（下划线命名，multipart/form-data）
+ * @param {Object} payload
+ * @param {string} payload.grading_id
+ * @param {string[]} payload.answer_sheet_object_keys
+ */
+export const gradeStudentPaperOSS = ({ grading_id, answer_sheet_object_keys }) => {
+  const form = new FormData();
+  form.append("grading_id", grading_id);
+  (answer_sheet_object_keys || []).forEach((k) => form.append("answer_sheet_object_keys", k));
+  return request.post("/grading/grade-oss", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
 export default {
   getGradingResults,
   getEssayResult,
@@ -305,5 +333,7 @@ export default {
   alterStudentInfoByPaperId,
   createGradingFromExam,
   createHumanGrading,
+  gradeWithObjectKey,
+  gradeStudentPaperOSS,
 };
 

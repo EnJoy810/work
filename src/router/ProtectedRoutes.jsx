@@ -2,8 +2,8 @@ import { Navigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import pages from '../pages'
 
-// 从统一导出入口获取Login组件
-const { Login } = pages.systemSettings;
+// 从auth目录获取Login组件
+const { Login } = pages.auth;
 
 // 受保护的路由组件 - 使用Redux状态判断登录状态
 export const ProtectedRoute = ({ children }) => {

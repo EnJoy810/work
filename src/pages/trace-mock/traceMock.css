@@ -1,0 +1,11 @@
+.trace-mock{display:flex;flex-direction:column;height:100vh;min-height:100vh;}
+.trace-mock__header{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid #f0f0f0;background:#fff;position:sticky;top:0;z-index:1}
+.trace-mock__title{font-weight:600;font-size:16px}
+.trace-mock__body{display:flex;gap:12px;padding:12px;box-sizing:border-box;flex:1;min-height:0;overflow:auto}
+.trace-mock__left{width:240px;display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid #f0f0f0;border-radius:8px;padding:12px;min-height:0;overflow:auto}
+.trace-mock__canvas{flex:1;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
+.trace-mock__canvas-card{position:relative;background:#fff;border:1px solid #e5e7eb;border-radius:10px;box-shadow:0 1px 2px rgba(0,0,0,0.04);padding:12px}
+.trace-mock__img{display:block;max-width:780px;max-height:560px;border-radius:6px}
+.trace-mock__right{width:320px;display:flex;flex-direction:column;gap:8px;background:#fff;border:1px solid #f0f0f0;border-radius:8px;padding:12px;min-height:0;overflow:auto}
+.trace-mock__dot{position:absolute;width:16px;height:16px;border-radius:8px;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(0,0,0,.15);cursor:grab}
+.trace-mock__status{display:flex;align-items:center;gap:8px}

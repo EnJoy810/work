@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Typography, Upload, Button, Card } from "antd";
 import { useMessageService } from "../../components/common/message";
 import {
@@ -8,7 +9,8 @@ import {
   FileProtectOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { uploadAnswerSheet } from "../../api/upload";
+import { uploadWithInit } from "../../services/ossUpload";
+import { gradeStudentPaperOSS } from "../../api/grading";
 import "./styles/home.css";
 
 const { Title, Paragraph } = Typography;
@@ -21,10 +23,11 @@ const { Dragger } = Upload;
 const UploadAnswerSheet = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [answerSheetFile, setAnswerSheetFile] = useState(null);
+  const [answerSheetFiles, setAnswerSheetFiles] = useState([]);
   const [gradingId, setGradingId] = useState(null);
   const [uploading, setUploading] = useState(false);
   const { showSuccess, showError, showInfo } = useMessageService();
+  const userId = useSelector((state) => state?.user?.userInfo?.userId);
 
   // 从URL参数中获取grading_id - 使用react-router-dom标准方法
   useEffect(() => {
@@ -36,9 +39,9 @@ const UploadAnswerSheet = () => {
   }, [location]);
 
   // 处理上传答题卡
-  const handleUploadAnswerSheet = () => {
+  const handleUploadAnswerSheet = async () => {
     // 检查文件是否上传
-    if (!answerSheetFile) {
+    if (!answerSheetFiles || answerSheetFiles.length === 0) {
       showError("请上传答题卡文件");
       return;
     }
@@ -49,74 +52,62 @@ const UploadAnswerSheet = () => {
       return;
     }
 
-    // 创建FormData对象
-    const formData = new FormData();
-    formData.append("student_papers", answerSheetFile);
-    formData.append("grading_id", gradingId);
-
-    console.log("上传答题卡数据: 已准备FormData");
-    console.log("grading_id:", gradingId);
-
     // 设置上传中状态
     setUploading(true);
-
-    // 调用封装的上传答题卡API
-    uploadAnswerSheet(formData)
-      .then(() => {
-        showSuccess("答题卡上传成功，请等候评分完成");
-        // 重置状态
-        setAnswerSheetFile(null);
-        setUploading(false);
-        // 跳转到首页
-        navigate("/");
-      })
-      .catch((error) => {
-        console.error("答题卡上传失败:", error);
-        setUploading(false);
-        // showError("答题卡上传失败，请重试");
+    try {
+      // 批量 STS → init → PUT，收集 object_key 列表
+      const keys = [];
+      for (const f of answerSheetFiles) {
+        const { objectKey } = await uploadWithInit(f, {
+          userId,
+          contentType: f.type || "application/pdf",
+        });
+        keys.push(objectKey);
+      }
+      // 提交业务接口触发评分（下划线命名：grading_id + answer_sheet_object_keys[]）
+      await gradeStudentPaperOSS({
+        grading_id: gradingId,
+        answer_sheet_object_keys: keys,
       });
+      showSuccess("答题卡上传成功，请等候评分完成");
+      setAnswerSheetFiles([]);
+      navigate("/");
+    } catch (error) {
+      console.error("答题卡上传失败:", error);
+      showError(error?.message || "答题卡上传失败，请重试");
+    } finally {
+      setUploading(false);
+    }
   };
 
   // 答题卡上传配置
   const answerSheetUploadProps = {
     name: "answerSheet",
-    multiple: false,
+    multiple: true,
     accept: ".pdf",
     beforeUpload: (file) => {
-      // 阻止自动上传，只保存文件到state
       const validTypes = ["application/pdf"];
       const isAllowedType = validTypes.includes(file.type);
       if (!isAllowedType) {
         showError("只支持 PDF 格式的文件!");
         return false;
       }
-
-      // 保存文件到state
-      setAnswerSheetFile(file);
-      return false;
+      setAnswerSheetFiles((prev) => [...prev, file]);
+      return false; // 阻止自动上传
     },
-    onChange(info) {
-      // 当文件被移除时更新状态
-      if (info.file.status === "removed") {
-        setAnswerSheetFile(null);
-        showInfo("已移除答题卡文件");
-      }
+    onRemove: (file) => {
+      setAnswerSheetFiles((prev) => prev.filter((f) => f.uid ? f.uid !== file.uid : f.name !== file.name));
+      showInfo("已移除答案文件");
     },
-    onDrop(e) {
-      console.log("Dropped files", e.dataTransfer.files);
-    },
-    fileList: answerSheetFile
-      ? [
-          {
-            uid: "answerSheet-1",
-            name: answerSheetFile.name,
-            status: "done",
-          },
-        ]
-      : [],
-    // 隐藏上传按钮，只使用拖拽区域
-    showUploadList: true,
+    fileList: (answerSheetFiles || []).map((f, idx) => ({
+      uid: f.uid || `answer-${idx}`,
+      name: f.name,
+      status: "done",
+    })),
   };
+
+  // 隐藏上传按钮，只使用拖拽区域
+  // showUploadList: true,
 
   // 返回首页
   const handleBack = () => {

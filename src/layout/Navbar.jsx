@@ -11,6 +11,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   TeamOutlined,
+  MessageOutlined,
 } from "@ant-design/icons";
 import { APP_VERSION } from "../utils/appConfig";
 import { Link, useNavigate, useLocation } from "react-router-dom";
@@ -89,6 +90,18 @@ const Navbar = () => {
       icon: <TeamOutlined />,
       label: "班级管理",
       path: "/class-management",
+    },
+    {
+      key: "9",
+      icon: <MessageOutlined />,
+      label: "论坛",
+      path: "/forum",
+    },
+    {
+      key: "8",
+      icon: <FileTextOutlined />,
+      label: "更新日志",
+      path: "/changelog",
     },
     // {
     //   key: "4",

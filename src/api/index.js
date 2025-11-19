@@ -31,3 +31,6 @@ export { default as studentAPI } from './student';
 export * from './manual';
 export { default as manualAPI } from './manual';
 
+// 沟通模块API
+export * from './communication';
+export { default as communicationAPI } from './communication';

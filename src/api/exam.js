@@ -15,6 +15,29 @@ export const getExamList = (params = {}) => {
   return request.get("/grading/exam/list", params);
 };
 
+export const createExamWithObjectKeys = (data = {}) => {
+  const form = new FormData();
+  const subject = data.subject;
+  const paper_title = data.paper_title ?? data.paperTitle;
+  const answer_sheet_template_id = data.answer_sheet_template_id ?? data.answerSheetTemplateId;
+  const origin_paper_object_key = data.origin_paper_object_key ?? data.originPaperObjectKey;
+  const standard_answer_object_key = data.standard_answer_object_key ?? data.standardAnswerObjectKey;
+  const origin_paper_file_name = data.origin_paper_file_name ?? data.originPaperFileName;
+  const standard_answer_file_name = data.standard_answer_file_name ?? data.standardAnswerFileName;
+
+  if (subject != null) form.append("subject", subject);
+  if (paper_title != null) form.append("paper_title", paper_title);
+  if (answer_sheet_template_id != null) form.append("answer_sheet_template_id", answer_sheet_template_id);
+  if (origin_paper_object_key != null) form.append("origin_paper_object_key", origin_paper_object_key);
+  if (standard_answer_object_key != null) form.append("standard_answer_object_key", standard_answer_object_key);
+  if (origin_paper_file_name != null) form.append("origin_paper_file_name", origin_paper_file_name);
+  if (standard_answer_file_name != null) form.append("standard_answer_file_name", standard_answer_file_name);
+
+  return request.post("/grading/exam/create-oss", form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+
 /**
  * 获取批改任务列表（用于首页）
  * @returns {Promise} 返回Promise对象，包含批改任务列表
@@ -118,6 +141,7 @@ export default {
   getExamList,
   getGradingList,
   createExam,
+  createExamWithObjectKeys,
   getAnswerSheetTemplates,
   getExamDetail,
   updateExam,

@@ -7,7 +7,8 @@ import { ProtectedRoute, LoginPage } from "./ProtectedRoutes.jsx";
 const { Home, CreateExam, UploadAnswerSheet, ScoreProcess, DataAnalysis, EssayGrading, QuestionAnalysis } = pages.dashboard;
 const { UserList, ClassManagement } = pages.studentManagement;
 const { NotFound, FeatureUnderDevelopment } = pages;
-const { MessageDemo } = pages.systemSettings;
+const { MessageDemo, Changelog } = pages.systemSettings;
+const { Forum, ReleaseNotes } = pages.communication;
 const {
   ExamPaperDesign,
   ChinesePaperDesign,
@@ -16,6 +17,7 @@ const {
   ExamPaperPreview,
 } = pages.exam;
 const { ManualReviewPage } = pages.manualReview;
+const { TraceMockPage } = pages.traceMock;
 
 // 创建路由配置
 const router = createBrowserRouter([
@@ -44,6 +46,8 @@ const router = createBrowserRouter([
       { path: "question-analysis", element: <QuestionAnalysis /> },
       { path: "manual-review", element: <ManualReviewPage /> },
       { path: "class-management", element: <ClassManagement /> },
+      { path: "forum", element: <Forum /> },
+      { path: "release-notes", element: <ReleaseNotes /> },
       {
         path: "users",
         element: <UserList />,
@@ -51,6 +55,10 @@ const router = createBrowserRouter([
       {
         path: "message-demo",
         element: <MessageDemo />,
+      },
+      {
+        path: "changelog",
+        element: <Changelog />,
       },
       {
         path: "create-exam",
@@ -83,6 +91,10 @@ const router = createBrowserRouter([
       {
         path: "data-analysis",
         element: <DataAnalysis />,
+      },
+      {
+        path: "trace-mock",
+        element: <TraceMockPage />,
       },
     ],
   },

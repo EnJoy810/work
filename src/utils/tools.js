@@ -16,7 +16,7 @@ import {
   splitBlankQuestion,
   processPageQuestions,
   calculateQuestionsPagination,
-} from "./pagePaginationUtils";
+} from "./pagination";
 
 // 密码加密（使用SHA-256算法）
 export const encryptPassword = (password) => {

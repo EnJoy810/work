@@ -24,8 +24,8 @@ import {
   deleteStudent,
   importStudent,
 } from "../../api/student";
-import ExcelFormatImg from "../../assets/Excel文件格式.png";
-import TxtFormatImg from "../../assets/txt文件格式.png";
+import ExcelFormatImg from "../../assets/images/Excel文件格式.png";
+import TxtFormatImg from "../../assets/images/txt文件格式.png";
 import "./ClassManagement.css";
 
 const getStudentName = (record) =>
