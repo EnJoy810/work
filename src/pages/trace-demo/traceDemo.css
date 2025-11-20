@@ -1,0 +1,514 @@
+/* 留痕 Demo 页面样式 - 与人工阅卷页面保持一致 */
+
+.trace-demo-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background-color: #f5f7fb;
+  color: #1f2329;
+  overflow: hidden;
+}
+
+/* 顶部 Header */
+.trace-demo-header {
+  position: relative;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid #e4e7ec;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+  display: flex;
+  align-items: center;
+}
+
+.trace-demo-header h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2329;
+}
+
+.header-info {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  font-size: 13px;
+  color: #8a93a8;
+  white-space: nowrap;
+}
+
+.header-info span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* 主体内容区 */
+.trace-demo-content {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* 左侧面板 - 与人工阅卷一致 */
+.trace-demo-page .left-panel {
+  width: 280px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #fff;
+  border-right: 1px solid #e4e7ec;
+}
+
+/* 学生导航 */
+.trace-demo-page .student-navigation {
+  height: 74px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 12px 12px 16px;
+}
+
+.trace-demo-page .student-navigation h3 {
+  font-size: 18px;
+  margin: 0;
+  font-weight: 600;
+}
+
+.trace-demo-page .navigation-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.trace-demo-page .student-list__nav-btn {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 2px 8px;
+  background-color: #fff;
+  cursor: pointer;
+  height: 28px;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+
+.trace-demo-page .student-list__nav-btn:hover:not(:disabled) {
+  background-color: #f5f7fb;
+  border-color: #b7bfd0;
+}
+
+.trace-demo-page .student-list__nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trace-demo-page .student-list__nav-index {
+  font-weight: 500;
+  font-size: 14px;
+  color: #4c5465;
+}
+
+/* 学生列表容器 */
+.trace-demo-page .student-list-container {
+  padding: 0 16px 16px 16px;
+}
+
+.trace-demo-page .student-list__items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trace-demo-page .student-list__button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background-color: #fff;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.trace-demo-page .student-list__button:hover {
+  background-color: #f5f7fb;
+}
+
+.trace-demo-page .student-list__button--active {
+  background-color: #e6f0ff;
+  border-color: #b3ccff;
+  color: #2463eb;
+}
+
+.trace-demo-page .student-list__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+}
+
+.trace-demo-page .student-list__name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  color: #1f2329;
+}
+
+.trace-demo-page .student-list__meta {
+  font-size: 12px;
+  color: #8a93a8;
+}
+
+.trace-demo-page .student-list__status {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+}
+
+/* 中间画布区域 - 占50%宽度 */
+.trace-demo-page .center-panel {
+  flex: 1;
+  background-color: #edf1f7;
+  padding: 16px;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* 右侧批注面板 - 固定350px宽度 */
+.trace-demo-page .right-panel {
+  width: 360px;
+  flex-shrink: 0;
+  background-color: #fff;
+  border-left: 1px solid #e4e7ec;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding-right: 4px;
+}
+
+.trace-demo-page .canvas-wrapper {
+  flex: 1;
+  background-color: #fff;
+  border-radius: 24px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+  position: relative;
+  min-height: 0;
+  height: 100%;
+}
+
+.trace-demo-page .canvas-tabs {
+  margin-bottom: 12px;
+}
+
+.trace-demo-page .canvas-tabs .ant-tabs-nav {
+  margin: 0;
+}
+
+.trace-demo-page .canvas-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.trace-demo-page .canvas-body-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.trace-demo-page .canvas-body-content .ant-spin-nested-loading,
+.trace-demo-page .canvas-body-content .ant-spin-container {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+/* 画布顶部控制栏 */
+.trace-demo-page .canvas-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.trace-demo-page .canvas-toolbar__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.trace-demo-page .canvas-toolbar__right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trace-demo-page .zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.trace-demo-page .zoom-controls button {
+  border: 1px solid #d7dbe3;
+  border-radius: 8px;
+  background-color: #fff;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  font-size: 14px;
+}
+
+.trace-demo-page .zoom-controls button:hover:not(:disabled) {
+  background-color: #f5f7fb;
+  border-color: #b7bfd0;
+}
+
+.trace-demo-page .zoom-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trace-demo-page .zoom-controls span {
+  min-width: 64px;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4c5465;
+}
+
+/* 答题卡容器 */
+.trace-demo-page .answer-sheet-container {
+  flex: 1;
+  border: 1px solid #e4e7ec;
+  border-radius: 16px;
+  background-color: #f5f6f9;
+  overflow: auto;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  position: relative;
+  min-height: 0;
+  padding: 16px;
+}
+
+.trace-demo-page .answer-sheet-zoom-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.trace-demo-page .answer-sheet-inner {
+  position: relative;
+  display: inline-block;
+  max-width: none;
+}
+
+.trace-demo-page .answer-sheet-image {
+  display: block;
+  border-radius: 12px;
+  width: 100%;
+  height: auto;
+}
+
+/* 题目框选栏 */
+.trace-demo-page .question-bbox {
+  position: absolute;
+  border: 1px dashed rgba(36, 99, 235, 0.3);
+  pointer-events: none;
+  transition: border-color 0.2s ease;
+}
+
+.trace-demo-page .question-bbox:hover {
+  border-color: rgba(36, 99, 235, 0.6);
+}
+
+.trace-demo-page .question-label {
+  position: absolute;
+  top: -20px;
+  left: 0;
+  background: #2463eb;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* 批注卡片 */
+.trace-demo-page .annotation-card {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  min-width: 0;
+  max-width: 260px;
+  box-shadow: none;
+  cursor: grab;
+  user-select: none;
+  transition: all 0.2s ease;
+  z-index: 100;
+}
+
+.trace-demo-page .annotation-card.selected {
+  border: none;
+  box-shadow: none;
+  z-index: 1000;
+}
+
+.trace-demo-page .annotation-card.dragging {
+  opacity: 0.8;
+  cursor: grabbing;
+  box-shadow: none;
+}
+
+.trace-demo-page .annotation-card__content {
+  font-size: 13px;
+  font-family: "KaiTi", "STKaiti", "SimKai", "楷体", "Songti SC", serif;
+  color: #d32029;
+  word-break: break-word;
+  line-height: 1.5;
+}
+
+/* 加载状态 */
+.trace-demo-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 16px;
+  color: #8a93a8;
+  background-color: #f5f7fb;
+}
+
+/* Tabs 样式覆盖 */
+.trace-demo-page .ant-tabs {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.trace-demo-page .ant-tabs-content {
+  flex: 1;
+  height: 100%;
+  overflow: hidden;
+}
+
+.trace-demo-page .ant-tabs-content-holder {
+  height: 100%;
+  overflow: hidden;
+}
+
+.trace-demo-page .ant-tabs-tabpane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.trace-demo-page .canvas-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* 批注面板样式 */
+.trace-demo-page .annotation-panel {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.trace-demo-page .panel-header {
+  padding: 16px;
+  border-bottom: 1px solid #e4e7ec;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #fff;
+}
+
+.trace-demo-page .panel-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2329;
+}
+
+.trace-demo-page .panel-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.trace-demo-page .panel-footer {
+  padding: 16px;
+  border-top: 1px solid #e4e7ec;
+  background-color: #fafafa;
+}
+
+.trace-demo-page .annotation-list-item {
+  transition: all 0.2s ease;
+  cursor: pointer;
+  padding: 12px;
+  margin-bottom: 8px;
+  border: 1px solid #f0f0f0 !important;
+  border-radius: 8px !important;
+  background: #fff;
+}
+
+.trace-demo-page .annotation-list-item:hover {
+  background-color: #f5f7fb;
+}
+
+.trace-demo-page .annotation-list-item.active {
+  border-color: #1890ff !important;
+  background-color: #e6f7ff !important;
+  box-shadow: none;
+}
+
+/* 响应式调整 */
+@media (max-width: 1400px) {
+  .trace-demo-page .left-panel {
+    width: 240px;
+  }
+  
+  .trace-demo-page .right-panel {
+    width: 300px;
+  }
+}
+
+@media (max-width: 1200px) {
+  .trace-demo-page .center-panel {
+    flex: 1;
+  }
+}

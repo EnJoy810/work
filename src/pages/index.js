@@ -7,7 +7,7 @@ import studentManagement from './student-management';
 import systemSettings from './system-settings';
 import manualReview from './manual-review';
 import communication from './communication';
-import traceMock from './trace-mock';
+import traceDemo from './trace-demo';
 import NotFound from './NotFound';
 import FeatureUnderDevelopment from './FeatureUnderDevelopment';
 
@@ -20,7 +20,7 @@ export default {
   systemSettings,
   manualReview,
   communication,
-  traceMock,
+  traceDemo,
   NotFound,
   FeatureUnderDevelopment
 };

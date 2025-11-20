@@ -7,6 +7,7 @@ import {
   BarChartOutlined,
   ExclamationCircleOutlined,
   DeleteOutlined,
+  EditOutlined,
 } from "@ant-design/icons";
 import ScoreRulesModal from "./ScoreRulesModal";
 import { formatDate } from "../../../utils/tools";
@@ -346,6 +347,18 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                 }}
               >
                 人工阅卷
+              </Button>
+
+              <Button
+                type="default"
+                icon={<EditOutlined />}
+                onClick={() => {
+                  navigate(
+                    `/trace-demo?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`
+                  );
+                }}
+              >
+                手动留痕
               </Button>
             </>
           )}
