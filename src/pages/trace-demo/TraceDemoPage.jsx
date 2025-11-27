@@ -518,7 +518,7 @@ const TraceDemoPage = () => {
     return annotations;
   }, [answerSheetData]);
 
-  // 打印功能 - 使用 Canvas 导出
+  // 打印功能 - 只打印批注层，不打印答题卡背景
   const handlePrint = useCallback(async () => {
     try {
       // 1. 获取答题卡容器元素
@@ -528,42 +528,56 @@ const TraceDemoPage = () => {
         return;
       }
 
-      // 2. 显示加载提示
+      // 2. 获取答题卡背景图片元素
+      const backgroundImage = canvasElement.querySelector('.answer-sheet-image');
+      if (!backgroundImage) {
+        message.error('未找到答题卡背景图片');
+        return;
+      }
+
+      // 3. 显示加载提示
       const loadingMessage = message.loading('正在生成打印预览...', 0);
 
-      // 3. 等待一小段时间确保 DOM 完全渲染
+      // 4. 临时隐藏答题卡背景图片
+      const originalDisplay = backgroundImage.style.display;
+      backgroundImage.style.display = 'none';
+
+      // 5. 等待一小段时间确保 DOM 完全渲染
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // 4. 使用 html2canvas 渲染答题卡
+      // 6. 使用 html2canvas 渲染批注层（不包含背景图片）
       const canvas = await html2canvas(canvasElement, {
         scale: 2, // 2倍清晰度，适合打印
         useCORS: true, // 支持跨域图片
         logging: false, // 关闭日志
-        backgroundColor: '#ffffff', // 白色背景
+        backgroundColor: null, // 透明背景
         allowTaint: true, // 允许跨域图片
         imageTimeout: 0, // 图片加载超时时间
       });
 
-      // 5. 转换为高清图片
+      // 7. 恢复答题卡背景图片显示
+      backgroundImage.style.display = originalDisplay;
+
+      // 8. 转换为高清图片
       const imgData = canvas.toDataURL('image/png', 1.0);
 
-      // 6. 关闭加载提示
+      // 9. 关闭加载提示
       loadingMessage();
 
-      // 7. 创建打印窗口
+      // 10. 创建打印窗口
       const printWindow = window.open('', '_blank', 'width=1200,height=800');
       if (!printWindow) {
         message.error('无法打开打印窗口，请检查浏览器弹窗设置');
         return;
       }
 
-      // 8. 写入打印页面内容
+      // 11. 写入打印页面内容
       printWindow.document.write(`
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="UTF-8">
-            <title>打印答题卡</title>
+            <title>打印批注</title>
             <style>
               @page {
                 size: A3 landscape;
@@ -607,15 +621,15 @@ const TraceDemoPage = () => {
             </style>
           </head>
           <body>
-            <img src="${imgData}" alt="答题卡" />
+            <img src="${imgData}" alt="批注" />
           </body>
         </html>
       `);
 
-      // 9. 关闭文档流
+      // 12. 关闭文档流
       printWindow.document.close();
 
-      // 10. 等待图片加载完成后自动打印
+      // 13. 等待图片加载完成后自动打印
       const img = printWindow.document.querySelector('img');
       if (img) {
         img.onload = () => {
