@@ -61,6 +61,7 @@ const UploadAnswerSheet = () => {
         const { objectKey } = await uploadWithInit(f, {
           userId,
           contentType: f.type || "application/pdf",
+          channel: 'grading',
         });
         keys.push(objectKey);
       }

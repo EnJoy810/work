@@ -34,3 +34,9 @@ export { default as manualAPI } from './manual';
 // 沟通模块API
 export * from './communication';
 export { default as communicationAPI } from './communication';
+
+// 留痕相关API
+export * from './trace';
+
+// 更新日志API
+export * from './updateLog';

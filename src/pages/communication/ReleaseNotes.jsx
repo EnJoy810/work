@@ -10,7 +10,7 @@ import {
   getUpdateLogCount,
   createUpdateLog,
   deleteUpdateLog,
-} from "../../api/communication";
+} from "../../api/updateLog";
 
 const { Text } = Typography;
 const PAGE_SIZE = 10;
@@ -30,7 +30,8 @@ const ReleaseNotes = () => {
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
 
-  const isAdmin = useMemo(() => userInfo?.role === "ADMIN", [userInfo]);
+  // 超级管理员账号为 root（唯一）或角色为 ADMIN
+  const isAdmin = useMemo(() => userInfo?.username === "root" || ["ADMIN", "ROOT", "SUPER_ADMIN"].includes(userInfo?.role), [userInfo]);
   const myUserId = userInfo?.userId;
 
   const loadPage = useCallback(

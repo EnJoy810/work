@@ -79,13 +79,34 @@ export const getCommentList = ({ post_id, comment_id }) => {
   return request.get("/post/comment/list", params);
 };
 
-export const createComment = ({ content, owner_id, post_id, parent_comment_id }) => {
-  return request.post("/post/comment", {
+/**
+ * 创建评论
+ * @param {Object} params
+ * @param {string} params.content - 评论内容
+ * @param {number} params.owner_id - 评论者 ID
+ * @param {number} params.post_id - 帖子 ID
+ * @param {number} [params.parent_comment_id] - 父评论 ID（一级评论不传，子级评论必传）
+ * @param {number} [params.answer_id] - 回复的用户 ID（一级评论不传，子级评论必传）
+ * @param {string} [params.answer_name] - 回复的用户名（一级评论不传，子级评论必传）
+ */
+export const createComment = ({ content, owner_id, post_id, parent_comment_id, answer_id, answer_name }) => {
+  const payload = {
     content,
     owner_id,
+    owner_name: getOwnerName(),
     post_id,
-    parent_comment_id: parent_comment_id ?? null,
-  });
+    creator_type: getCreatorType(),
+    sub_comment: !!parent_comment_id, // 有 parent_comment_id 就是子级评论
+  };
+  
+  // 子级评论才需要这些字段
+  if (parent_comment_id) {
+    payload.parent_comment_id = parent_comment_id;
+    payload.answer_id = answer_id;
+    payload.answer_name = answer_name;
+  }
+  
+  return request.post("/post/comment", payload);
 };
 
 export const deleteComment = (id) => {
@@ -111,34 +132,6 @@ export const likeComment = (comment_id) => {
   );
 };
 
-// Update Logs
-export const getUpdateLogsPage = ({ pageSize, lastCreatedAt }) => {
-  return request.get("/update-log/page", {
-    page_size: pageSize,
-    last_created_at: lastCreatedAt,
-  });
-};
-
-export const getUpdateLogCount = () => {
-  return request.get("/update-log/count");
-};
-
-export const createUpdateLog = ({ title, content, owner_id }) => {
-  return request.post("/update-log", { title, content, owner_id });
-};
-
-export const deleteUpdateLog = (id) => {
-  return request.delete(
-    "/update-log",
-    { id },
-    {
-      headers: {
-        ...getUserHeaders(),
-      },
-    }
-  );
-};
-
 export default {
   getPostsPage,
   getPostCount,
@@ -149,8 +142,4 @@ export default {
   createComment,
   deleteComment,
   likeComment,
-  getUpdateLogsPage,
-  getUpdateLogCount,
-  createUpdateLog,
-  deleteUpdateLog,
 };

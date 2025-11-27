@@ -1,44 +1,37 @@
 /* 留痕 Demo 页面样式 - 与人工阅卷页面保持一致 */
 
 .trace-demo-page {
+  height: calc(100vh - 110px);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  background-color: #f5f7fb;
-  color: #1f2329;
-  overflow: hidden;
 }
 
 /* 顶部 Header */
 .trace-demo-header {
-  position: relative;
-  height: 48px;
-  padding: 0 16px;
-  border-bottom: 1px solid #e4e7ec;
-  background-color: #fff;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
   display: flex;
+  justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.09);
 }
 
 .trace-demo-header h2 {
+  font-size: 18px;
   margin: 0;
-  font-size: 16px;
   font-weight: 600;
-  color: #1f2329;
 }
 
 .header-info {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   gap: 24px;
   font-size: 13px;
-  color: #8a93a8;
+  color: #666;
   white-space: nowrap;
+  margin-left: 32px;
 }
 
 .header-info span {
@@ -51,7 +44,30 @@
   margin-left: auto;
   display: flex;
   align-items: center;
+  gap: 12px;
+}
+
+.header-actions .auto-save-switch {
+  display: flex;
+  align-items: center;
   gap: 8px;
+  padding: 6px 12px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s;
+}
+
+.header-actions .auto-save-switch:hover {
+  border-color: #40a9ff;
+  background-color: #e6f7ff;
+}
+
+.header-actions .auto-save-switch span {
+  font-size: 13px;
+  color: #595959;
+  user-select: none;
+  font-weight: 500;
 }
 
 /* 主体内容区 */
@@ -59,7 +75,9 @@
   display: flex;
   flex: 1;
   min-height: 0;
+  gap: 16px;
   overflow: hidden;
+  padding: 0 0 20px 0;
 }
 
 /* 左侧面板 - 与人工阅卷一致 */
@@ -69,7 +87,7 @@
   overflow-y: auto;
   overflow-x: hidden;
   background-color: #fff;
-  border-right: 1px solid #e4e7ec;
+  transition: width 0.3s ease, opacity 0.3s ease;
 }
 
 /* 学生导航 */
@@ -78,17 +96,20 @@
   position: sticky;
   top: 0;
   z-index: 10;
-  background-color: #fff;
+  padding-top: 0;
+  padding-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 12px 12px 16px;
+  background-color: #fff;
+  flex-shrink: 0;
 }
 
 .trace-demo-page .student-navigation h3 {
   font-size: 18px;
-  margin: 0;
-  font-weight: 600;
+  margin-bottom: 0;
+  display: flex;
+  align-items: center;
 }
 
 .trace-demo-page .navigation-controls {
@@ -186,48 +207,108 @@
   font-size: 12px;
 }
 
-/* 中间画布区域 - 占50%宽度 */
+/* 中间面板 - 答题卡展示区 */
 .trace-demo-page .center-panel {
   flex: 1;
-  background-color: #edf1f7;
-  padding: 16px;
-  display: flex;
-  align-items: stretch;
-  justify-content: center;
+  min-width: 0;
+  max-width: 100%;
   overflow: hidden;
-}
-
-/* 右侧批注面板 - 固定350px宽度 */
-.trace-demo-page .right-panel {
-  width: 360px;
-  flex-shrink: 0;
   background-color: #fff;
-  border-left: 1px solid #e4e7ec;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  padding-right: 4px;
+  border-radius: 12px;
+  border: 1px solid #d9d9d9;
+  transition: all 0.3s ease;
+}
+
+/* 当左栏隐藏时，移除左边距 */
+.trace-demo-content:not(:has(.left-panel)) .center-panel {
+  margin-left: 0;
+}
+
+/* 当右栏隐藏时，移除右边距 */
+.trace-demo-content:not(:has(.right-panel)) .center-panel {
+  margin-right: 0;
+}
+
+/* 左右栏都显示时的边距 */
+.trace-demo-content:has(.left-panel):has(.right-panel) .center-panel {
+  margin: 0 12px;
+}
+
+/* 只有左栏时 */
+.trace-demo-content:has(.left-panel):not(:has(.right-panel)) .center-panel {
+  margin-left: 12px;
+  margin-right: 0;
+}
+
+/* 只有右栏时 */
+.trace-demo-content:not(:has(.left-panel)):has(.right-panel) .center-panel {
+  margin-left: 0;
+  margin-right: 12px;
+}
+
+/* 右侧面板 - 批注列表 */
+.trace-demo-page .right-panel {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease, opacity 0.3s ease;
 }
 
 .trace-demo-page .canvas-wrapper {
   flex: 1;
-  background-color: #fff;
-  border-radius: 24px;
-  padding: 20px;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
   position: relative;
   min-height: 0;
   height: 100%;
+  overflow: hidden;
 }
 
-.trace-demo-page .canvas-tabs {
-  margin-bottom: 12px;
+.trace-demo-page .canvas-page-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 20px;
+  background-color: #fff;
+  border-bottom: 1px solid #f0f0f0;
 }
 
-.trace-demo-page .canvas-tabs .ant-tabs-nav {
-  margin: 0;
+.trace-demo-page .canvas-page-navigation .page-nav-btn {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  padding: 2px 8px;
+  background-color: #fff;
+  cursor: pointer;
+  height: 28px;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.2s ease;
+  min-width: 28px;
+}
+
+.trace-demo-page .canvas-page-navigation .page-nav-btn:hover:not(:disabled) {
+  background-color: #f5f7fb;
+  border-color: #b7bfd0;
+}
+
+.trace-demo-page .canvas-page-navigation .page-nav-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.trace-demo-page .canvas-page-navigation .page-nav-index {
+  font-weight: 500;
+  font-size: 14px;
+  color: #4c5465;
+  min-width: 40px;
+  text-align: center;
 }
 
 .trace-demo-page .canvas-body {
@@ -275,68 +356,85 @@
 .trace-demo-page .zoom-controls {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
+  padding: 4px 8px;
+  background-color: #f5f5f5;
+  border-radius: 4px;
+  border: 1px solid #d9d9d9;
 }
 
 .trace-demo-page .zoom-controls button {
-  border: 1px solid #d7dbe3;
-  border-radius: 8px;
+  border: none;
+  border-radius: 4px;
   background-color: #fff;
-  padding: 6px 10px;
+  padding: 4px 10px;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: all 0.2s ease;
   font-size: 14px;
+  min-width: 28px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .trace-demo-page .zoom-controls button:hover:not(:disabled) {
-  background-color: #f5f7fb;
-  border-color: #b7bfd0;
+  background-color: #e6f7ff;
+  color: #1890ff;
 }
 
 .trace-demo-page .zoom-controls button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
+  background-color: #fafafa;
 }
 
 .trace-demo-page .zoom-controls span {
-  min-width: 64px;
+  min-width: 50px;
   text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: #4c5465;
+  font-size: 12px;
+  font-weight: 500;
+  color: #595959;
+  padding: 0 4px;
 }
 
-/* 答题卡容器 */
+/* 答题卡容器 - 填满展示区 */
 .trace-demo-page .answer-sheet-container {
   flex: 1;
-  border: 1px solid #e4e7ec;
-  border-radius: 16px;
-  background-color: #f5f6f9;
-  overflow: auto;
+  background-color: #fafafa;
+  overflow: hidden;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   position: relative;
   min-height: 0;
-  padding: 16px;
+  width: 100%;
+  height: 100%;
 }
 
 .trace-demo-page .answer-sheet-zoom-wrapper {
   position: relative;
-  display: inline-block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .trace-demo-page .answer-sheet-inner {
   position: relative;
-  display: inline-block;
-  max-width: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .trace-demo-page .answer-sheet-image {
   display: block;
-  border-radius: 12px;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: contain;
 }
 
 /* 题目框选栏 */
@@ -363,42 +461,127 @@
   font-weight: 600;
 }
 
-/* 批注卡片 */
-.trace-demo-page .annotation-card {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  background: transparent;
-  border-radius: 0;
-  padding: 0;
-  min-width: 0;
-  max-width: 260px;
-  box-shadow: none;
-  cursor: grab;
-  user-select: none;
-  transition: all 0.2s ease;
-  z-index: 100;
-}
-
-.trace-demo-page .annotation-card.selected {
-  border: none;
-  box-shadow: none;
-  z-index: 1000;
-}
-
-.trace-demo-page .annotation-card.dragging {
-  opacity: 0.8;
-  cursor: grabbing;
-  box-shadow: none;
-}
-
-.trace-demo-page .annotation-card__content {
-  font-size: 13px;
-  font-family: "KaiTi", "STKaiti", "SimKai", "楷体", "Songti SC", serif;
-  color: #d32029;
-  word-break: break-word;
-  line-height: 1.5;
-}
-
+/* 批注卡片 */
+
+.trace-demo-page .annotation-card {
+  position: absolute;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  box-sizing: border-box;
+  background: transparent;
+  border: 1px solid transparent;
+  z-index: 100;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.trace-demo-page .annotation-card.selected {
+  border-color: rgba(211, 32, 41, 0.6);
+  box-shadow: 0 0 0 1px rgba(211, 32, 41, 0.4);
+  z-index: 1000;
+}
+
+.trace-demo-page .annotation-card.editing {
+  border-color: rgba(24, 144, 255, 0.6);
+  box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.3);
+}
+
+/* 分数框样式 - 未选中时不显示边框 */
+.trace-demo-page .annotation-card.score-card {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* 分数框样式 - 选中时显示蓝色边框 */
+.trace-demo-page .annotation-card.score-card.selected {
+  border-color: rgba(24, 144, 255, 0.8);
+  box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.5);
+}
+
+.trace-demo-page .annotation-card.score-card .annotation-card__inner {
+  color: #d32029;
+  font-weight: bold;
+}
+
+.trace-demo-page .annotation-card__inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  padding: 6px 8px;
+  color: #d32029;
+  font-family: "KaiTi", "STKaiti", "SimKai", "Songti SC", serif;
+  background: rgba(255, 255, 255, 0.02);
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+
+.trace-demo-page .annotation-card__inner--editing {
+  cursor: text;
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.trace-demo-page .annotation-card__drag-region {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.trace-demo-page .annotation-card__drag-region:not(.annotation-card__inner--editing) {
+  cursor: grab;
+}
+
+.trace-demo-page .annotation-card__drag-region:not(.annotation-card__inner--editing):active {
+  cursor: grabbing;
+}
+
+.trace-demo-page .annotation-card__editor {
+  width: 100%;
+  min-height: 20px;
+  outline: none;
+  border: none;
+  background: transparent;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  word-break: break-word;
+  color: inherit;
+  overflow-wrap: break-word;
+}
+
+.trace-demo-page .annotation-card__placeholder {
+  position: absolute;
+  top: 4px;
+  left: 6px;
+  font-size: inherit;
+  line-height: inherit;
+  color: rgba(211, 32, 41, 0.4);
+  pointer-events: none;
+}
+
+.trace-demo-page .annotation-card__paragraph {
+  margin: 0;
+}
+
+.trace-demo-page .annotation-card__editor-wrapper {
+  width: 100%;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* 加载状态 */
 .trace-demo-loading {
   display: flex;
@@ -496,6 +679,34 @@
   box-shadow: none;
 }
 
+.trace-demo-page .annotation-item-content-wrapper {
+  position: relative;
+  padding-right: 90px;
+  min-height: 32px;
+}
+
+.trace-demo-page .annotation-scale-controls--inline {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.trace-demo-page .annotation-scale-controls--inline .ant-btn {
+  padding: 0 6px;
+  line-height: 1;
+  height: 22px;
+}
+
+.trace-demo-page .annotation-scale-controls--inline .annotation-scale-controls__value {
+  min-width: 44px;
+  text-align: center;
+  font-size: 12px;
+  color: #8a8f9c;
+}
+
 /* 响应式调整 */
 @media (max-width: 1400px) {
   .trace-demo-page .left-panel {
@@ -512,3 +723,52 @@
     flex: 1;
   }
 }
+.trace-demo-page .annotation-card__resize-handle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border: 1.5px solid rgba(211, 32, 41, 0.85);
+  background: #fff;
+  border-radius: 50%;
+  pointer-events: auto;
+  opacity: 0;  /* 默认隐藏 */
+  transition: opacity 0.2s ease;
+}
+
+/* 选中时显示调整手柄 */
+.trace-demo-page .annotation-card.selected .annotation-card__resize-handle {
+  opacity: 1;
+}
+
+/* 分数框的调整手柄（蓝色） */
+.trace-demo-page .annotation-card.score-card.selected .annotation-card__resize-handle {
+  border-color: rgba(24, 144, 255, 0.85);
+}
+
+.trace-demo-page .annotation-card__resize-handle--top-left {
+  top: -3px;
+  left: -3px;
+  cursor: nwse-resize;
+}
+
+.trace-demo-page .annotation-card__resize-handle--top-right {
+  top: -3px;
+  right: -3px;
+  cursor: nesw-resize;
+}
+
+.trace-demo-page .annotation-card__resize-handle--bottom-left {
+  bottom: -3px;
+  left: -3px;
+  cursor: nesw-resize;
+}
+
+.trace-demo-page .annotation-card__resize-handle--bottom-right {
+  bottom: -3px;
+  right: -3px;
+  cursor: nwse-resize;
+}
+
+/* ==================== 打印样式 ==================== */
+/* 注意：现在使用 Canvas 导出打印（html2canvas），不再需要 CSS 打印样式 */
+/* 如果需要回退到 CSS 打印，可以恢复此处的样式 */

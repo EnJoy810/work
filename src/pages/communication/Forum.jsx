@@ -30,10 +30,12 @@ const Forum = () => {
   const [currentPostId, setCurrentPostId] = useState(null);
   const [comments, setComments] = useState({});
   const [expandedPosts, setExpandedPosts] = useState(new Set());
+  const [replyTarget, setReplyTarget] = useState(null); 
   const [form] = Form.useForm();
   const [commentForm] = Form.useForm();
 
-  const isAdmin = useMemo(() => userInfo?.role === "ADMIN", [userInfo]);
+  // 超级管理员账号为 root（唯一）或角色为 ADMIN
+  const isAdmin = useMemo(() => userInfo?.username === "root" || ["ADMIN", "ROOT", "SUPER_ADMIN"].includes(userInfo?.role), [userInfo]);
   const myUserId = userInfo?.userId;
 
   const formatTs = useCallback((d) => {
@@ -125,21 +127,32 @@ const Forum = () => {
     setExpandedPosts(newExpanded);
   };
 
-  const handleCommentOpen = (postId) => {
+  const handleCommentOpen = (postId, replyTo = null) => {
     setCurrentPostId(postId);
+    setReplyTarget(replyTo); // { commentId, userId, userName } or null
     setCommentOpen(true);
   };
 
   const handleCommentCreate = async () => {
     const values = await commentForm.validateFields();
-    await createComment({
+    
+    const params = {
       content: values.content,
       owner_id: myUserId,
       post_id: currentPostId,
-      parent_comment_id: null,
-    });
+    };
+    
+    // 如果是回复评论（子级评论）
+    if (replyTarget) {
+      params.parent_comment_id = replyTarget.commentId;
+      params.answer_id = replyTarget.userId;
+      params.answer_name = replyTarget.userName;
+    }
+    
+    await createComment(params);
     setCommentOpen(false);
     commentForm.resetFields();
+    setReplyTarget(null);
     await loadComments(currentPostId);
   };
 
@@ -189,7 +202,7 @@ const Forum = () => {
                 <div className="forum-post-actions">
                   <div className="forum-action-btn" onClick={() => handleLike(item.id)}>
                     <LikeOutlined />
-                    <span>点赞</span>
+                    <span>点赞 ({item.like_count || 0})</span>
                   </div>
                   <div className="forum-action-btn" onClick={() => handleCommentOpen(item.id)}>
                     <span>评论</span>
@@ -221,7 +234,17 @@ const Forum = () => {
                           <div className="forum-comment-actions">
                             <div className="forum-action-btn" onClick={() => handleCommentLike(comment.id)}>
                               <LikeOutlined />
-                              <span>点赞</span>
+                              <span>点赞 ({comment.like_count || 0})</span>
+                            </div>
+                            <div 
+                              className="forum-action-btn" 
+                              onClick={() => handleCommentOpen(item.id, {
+                                commentId: comment.id,
+                                userId: comment.owner_id,
+                                userName: comment.owner_name || "匿名用户"
+                              })}
+                            >
+                              <span>回复</span>
                             </div>
                             {(isAdmin || comment.owner_id === myUserId) && (
                               <div className="forum-action-btn danger" onClick={() => handleCommentDelete(comment.id, item.id)}>
@@ -272,11 +295,12 @@ const Forum = () => {
       </Modal>
 
       <Modal
-        title="发表评论"
+        title={replyTarget ? `回复 @${replyTarget.userName}` : "发表评论"}
         open={commentOpen}
         onCancel={() => {
           setCommentOpen(false);
           commentForm.resetFields();
+          setReplyTarget(null);
         }}
         onOk={handleCommentCreate}
         okText="发表"
@@ -285,7 +309,12 @@ const Forum = () => {
       >
         <Form form={commentForm} layout="vertical">
           <Form.Item name="content" label="评论内容" rules={[{ required: true, message: "请输入评论内容" }]}>
-            <Input.TextArea rows={4} maxLength={500} showCount placeholder="说点什么..." />
+            <Input.TextArea 
+              rows={4} 
+              maxLength={500} 
+              showCount 
+              placeholder={replyTarget ? `回复 @${replyTarget.userName}` : "说点什么..."} 
+            />
           </Form.Item>
         </Form>
       </Modal>

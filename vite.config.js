@@ -12,6 +12,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
       },
+      // 配置静态文件代理（视频、图片等）
+      "/uploads": {
+        target: "http://47.115.91.61:8080", // 后端服务器地址
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
   build: {

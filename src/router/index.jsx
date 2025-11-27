@@ -21,12 +21,18 @@ const { TraceDemoPage } = pages.traceDemo;
 
 // 创建路由配置
 const router = createBrowserRouter([
+  // 根路径重定向到登录页
+  {
+    path: "/",
+    element: <LoginPage />,
+  },
+  // 登录页（公开访问）
   {
     path: "/login",
     element: <LoginPage />,
   },
   {
-    path: "/",
+    path: "/app",
     element: (
       <ProtectedRoute>
         <Layout />

@@ -1,14 +1,51 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Modal, Form, Input, Space, Typography, Empty, Pagination } from "antd";
-import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Button, Card, Modal, Form, Input, Space, Typography, Empty, Pagination, Upload, message as antMessage } from "antd";
+import { PlusOutlined, DeleteOutlined, VideoCameraOutlined, InboxOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { getUpdateLogsPage, getUpdateLogCount, createUpdateLog, deleteUpdateLog } from "../../api/communication";
+import rehypeRaw from "rehype-raw";
+import { getUpdateLogsPage, getUpdateLogCount, createUpdateLog, deleteUpdateLog, updateVideo } from "../../api/updateLog";
 import { APP_VERSION, BUILD_TIME } from "../../utils/appConfig";
+import { uploadVideo, validateVideoDuration } from "../../services/videoUpload";
 import "./Changelog.css";
 
 const { Title, Text } = Typography;
+
+// 自定义视频组件（直接返回 video 元素，避免 p > div 的 DOM 嵌套警告）
+const VideoComponent = ({ src, ...props }) => {
+  // 处理视频 URL：支持 OSS URL 和相对路径
+  const getVideoUrl = (url) => {
+    if (!url) return '';
+    
+    // 如果已经是完整 URL（OSS 或其他），直接返回
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // 如果是相对路径，可能是旧数据或后端返回的路径
+    // 尝试通过代理访问（需要配置 vite proxy）
+    const serverUrl = window.location.origin;
+    const path = url.startsWith('/') ? url : `/${url}`;
+    
+    return `${serverUrl}${path}`;
+  };
+
+  const videoUrl = getVideoUrl(src);
+
+  return (
+    <video 
+      src={videoUrl} 
+      controls 
+      preload="metadata"
+      controlsList="nodownload"
+      className="markdown-video"
+      {...props}
+    >
+      您的浏览器不支持视频播放。
+    </video>
+  );
+};
 
 const Changelog = () => {
   const userInfo = useSelector((s) => s.user.userInfo);
@@ -18,8 +55,11 @@ const Changelog = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [form] = Form.useForm();
+  const [videoUrl, setVideoUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
 
-  const isAdmin = userInfo?.role === "ADMIN";
+  // 超级管理员账号为 root（唯一）或角色为 ADMIN
+  const isAdmin = userInfo?.username === "root" || ["ADMIN", "ROOT", "SUPER_ADMIN"].includes(userInfo?.role);
   const myUserId = userInfo?.userId;
 
   const PAGE_SIZE = 10;
@@ -63,11 +103,75 @@ const Changelog = () => {
 
   const handleCreate = async () => {
     const values = await form.validateFields();
-    await createUpdateLog({ title: values.title, content: values.content, owner_id: myUserId });
+    
+    // 1. 创建更新日志
+    const res = await createUpdateLog({ 
+      title: values.title, 
+      content: values.content, 
+      owner_id: myUserId 
+    });
+    
+    // 2. 如果有视频 URL，调用 video 接口更新
+    if (videoUrl && res?.data?.id) {
+      await updateVideo({ id: res.data.id, videoUrl });
+    }
+    
     setOpen(false);
     form.resetFields();
+    setVideoUrl("");
     setCurrentPage(1);
     await loadPage(1);
+  };
+
+  const handleVideoUpload = async (file) => {
+    // 验证文件类型
+    if (file.type !== 'video/mp4') {
+      antMessage.error('只支持 MP4 格式的视频！');
+      return false;
+    }
+
+    // 验证文件大小（100MB）
+    const maxSize = 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      antMessage.error('视频大小不能超过 100MB！');
+      return false;
+    }
+
+    setUploading(true);
+    const hideLoading = antMessage.loading('正在上传视频...', 0);
+    
+    try {
+      // 验证视频时长（可选）
+      try {
+        await validateVideoDuration(file, 300); // 5分钟
+      } catch (durationError) {
+        antMessage.warning(durationError.message);
+        // 继续上传，只是警告
+      }
+
+      // 上传到 OSS
+      const url = await uploadVideo(file, myUserId);
+      setVideoUrl(url);
+      antMessage.success('视频上传成功！');
+    } catch (error) {
+      console.error('视频上传失败:', error);
+      antMessage.error(error.message || '视频上传失败，请重试');
+    } finally {
+      hideLoading();
+      setUploading(false);
+    }
+    return false; // 阻止默认上传行为
+  };
+
+  const handleInsertVideo = () => {
+    if (!videoUrl) {
+      antMessage.warning('请先上传视频');
+      return;
+    }
+    const currentContent = form.getFieldValue('content') || '';
+    const videoTag = `\n\n<video src="${videoUrl}" controls width="100%"></video>\n\n`;
+    form.setFieldsValue({ content: currentContent + videoTag });
+    antMessage.success('视频已插入到内容中');
   };
 
   const handleDelete = async (id) => {
@@ -116,7 +220,13 @@ const Changelog = () => {
                   {new Date(item.created_at).toLocaleString()}
                 </div>
                 <div className="changelog-item-content markdown-content">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  <ReactMarkdown 
+                    remarkPlugins={[remarkGfm]}
+                    rehypePlugins={[rehypeRaw]}
+                    components={{
+                      video: VideoComponent
+                    }}
+                  >
                     {item.content}
                   </ReactMarkdown>
                 </div>
@@ -163,8 +273,46 @@ const Changelog = () => {
           <Form.Item name="title" label="标题" rules={[{ required: true, message: "请输入标题" }]}>
             <Input maxLength={100} showCount />
           </Form.Item>
+          
+          <Form.Item label="视频上传（可选）">
+            <Space direction="vertical" style={{ width: '100%' }}>
+              <Upload.Dragger
+                accept="video/mp4"
+                beforeUpload={handleVideoUpload}
+                showUploadList={false}
+                disabled={uploading}
+              >
+                <p className="ant-upload-drag-icon">
+                  <VideoCameraOutlined />
+                </p>
+                <p className="ant-upload-text">点击或拖拽上传视频</p>
+                <p className="ant-upload-hint">
+                  仅支持 MP4 格式，最大 100MB，建议时长不超过 5 分钟
+                </p>
+              </Upload.Dragger>
+              {videoUrl && (
+                <div>
+                  <video src={videoUrl} controls style={{ width: '100%', maxHeight: '200px' }} />
+                  <Button 
+                    type="primary" 
+                    size="small" 
+                    onClick={handleInsertVideo}
+                    style={{ marginTop: 8 }}
+                  >
+                    插入视频到内容
+                  </Button>
+                </div>
+              )}
+            </Space>
+          </Form.Item>
+
           <Form.Item name="content" label="内容" rules={[{ required: true, message: "请输入内容" }]}>
-            <Input.TextArea rows={6} maxLength={2000} showCount />
+            <Input.TextArea 
+              rows={8} 
+              maxLength={2000} 
+              showCount 
+              placeholder="支持 Markdown 格式。视频会自动插入到内容中。"
+            />
           </Form.Item>
         </Form>
       </Modal>

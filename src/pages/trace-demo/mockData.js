@@ -2,6 +2,7 @@
  * 留痕功能 Mock 数据
  * 基于真实答题卡图片（4961×3509像素）标注的坐标
  */
+import { ANNOTATION_SCALE_DEFAULT } from "./constants";
 
 // 学生列表 Mock 数据
 export const MOCK_STUDENTS = [
@@ -39,6 +40,8 @@ export const MOCK_ANSWER_SHEETS = {
       student_no: "2023001",
       grading_id: "demo-grading-001",
       status: 200,
+      total_score: 85,
+      full_score: 100,
       paper_urls: [
         "/mock/答题卡正面.jpg",  // 4961×3509
         "/mock/答题卡背面.jpg"   // 4961×3509
@@ -49,6 +52,9 @@ export const MOCK_ANSWER_SHEETS = {
           questionId: "Q1",
           paper_id: "ai-chinese-0001",
           question_no: "一",
+          question_type: "essay",
+          score: 8,
+          full_score: 10,
           bbox: {
             x: 0.524,   // 题目在整页的位置
             y: 0.080,
@@ -62,11 +68,12 @@ export const MOCK_ANSWER_SHEETS = {
           annotations: [
             {
               id: "trace-1",
-              content: "概念理解准确，表达清晰 +8分",
+              content: "概念理解准确，表达清晰 ",
               source: "teacher",
               score: 8,
               originalRtp: { x: 0.85, y: 0.15 },
-              currentPosition: { x: 0.85, y: 0.15 }
+              currentPosition: { x: 0.85, y: 0.15 },
+              scale: 1.0
             }
           ]
         },
@@ -75,6 +82,9 @@ export const MOCK_ANSWER_SHEETS = {
           questionId: "Q18",
           paper_id: "ai-chinese-0001",
           question_no: "18",
+          question_type: "essay",
+          score: 7.5,
+          full_score: 10,
           bbox: {
             x: 0.524,
             y: 0.356,
@@ -92,7 +102,8 @@ export const MOCK_ANSWER_SHEETS = {
               source: "algorithm",
               ai_score: 7.5,
               originalRtp: { x: 0.75, y: 0.50 },
-              currentPosition: { x: 0.75, y: 0.50 }
+              currentPosition: { x: 0.75, y: 0.50 },
+              scale: 1.0
             }
           ]
         },
@@ -101,6 +112,9 @@ export const MOCK_ANSWER_SHEETS = {
           questionId: "Q19",
           paper_id: "ai-chinese-0001",
           question_no: "19",
+          question_type: "essay",
+          score: 6,
+          full_score: 8,
           bbox: {
             x: 0.524,
             y: 0.499,
@@ -114,11 +128,12 @@ export const MOCK_ANSWER_SHEETS = {
           annotations: [
             {
               id: "trace-3",
-              content: "解题思路正确 +6分",
+              content: "解题思路正确",
               source: "teacher",
               score: 6,
               originalRtp: { x: 0.80, y: 0.55 },
-              currentPosition: { x: 0.80, y: 0.55 }
+              currentPosition: { x: 0.80, y: 0.55 },
+              scale: ANNOTATION_SCALE_DEFAULT
             }
           ]
         },
@@ -127,6 +142,9 @@ export const MOCK_ANSWER_SHEETS = {
           questionId: "Q2",
           paper_id: "ai-chinese-0001",
           question_no: "二",
+          question_type: "essay",
+          score: 15,
+          full_score: 20,
           bbox: {
             x: 0.030,
             y: 0.456,
@@ -144,7 +162,8 @@ export const MOCK_ANSWER_SHEETS = {
               source: "teacher",
               score: 15,
               originalRtp: { x: 0.20, y: 0.30 },
-              currentPosition: { x: 0.20, y: 0.30 }
+              currentPosition: { x: 0.20, y: 0.30 },
+              scale: 1.0
             }
           ]
         },
@@ -183,11 +202,12 @@ export const MOCK_ANSWER_SHEETS = {
           annotations: [
             {
               id: "trace-5",
-              content: "立意深刻，语言流畅，但结尾略显仓促 48/50",
+              content: "立意深刻，语言流畅，但结尾略显仓促",
               source: "teacher",
               score: 48,
               originalRtp: { x: 0.10, y: 0.05 },
-              currentPosition: { x: 0.10, y: 0.05 }
+              currentPosition: { x: 0.10, y: 0.05 },
+              scale: 1.0
             },
             {
               id: "trace-6",
@@ -195,7 +215,8 @@ export const MOCK_ANSWER_SHEETS = {
               source: "algorithm",
               ai_score: 45,
               originalRtp: { x: 0.10, y: 0.95 },
-              currentPosition: { x: 0.10, y: 0.95 }
+              currentPosition: { x: 0.10, y: 0.95 },
+              scale: 1.0
             }
           ]
         }
@@ -237,7 +258,8 @@ export const MOCK_ANSWER_SHEETS = {
               source: "algorithm",
               ai_score: 5,
               originalRtp: { x: 0.85, y: 0.15 },
-              currentPosition: { x: 0.85, y: 0.15 }
+              currentPosition: { x: 0.85, y: 0.15 },
+              scale: ANNOTATION_SCALE_DEFAULT
             }
           ]
         }
@@ -279,7 +301,8 @@ export const MOCK_ANSWER_SHEETS = {
               source: "teacher",
               score: 10,
               originalRtp: { x: 0.85, y: 0.15 },
-              currentPosition: { x: 0.85, y: 0.15 }
+              currentPosition: { x: 0.85, y: 0.15 },
+              scale: 1.0
             }
           ]
         }

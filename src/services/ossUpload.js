@@ -30,14 +30,19 @@ function buildClientConfig(sts) {
   return cfg;
 }
 
-export async function uploadWithInit(file, { userId, contentType } = {}) {
-  const sts = await ossApi.getSts(userId);
+export async function uploadWithInit(file, { userId, contentType, channel, bucketName } = {}) {
+  const channelToUse = channel || "grading";
+  const sts = await ossApi.getSts(userId, channelToUse);
+  // 若是 communication 通道且未显式传入 bucketName，则使用 STS 返回的 bucket
+  const bucketNameToUse = bucketName || (channelToUse === "communication" ? (sts.bucket || sts.bucket_name) : undefined);
   const initRes = await ossApi.initMultipart({
     fileName: file.name,
     fileSize: file.size,
     totalParts: 1,
     contentType: contentType || file.type || "application/octet-stream",
     userId,
+    channel: channelToUse,
+    bucketName: bucketNameToUse,
   });
   const objectKey = initRes?.data?.object_key || initRes?.data?.objectKey;
   if (!objectKey) throw new Error("init 未返回 object_key");

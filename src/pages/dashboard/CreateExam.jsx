@@ -110,10 +110,12 @@ const CreateExam = () => {
             // 先直传 Origin Paper
             const originRes = await uploadWithInit(paperFile, {
               contentType: paperFile.type || "application/pdf",
+              channel: 'grading',
             });
             // 再直传 Standard Answer
             const answerRes = await uploadWithInit(answerFile, {
               contentType: answerFile.type || "application/pdf",
+              channel: 'grading',
             });
 
             // 业务提交：使用 object_key 创建考试
