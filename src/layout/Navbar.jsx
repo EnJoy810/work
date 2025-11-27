@@ -138,7 +138,7 @@ const Navbar = () => {
 
   /**
    * 处理班级切换
-   * 切换班级后会刷新页面，重新加载该班级的考试数据
+   * 切换班级后会跳转到首页，重新选择考试
    * 班级列表在登录时通过接口 GET /api/teacher-class/class_list 获取
    */
   const handleClassChange = (value) => {
@@ -155,6 +155,9 @@ const Navbar = () => {
     
     // 显示切换成功提示
     showSuccess(`已切换到班级：${classItem.name}`);
+    
+    // 跳转到首页
+    navigate("/");
     
     // 关闭移动端抽屉菜单（如果打开）
     setIsMenuOpen(false);

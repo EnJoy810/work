@@ -1,7 +1,7 @@
 import React, { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { RouterProvider } from "react-router-dom";
-import { ConfigProvider } from "antd";
+import { ConfigProvider, Spin } from "antd";
 import zhCN from "antd/locale/zh_CN";
 import { Provider } from "react-redux";
 import { PersistGate } from 'redux-persist/integration/react';
@@ -25,7 +25,22 @@ if (typeof window !== "undefined") {
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
+      <PersistGate 
+        loading={
+          <div style={{ 
+            display: 'flex', 
+            justifyContent: 'center', 
+            alignItems: 'center', 
+            height: '100vh',
+            flexDirection: 'column',
+            gap: '16px'
+          }}>
+            <Spin size="large" />
+            <div style={{ color: '#666', fontSize: '14px' }}>加载中...</div>
+          </div>
+        } 
+        persistor={persistor}
+      >
         <ConfigProvider
           locale={zhCN}
           theme={{

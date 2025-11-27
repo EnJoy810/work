@@ -130,44 +130,33 @@ const TraceDemoPage = () => {
   const loadStudentData = useCallback(async (student) => {
     try {
       setLoading(true);
-      console.log('loadStudentData 被调用, student:', student);
       
       // 如果有 grading_id，说明是真实数据，暂时使用 Mock 数据结构
       // TODO: 调用真实 API 获取答题卡图片和题目详细信息
       if (student.grading_id) {
-        console.log('使用真实 API 数据（暂时用 Mock 数据结构）');
         // 暂时使用第一个 Mock 学生的答题卡数据作为模板
         const mockResponse = getAnswerSheetByStudentId('S001');
         
         if (mockResponse?.data) {
-          console.log('开始规范化数据...');
           const normalizedData = normalizeAnswerSheetData(mockResponse.data);
-          console.log('规范化后的数据:', normalizedData);
           setAnswerSheetData(normalizedData);
           setSelectedStudent(student);
           setSelectedAnnotationId(null);
           setHasUnsavedChanges(false);
-          console.log('数据加载完成');
         } else {
           message.error("加载学生数据失败");
         }
       } else {
         // 使用 Mock 数据
-        console.log('使用 Mock 数据');
         const response = getAnswerSheetByStudentId(student.student_id);
-        console.log('Mock 数据响应:', response);
         
         if (response?.data) {
-          console.log('开始规范化数据...');
           const normalizedData = normalizeAnswerSheetData(response.data);
-          console.log('规范化后的数据:', normalizedData);
           setAnswerSheetData(normalizedData);
           setSelectedStudent(student);
           setSelectedAnnotationId(null);
           setHasUnsavedChanges(false);
-          console.log('数据加载完成');
         } else {
-          console.error('Mock 数据为空');
           message.error("加载学生数据失败");
         }
       }
@@ -175,7 +164,6 @@ const TraceDemoPage = () => {
       console.error('加载学生数据失败:', error);
       message.error("加载学生数据失败");
     } finally {
-      console.log('设置 loading = false');
       setLoading(false);
     }
   }, []);
@@ -187,7 +175,6 @@ const TraceDemoPage = () => {
       // TODO [2025-11-23]: 集成真实 API - 待后端接口完成
       // await uploadTrace(answerSheetData);
       setTimeout(() => {
-        console.log("自动保存的数据:", answerSheetData);
         setHasUnsavedChanges(false);
         message.success({ content: "保存成功", key: "auto-save", duration: 1 });
         if (callback) callback();
@@ -217,7 +204,6 @@ const TraceDemoPage = () => {
   useEffect(() => {
     if (!gradingId) {
       // 临时：如果没有 gradingId，使用 Mock 数据
-      console.log('未提供 gradingId，使用 Mock 数据');
       setStudents(MOCK_STUDENTS);
       if (MOCK_STUDENTS.length > 0) {
         loadStudentData(MOCK_STUDENTS[0]);
@@ -228,14 +214,9 @@ const TraceDemoPage = () => {
     const fetchStudents = async () => {
       try {
         setLoading(true);
-        console.log('开始获取学生列表, gradingId:', gradingId);
         const response = await getGradingResultV2(gradingId);
-        console.log('API 响应:', response);
         
         if (response.code === '200' && response.data) {
-          // 查看原始数据结构
-          console.log('normal 数据示例:', response.data.normal?.[0]);
-          console.log('exceptional 数据示例:', response.data.exceptional?.[0]);
           
           // 合并正常和异常学生列表
           // 后端使用下划线命名（snake_case）
@@ -256,12 +237,10 @@ const TraceDemoPage = () => {
           }));
           
           const allStudents = [...normalStudents, ...exceptionalStudents];
-          console.log('处理后的学生列表:', allStudents);
           setStudents(allStudents);
           
           // 加载第一个学生数据
           if (allStudents.length > 0) {
-            console.log('开始加载第一个学生数据:', allStudents[0]);
             loadStudentData(allStudents[0]);
           } else {
             message.warning('暂无学生数据');
