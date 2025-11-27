@@ -18,7 +18,7 @@ export const ProtectedRoute = ({ children }) => {
 export const LoginPage = () => {
   const { isLoggedIn } = useSelector(state => state.user)
   if (isLoggedIn) {
-    return <Navigate to="/app" replace />
+    return <Navigate to="/" replace />
   }
   return <Login />
 }
