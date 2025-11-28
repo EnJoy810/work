@@ -1,7 +1,9 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "../layout";
+import LandingLayout from "../layout/LandingLayout";
 import pages from "../pages";
 import { ProtectedRoute, LoginPage } from "./ProtectedRoutes.jsx";
+import { LandingPage, LoginPage as LandingLoginPage } from "../pages/landing";
 
 // 解构获取各个页面组件
 const { Home, CreateExam, UploadAnswerSheet, ScoreProcess, DataAnalysis, EssayGrading, QuestionAnalysis } = pages.dashboard;
@@ -21,12 +23,24 @@ const { TraceDemoPage } = pages.traceDemo;
 
 // 创建路由配置
 const router = createBrowserRouter([
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
+  // 落地页路由（公开访问）
   {
     path: "/",
+    element: <LandingLayout />,
+    children: [
+      {
+        index: true,
+        element: <LandingPage />,
+      },
+      {
+        path: "login",
+        element: <LandingLoginPage />,
+      },
+    ],
+  },
+  // 阅卷系统路由（需要登录）
+  {
+    path: "/app",
     element: (
       <ProtectedRoute>
         <Layout />
@@ -36,6 +50,10 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
+        element: <Navigate to="/app/home" replace />,
+      },
+      {
+        path: "home",
         element: <Home />,
       },
       { path: "coming-soon", element: <FeatureUnderDevelopment /> },

@@ -1,26 +1,22 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  // 只扫描 landing 和 auth 相关目录
+  // 扫描所有需要 Tailwind 的文件
   content: [
+    "./index.html",
     "./src/pages/landing/**/*.{js,jsx}",
-    "./src/pages/auth/**/*.{js,jsx}",
-    "./src/components/landing/**/*.{js,jsx}",
-    "./src/layouts/LandingLayout.jsx",
+    "./src/layout/LandingLayout.jsx",
   ],
-  
-  // 禁用全局样式重置，避免影响 Ant Design
-  corePlugins: {
-    preflight: false,
-  },
-  
-  // 添加前缀，避免与 Ant Design 类名冲突
-  prefix: 'tw-',
   
   theme: {
     extend: {
       animation: {
         blob: "blob 7s infinite",
         "fade-in-up": "fadeInUp 0.6s ease-out",
+      },
+      animationDelay: {
+        '2000': '2s',
+        '4000': '4s',
+        '6000': '6s',
       },
       keyframes: {
         blob: {
