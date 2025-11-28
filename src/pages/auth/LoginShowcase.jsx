@@ -6,7 +6,8 @@ import {
   RightOutlined,
   DownOutlined,
 } from "@ant-design/icons";
-import XLabSvg from "../../assets/icons/Badge.svg";
+// 使用 public 目录中的 Badge.svg
+const XLabSvg = "/Badge.svg";
 
 const { Title, Text } = Typography;
 

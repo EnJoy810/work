@@ -9,7 +9,7 @@ const { Login } = pages.auth;
 export const ProtectedRoute = ({ children }) => {
   const { isLoggedIn } = useSelector(state => state.user)
   if (!isLoggedIn) {
-    return <Navigate to="/login" replace />
+    return <Navigate to="/landing" replace />
   }
   return children
 }

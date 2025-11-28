@@ -46,7 +46,7 @@ export function LoginForm() {
 
       // 跳转到阅卷系统首页（考试列表页）
       setTimeout(() => {
-        navigate('/app/home');
+        navigate('/');
       }, 800);
     } catch (error) {
       console.error("登录错误:", error);

@@ -25,22 +25,23 @@ const { TraceDemoPage } = pages.traceDemo;
 const router = createBrowserRouter([
   // 落地页路由（公开访问）
   {
-    path: "/",
+    path: "/landing",
     element: <LandingLayout />,
     children: [
       {
         index: true,
         element: <LandingPage />,
       },
-      {
-        path: "login",
-        element: <LandingLoginPage />,
-      },
     ],
+  },
+  // 登录页路由
+  {
+    path: "/login",
+    element: <LandingLoginPage />,
   },
   // 阅卷系统路由（需要登录）
   {
-    path: "/app",
+    path: "/",
     element: (
       <ProtectedRoute>
         <Layout />
@@ -50,10 +51,6 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/app/home" replace />,
-      },
-      {
-        path: "home",
         element: <Home />,
       },
       { path: "coming-soon", element: <FeatureUnderDevelopment /> },
