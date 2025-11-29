@@ -15,9 +15,9 @@ const Navbar = () => {
   });
 
   const links = [
-    { label: "Features", href: "#features" },
-    { label: "Cases", href: "#cases" },
-    { label: "Pricing", href: "#pricing" },
+    { label: "产品", href: "#features" },
+    { label: "案例", href: "#cases" },
+    { label: "价格", href: "#pricing" },
   ];
 
   return (
@@ -56,13 +56,13 @@ const Navbar = () => {
                 onClick={() => navigate('/login')}
                 className="px-5 py-2 text-md font-medium text-slate-900 bg-white/80 backdrop-blur-sm border border-slate-300 rounded-lg hover:bg-white transition-all shadow-sm"
               >
-                Contact Us
+                联系我们
               </button>
               <button 
                 onClick={() => navigate('/login')}
                 className="px-5 py-2 text-md font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors shadow-lg shadow-slate-900/20"
               >
-                Sign In
+                登录
               </button>
             </div>
 
@@ -98,13 +98,13 @@ const Navbar = () => {
                 onClick={() => navigate('/login')}
                 className="w-full px-5 py-2 text-sm font-medium text-white bg-slate-900 rounded-lg hover:bg-slate-800 transition-colors"
               >
-                Sign In
+                登录
               </button>
               <button 
                 onClick={() => navigate('/login')}
                 className="w-full px-5 py-2 text-sm font-medium text-slate-900 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
               >
-                Contact Us
+                联系我们
               </button>
             </div>
         </motion.div>

@@ -33,7 +33,7 @@ const normalizeStudent = (record) => {
   const studentNo = record?.student_no ?? record?.studentNo ?? "";
   return {
     id,
-    paperId, // 严格只使用真实的 paper_id，不再回退到其他字段
+    paperId, 
     name,
     studentNo,
     status: record?.status ?? "",
@@ -378,11 +378,17 @@ const ManualReviewPage = () => {
 
   useEffect(() => {
     setCurrentAnswerDetail(null);
+    
     if (!currentStudent || !currentQuestionId || !gradingId) {
+      return;
+    }
+    
+    if (!currentStudent.paperId) {
       return;
     }
 
     const controller = new AbortController();
+    
     const fetchDetail = async () => {
       try {
         const response = await fetchManualAnswerDetail({
@@ -426,6 +432,7 @@ const ManualReviewPage = () => {
     };
 
     fetchDetail();
+    
     return () => controller.abort();
   }, [currentStudent, currentQuestionId, gradingId]);
 
@@ -446,6 +453,7 @@ const ManualReviewPage = () => {
           old_score: Number.isFinite(previousScore) ? Number(previousScore) : 0,
           new_score: Number(newScore),
         });
+        
         message.success("提交成功");
         setScoreMap((prev) => {
           const next = { ...prev };

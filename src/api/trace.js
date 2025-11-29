@@ -39,5 +39,20 @@ export const getExamQuestionGrading = ({ gradingId, paperId, questionId }) => {
  * @returns {Promise}
  */
 export const uploadTrace = (data) => {
-  return request.put('/exam-question/grading/trace', data);
+  return request.put('/exam-question/grading/trace', {
+    paper_id: data.paperId,
+    question_id: data.questionId,
+    trace: data.trace
+  });
+};
+
+/**
+ * 获取学生trace列表（批改信息汇总）
+ * @param {string} paperId - 试卷ID
+ * @returns {Promise<string[]>}
+ */
+export const getStudentTraceList = (paperId) => {
+  return request.get('/exam-question/grading/trace-list/student', {
+    paper_id: paperId
+  });
 };

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react";
 
 const AnswerPreview = ({
@@ -16,7 +16,9 @@ const AnswerPreview = ({
   onToggleAutoAdvance = () => {},
 }) => {
   const [zoom, setZoom] = useState(100);
-  const normalizeText = (value) => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  const normalizeText = useCallback((value) => {
     if (value === undefined || value === null) return "";
     if (typeof value === "string") return value;
     if (Array.isArray(value)) {
@@ -35,9 +37,9 @@ const AnswerPreview = ({
       return normalizeText(nested);
     }
     return "";
-  };
+  }, []);
 
-  const normalizeImages = (value) => {
+  const normalizeImages = useCallback((value) => {
     if (!value) return [];
     const collect = [];
     const append = (candidate) => {
@@ -89,7 +91,7 @@ const AnswerPreview = ({
       return collect;
     }
     return [];
-  };
+  }, []);
 
   const studentAnswer = useMemo(() => {
     const candidates = [
@@ -110,11 +112,13 @@ const AnswerPreview = ({
       if (normalized) return normalized;
     }
     return "";
-  }, [answerDetail]);
+  }, [answerDetail, normalizeText]);
 
   const answerImages = useMemo(() => {
     if (!answerDetail) return [];
     const fields = [
+      answerDetail?.paper_urls,        // v2 接口返回的答题卡图片
+      answerDetail?.paperUrls,
       answerDetail?.answer_photo_url,
       answerDetail?.answerPhotoUrl,
       answerDetail?.answer_photo_urls,
@@ -140,12 +144,22 @@ const AnswerPreview = ({
       });
     });
     return collected;
-  }, [answerDetail]);
+  }, [answerDetail, normalizeImages]);
 
-  const answerImage = answerImages[0] || null;
+  const answerImage = answerImages[currentImageIndex] || answerImages[0] || null;
+  
+  // 切换学生或题目时重置图片索引和缩放
   useEffect(() => {
     setZoom(100);
-  }, [student?.id, question?.id, answerImage]);
+    setCurrentImageIndex(0);
+  }, [student?.id, question?.id]);
+  
+  // 图片索引超出范围时重置
+  useEffect(() => {
+    if (currentImageIndex >= answerImages.length && answerImages.length > 0) {
+      setCurrentImageIndex(0);
+    }
+  }, [currentImageIndex, answerImages.length]);
   const scoreReason = answerDetail?.score_reason || answerDetail?.scoreReason || "";
 
   if (!student) {
@@ -159,6 +173,8 @@ const AnswerPreview = ({
   const handleZoomIn = () => setZoom((prev) => Math.min(prev + 10, 200));
   const handleZoomOut = () => setZoom((prev) => Math.max(prev - 10, 50));
   const handleReset = () => setZoom(100);
+  const handlePrevImage = () => setCurrentImageIndex((prev) => Math.max(0, prev - 1));
+  const handleNextImage = () => setCurrentImageIndex((prev) => Math.min(answerImages.length - 1, prev + 1));
 
   return (
     <section className="answer-preview">
@@ -222,12 +238,70 @@ const AnswerPreview = ({
       <div className="answer-preview__image">
         <div className={`answer-preview__image-inner${zoom > 100 ? " answer-preview__image-inner--zoomed" : ""}`}>
           {answerImage ? (
-            <img
-              src={answerImage}
-              alt={`${student.name} 的答题卡`}
-              style={{ transform: zoom === 100 ? "none" : `scale(${zoom / 100})`, transformOrigin: "center center" }}
-              draggable={false}
-            />
+            <>
+              <img
+                src={answerImage}
+                alt={`${student.name} 的答题卡`}
+                style={{ transform: zoom === 100 ? "none" : `scale(${zoom / 100})`, transformOrigin: "center center" }}
+                draggable={false}
+              />
+              {answerImages.length > 1 && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '16px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  padding: '8px 16px',
+                  borderRadius: '20px',
+                  color: 'white',
+                  fontSize: '14px'
+                }}>
+                  <button
+                    type="button"
+                    onClick={handlePrevImage}
+                    disabled={currentImageIndex === 0}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'white',
+                      cursor: currentImageIndex === 0 ? 'not-allowed' : 'pointer',
+                      opacity: currentImageIndex === 0 ? 0.5 : 1,
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                    aria-label="上一张"
+                  >
+                    <ChevronLeft size={20} />
+                  </button>
+                  <span style={{ fontWeight: 500 }}>
+                    {currentImageIndex + 1} / {answerImages.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleNextImage}
+                    disabled={currentImageIndex === answerImages.length - 1}
+                    style={{
+                      background: 'transparent',
+                      border: 'none',
+                      color: 'white',
+                      cursor: currentImageIndex === answerImages.length - 1 ? 'not-allowed' : 'pointer',
+                      opacity: currentImageIndex === answerImages.length - 1 ? 0.5 : 1,
+                      padding: '4px',
+                      display: 'flex',
+                      alignItems: 'center'
+                    }}
+                    aria-label="下一张"
+                  >
+                    <ChevronRight size={20} />
+                  </button>
+                </div>
+              )}
+            </>
           ) : (
             <div className="answer-preview__image-placeholder">暂无答题图片</div>
           )}

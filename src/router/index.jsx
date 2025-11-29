@@ -19,7 +19,7 @@ const {
   ExamPaperPreview,
 } = pages.exam;
 const { ManualReviewPage } = pages.manualReview;
-const { TraceDemoPage } = pages.traceDemo;
+const { TracePage } = pages.trace;
 
 // 创建路由配置
 const router = createBrowserRouter([
@@ -108,8 +108,8 @@ const router = createBrowserRouter([
         element: <DataAnalysis />,
       },
       {
-        path: "trace-demo",
-        element: <TraceDemoPage />,
+        path: "trace",
+        element: <TracePage />,
       },
     ],
   },

@@ -354,7 +354,7 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                 icon={<EditOutlined />}
                 onClick={() => {
                   navigate(
-                    `/trace-demo?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`
+                    `/trace?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`
                   );
                 }}
               >

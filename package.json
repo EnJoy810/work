@@ -11,7 +11,7 @@
     "test:oss:put": "node scripts/oss_sts_direct_upload.mjs"
   },
   "dependencies": {
-    "@lexical/react": "latest",
+    "@lexical/react": "0.38.2",
     "@radix-ui/react-label": "^2.1.8",
     "@radix-ui/react-slot": "^1.2.4",
     "@reduxjs/toolkit": "^2.9.0",

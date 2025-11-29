@@ -243,7 +243,7 @@ const AnnotationCard = ({
       ? annotationScale
       : ANNOTATION_SCALE_DEFAULT;
 
-  const baseFontSize = 16;
+  const baseFontSize = 14;
   const baseLineHeight = 1.4;
   
   // 字体大小 = 基准字体 × 答题卡缩放 × 批注缩放

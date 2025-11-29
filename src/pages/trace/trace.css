@@ -1,4 +1,4 @@
-/* 留痕 Demo 页面样式 - 与人工阅卷页面保持一致 */
+﻿/* 留痕 Demo 页面样式 - 与人工阅卷页面保持一�?*/
 
 .trace-demo-page {
   height: calc(100vh - 110px);
@@ -70,7 +70,7 @@
   font-weight: 500;
 }
 
-/* 主体内容区 */
+/* 主体内容�?*/
 .trace-demo-content {
   display: flex;
   flex: 1;
@@ -80,7 +80,7 @@
   padding: 0 0 20px 0;
 }
 
-/* 左侧面板 - 与人工阅卷一致 */
+/* 左侧面板 - 与人工阅卷一�?*/
 .trace-demo-page .left-panel {
   width: 280px;
   flex-shrink: 0;
@@ -236,13 +236,13 @@
   margin: 0 12px;
 }
 
-/* 只有左栏时 */
+/* 只有左栏�?*/
 .trace-demo-content:has(.left-panel):not(:has(.right-panel)) .center-panel {
   margin-left: 12px;
   margin-right: 0;
 }
 
-/* 只有右栏时 */
+/* 只有右栏�?*/
 .trace-demo-content:not(:has(.left-panel)):has(.right-panel) .center-panel {
   margin-left: 0;
   margin-right: 12px;
@@ -331,7 +331,7 @@
   min-height: 0;
 }
 
-/* 画布顶部控制栏 */
+/* 画布顶部控制�?*/
 .trace-demo-page .canvas-toolbar {
   display: flex;
   align-items: center;
@@ -398,7 +398,7 @@
   padding: 0 4px;
 }
 
-/* 答题卡容器 - 填满展示区 */
+/* 答题卡容�?- 填满展示�?*/
 .trace-demo-page .answer-sheet-container {
   flex: 1;
   background-color: #fafafa;
@@ -474,6 +474,22 @@
   z-index: 100;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
 }
+
+/* 选择题错误标记 */
+.trace-demo-page .annotation-card.choice-error {
+  cursor: default !important;
+  pointer-events: none;
+}
+
+.trace-demo-page .annotation-card.choice-error .annotation-card__inner {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .trace-demo-page .annotation-card.selected {
   border-color: rgba(211, 32, 41, 0.6);
   box-shadow: 0 0 0 1px rgba(211, 32, 41, 0.4);
@@ -485,13 +501,13 @@
   box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.3);
 }
 
-/* 分数框样式 - 未选中时不显示边框 */
+/* 分数框样�?- 未选中时不显示边框 */
 .trace-demo-page .annotation-card.score-card {
   border-color: transparent;
   box-shadow: none;
 }
 
-/* 分数框样式 - 选中时显示蓝色边框 */
+/* 分数框样�?- 选中时显示蓝色边�?*/
 .trace-demo-page .annotation-card.score-card.selected {
   border-color: rgba(24, 144, 255, 0.8);
   box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.5);
@@ -582,7 +598,7 @@
 
 
 
-/* 加载状态 */
+/* 加载状�?*/
 .trace-demo-loading {
   display: flex;
   justify-content: center;
@@ -681,7 +697,6 @@
 
 .trace-demo-page .annotation-item-content-wrapper {
   position: relative;
-  padding-right: 90px;
   min-height: 32px;
 }
 
@@ -707,7 +722,7 @@
   color: #8a8f9c;
 }
 
-/* 响应式调整 */
+/* 响应式调�?*/
 @media (max-width: 1400px) {
   .trace-demo-page .left-panel {
     width: 240px;
@@ -735,7 +750,7 @@
   transition: opacity 0.2s ease;
 }
 
-/* 选中时显示调整手柄 */
+/* 选中时显示调整手�?*/
 .trace-demo-page .annotation-card.selected .annotation-card__resize-handle {
   opacity: 1;
 }
@@ -770,5 +785,5 @@
 }
 
 /* ==================== 打印样式 ==================== */
-/* 注意：现在使用 Canvas 导出打印（html2canvas），不再需要 CSS 打印样式 */
-/* 如果需要回退到 CSS 打印，可以恢复此处的样式 */
+/* 注意：现在使�?Canvas 导出打印（html2canvas），不再需�?CSS 打印样式 */
+/* 如果需要回退�?CSS 打印，可以恢复此处的样式 */

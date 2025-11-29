@@ -291,7 +291,11 @@ const Navbar = () => {
           {/* 右侧：用户信息 */}
           <div style={{ display: "flex", alignItems: "center" }}>
             {/* 班级选择器 - 只在已登录且有班级数据时显示 */}
-            {userInfo && isLoggedIn && classList && classList.length > 0 && (() => {
+            {(() => {
+              if (!userInfo || !isLoggedIn || !classList || classList.length === 0) {
+                return null;
+              }
+              
               // 获取当前选中的班级ID，如果没有则使用第一个班级
               const currentClassId = selectedClassId || classList[0]?.class_id;
               

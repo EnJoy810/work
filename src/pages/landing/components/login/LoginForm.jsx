@@ -5,7 +5,8 @@ import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { setUserInfo } from "../../../../store/slices/userSlice";
-import { login } from "../../../../api/auth";
+import { setClassList, setSelectedClassId } from "../../../../store/slices/classSlice";
+import { login, getClassList } from "../../../../api/auth";
 import { encryptPassword } from "../../../../utils/tools";
 
 export function LoginForm() {
@@ -43,6 +44,32 @@ export function LoginForm() {
           token: response.token,
         })
       );
+
+      // 如果是教师角色，获取班级列表
+      if (response.role === "TEACHER") {
+        try {
+          const classResponse = await getClassList(response.userId);
+          const classList = classResponse.data?.classes || classResponse.data || [];
+          
+          // 设置班级列表到Redux
+          dispatch(setClassList(classList));
+
+          // 默认选择第一个班级
+          if (classList.length > 0) {
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+            const normalClass = classList.find(c => c.class_id && c.name && !uuidRegex.test(c.name));
+            const defaultClass = normalClass || classList[0];
+            
+            if (defaultClass && defaultClass.class_id) {
+              dispatch(setSelectedClassId(defaultClass.class_id));
+              localStorage.setItem('currentClassId', defaultClass.class_id);
+              await new Promise(resolve => setTimeout(resolve, 300));
+            }
+          }
+        } catch (classError) {
+          console.error("获取班级列表失败:", classError);
+        }
+      }
 
       // 跳转到阅卷系统首页（考试列表页）
       setTimeout(() => {

@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Spin, Empty } from "antd";
 import AnnotationCard from "./AnnotationCard";
-import { rtpToPixel } from "../utils/coordTransform";
 
 /**
  * 答题卡画布组件
@@ -104,48 +103,83 @@ const AnswerSheetCanvas = ({
   };
 
   const getCurrentPageQuestions = () => {
-    const currentPaperId = `ai-chinese-000${currentPage + 1}`;
-    return questions.filter((q) => q.paper_id === currentPaperId);
+    if (!questions || questions.length === 0) return [];
+    if (!paperUrls || paperUrls.length <= 1) return questions;
+    
+    // 简化分页逻辑：第1页显示有bbox的题目，第2页显示作文题
+    if (currentPage === 0) {
+      // 第1页：显示所有有 bbox 的题目（1-22题）
+      return questions.filter(q => q.bbox);
+    } else if (currentPage === 1) {
+      // 第2页：只显示作文题
+      return questions.filter(q => q.question_type === 'essay');
+    }
+    
+    return [];
   };
 
   const renderAnnotations = () => {
-    if (!imageDimensions) return null;
+    if (!imageDimensions || !naturalImageSize) return null;
     const currentQuestions = getCurrentPageQuestions();
 
+    // 计算缩放比例
     return currentQuestions.flatMap((question) =>
-      question.annotations.map((annotation) => {
-        const pixelPos = rtpToPixel(annotation.currentPosition, question.bbox, imageDimensions);
+      question.annotations
+        .map((annotation) => {
+          // 兼容 position 和 currentPosition 两种字段
+          const pos = annotation.position || annotation.currentPosition;
+          if (!pos) return null;
+          
+          // position 是整页像素坐标（基于拼接图），转换为显示坐标
+          // 使用 question.imageWidth/imageHeight（拼接图尺寸）而不是 naturalImageSize（当前页尺寸）
+          let displayPos = {
+            x: pos.x * (imageDimensions.width / question.imageWidth),
+            y: pos.y * (imageDimensions.height / question.imageHeight)
+          };
+          
+          // 限制显示坐标在边界内
+          const width = annotation.width || 80;
+          const height = 40;
+          
+          displayPos = {
+            x: Math.max(width / 2, Math.min(displayPos.x, imageDimensions.width - width / 2)),
+            y: Math.max(height / 2, Math.min(displayPos.y, imageDimensions.height - height / 2))
+          };
 
-        const annotationScale = typeof annotation.scale === "number" ? annotation.scale : 1;
-
-        return (
-          <AnnotationCard
-            key={annotation.id}
-            annotation={annotation}
-            position={pixelPos}
-            isSelected={selectedAnnotationId === annotation.id}
-            canvasScale={scale}
-            annotationScale={annotationScale}
-            onDrag={(newPixelPos) =>
-              onAnnotationDrag(annotation.id, newPixelPos, question.bbox, imageDimensions)
-            }
-            onClick={() => onAnnotationSelect(annotation.id)}
-            onEdit={onAnnotationEdit}
-            onResize={(nextSize) => onAnnotationResize && onAnnotationResize(annotation.id, nextSize)}
-          />
-        );
-      })
+          return (
+            <AnnotationCard
+              key={annotation.id}
+              annotation={annotation}
+              position={displayPos}
+              isSelected={selectedAnnotationId === annotation.id}
+              canvasScale={scale}
+              annotationScale={annotation.scale || 1}
+              onDrag={(newPixelPos) =>
+                onAnnotationDrag(annotation.id, newPixelPos, question.bbox, imageDimensions)
+              }
+              onClick={() => onAnnotationSelect(annotation.id)}
+              onEdit={onAnnotationEdit}
+              onResize={(annotationId, nextSize) => onAnnotationResize && onAnnotationResize(annotationId, nextSize)}
+            />
+          );
+        })
+        .filter(Boolean)
     );
   };
 
   const renderQuestionBoxes = () => {
-    if (!imageDimensions) return null;
+    if (!imageDimensions || !naturalImageSize) return null;
+    
+    // 计算缩放比例
+    const scaleX = imageDimensions.width / naturalImageSize.width;
+    const scaleY = imageDimensions.height / naturalImageSize.height;
 
     return getCurrentPageQuestions().map((question) => {
-      const left = question.bbox.x * imageDimensions.width;
-      const top = question.bbox.y * imageDimensions.height;
-      const width = question.bbox.width * imageDimensions.width;
-      const height = question.bbox.height * imageDimensions.height;
+      // bbox 是像素坐标（相对当前页），直接缩放
+      const left = question.bbox.x * scaleX;
+      const top = question.bbox.y * scaleY;
+      const width = question.bbox.width * scaleX;
+      const height = question.bbox.height * scaleY;
 
       return (
         <div
@@ -199,7 +233,7 @@ const AnswerSheetCanvas = ({
     if (!imageDimensions) return null;
 
     return getCurrentPageQuestions()
-      .filter(q => q.question_type === 'essay' && q.score !== undefined)
+      .filter(q => q.question_type !== 'choice' && q.score !== undefined)
       .map((question) => {
         // 计算 bbox 的右上角位置
         const bboxRight = (question.bbox.x + question.bbox.width) * imageDimensions.width;
@@ -222,18 +256,12 @@ const AnswerSheetCanvas = ({
             isSelected={false}
             canvasScale={scale}
             annotationScale={1.0}
-            onDrag={(newPixelPos) => {
-              console.log(`题目 ${question.question_no} 分数拖动到:`, newPixelPos);
-            }}
-            onClick={() => {
-              console.log('分数不可编辑');
-            }}
+            onDrag={() => {}}
+            onClick={() => {}}
             onEdit={() => {
               // 不允许编辑
             }}
-            onResize={(nextSize) => {
-              console.log(`题目 ${question.question_no} 分数缩放到:`, nextSize);
-            }}
+            onResize={() => {}}
             readOnly={true}
           />
         );
@@ -268,18 +296,12 @@ const AnswerSheetCanvas = ({
         isSelected={false}
         canvasScale={scale}
         annotationScale={1.5}
-        onDrag={(newPixelPos) => {
-          console.log('总分拖动到:', newPixelPos);
-        }}
-        onClick={() => {
-          console.log('总分不可编辑');
-        }}
+        onDrag={() => {}}
+        onClick={() => {}}
         onEdit={() => {
           // 不允许编辑
         }}
-        onResize={(nextSize) => {
-          console.log('总分缩放到:', nextSize);
-        }}
+        onResize={() => {}}
         readOnly={true}
       />
     );
@@ -293,12 +315,14 @@ const AnswerSheetCanvas = ({
 
   const handlePrevPage = () => {
     if (currentPage > 0) {
+      setLoading(true);
       setCurrentPage(currentPage - 1);
     }
   };
 
   const handleNextPage = () => {
     if (currentPage < paperUrls.length - 1) {
+      setLoading(true);
       setCurrentPage(currentPage + 1);
     }
   };
