@@ -139,11 +139,15 @@ const AnswerSheetCanvas = ({
           
           // 限制显示坐标在边界内
           const width = annotation.width || 80;
-          const height = 40;
+          // 根据内容长度估算高度（每行约20字符，行高约24px）
+          const contentLength = annotation.content?.length || 0;
+          const charsPerLine = Math.max(1, Math.floor(width / 14)); // 每行字符数
+          const lineCount = Math.ceil(contentLength / charsPerLine);
+          const estimatedHeight = Math.max(40, Math.min(lineCount * 24 + 16, 200));
           
           displayPos = {
             x: Math.max(width / 2, Math.min(displayPos.x, imageDimensions.width - width / 2)),
-            y: Math.max(height / 2, Math.min(displayPos.y, imageDimensions.height - height / 2))
+            y: Math.max(estimatedHeight / 2, Math.min(displayPos.y, imageDimensions.height - estimatedHeight / 2))
           };
 
           return (

@@ -17,7 +17,8 @@ const Footer = () => {
   return (
     <footer className="bg-transparent pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-12 md:gap-8 mb-16">
+        {/* 桌面端：6列布局；移动端：品牌区 + 链接区分开 */}
+        <div className="grid grid-cols-1 md:grid-cols-6 gap-8 md:gap-8 mb-16">
           
           {/* Brand */}
           <div className="col-span-1 md:col-span-3">
@@ -38,37 +39,40 @@ const Footer = () => {
             </div>
           </div>
 
-          {/* Links Column 1 */}
-          <div>
-            <h4 className="font-bold text-slate-900 mb-6">产品功能</h4>
-            <ul className="space-y-4 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">智能阅卷</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">OCR 识别</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">学情分析报告</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">API 集成</a></li>
-            </ul>
-          </div>
+          {/* 移动端：3列横向排列；桌面端：各占1列 */}
+          <div className="col-span-1 md:col-span-3 grid grid-cols-3 gap-4 md:contents">
+            {/* Links Column 1 */}
+            <div>
+              <h4 className="font-bold text-slate-900 mb-4 md:mb-6 text-sm md:text-base">产品功能</h4>
+              <ul className="space-y-2 md:space-y-4 text-xs md:text-sm text-slate-500">
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">智能阅卷</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">OCR 识别</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">学情分析</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">API 集成</a></li>
+              </ul>
+            </div>
 
-          {/* Links Column 2 */}
-          <div>
-            <h4 className="font-bold text-slate-900 mb-6">资源中心</h4>
-            <ul className="space-y-4 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">帮助文档</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">客户案例</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">教育白皮书</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">社区论坛</a></li>
-            </ul>
-          </div>
+            {/* Links Column 2 */}
+            <div>
+              <h4 className="font-bold text-slate-900 mb-4 md:mb-6 text-sm md:text-base">资源中心</h4>
+              <ul className="space-y-2 md:space-y-4 text-xs md:text-sm text-slate-500">
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">帮助文档</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">客户案例</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">白皮书</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">社区论坛</a></li>
+              </ul>
+            </div>
 
-          {/* Links Column 3 */}
-          <div>
-            <h4 className="font-bold text-slate-900 mb-6">公司</h4>
-            <ul className="space-y-4 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">关于我们</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">加入我们</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">联系方式</a></li>
-              <li><a href="#" className="hover:text-emerald-600 transition-colors">隐私政策</a></li>
-            </ul>
+            {/* Links Column 3 */}
+            <div>
+              <h4 className="font-bold text-slate-900 mb-4 md:mb-6 text-sm md:text-base">公司</h4>
+              <ul className="space-y-2 md:space-y-4 text-xs md:text-sm text-slate-500">
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">关于我们</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">加入我们</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">联系方式</a></li>
+                <li><a href="#" className="hover:text-emerald-600 transition-colors">隐私政策</a></li>
+              </ul>
+            </div>
           </div>
         </div>
 

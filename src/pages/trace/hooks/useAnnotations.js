@@ -3,9 +3,9 @@ import { message } from "antd";
 import { uploadTrace } from "../../../api/trace";
 import {
   ANNOTATION_WIDTH_DEFAULT,
-  ANNOTATION_HEIGHT_ESTIMATE,
   clampAnnotationScale,
-  clampPositionInBounds
+  clampPositionInBounds,
+  estimateAnnotationHeight
 } from "../constants";
 
 /**
@@ -67,8 +67,9 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           };
           
           const width = ann.width || ANNOTATION_WIDTH_DEFAULT;
+          const height = estimateAnnotationHeight(ann.content, width);
           const clampedPos = clampPositionInBounds(
-            pagePixelPos, width, ANNOTATION_HEIGHT_ESTIMATE, question.imageWidth, question.imageHeight
+            pagePixelPos, width, height, question.imageWidth, question.imageHeight
           );
           
           return { 
@@ -222,7 +223,7 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           if (ann.id !== annotationId) return ann;
           
           const width = ann.width || ANNOTATION_WIDTH_DEFAULT;
-          const height = ANNOTATION_HEIGHT_ESTIMATE;
+          const height = estimateAnnotationHeight(ann.content, width);
           
           let defaultPosition;
           if (ann.isChoiceError) {
@@ -320,9 +321,10 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
             // 计算 rtp：position 是中心点坐标，转换为左上角相对于 bbox 的偏移
             if (firstAnnotation.position) {
               const annotationWidth = firstAnnotation.width || ANNOTATION_WIDTH_DEFAULT;
+              const annotationHeight = estimateAnnotationHeight(firstAnnotation.content, annotationWidth);
               
               const leftTopX = firstAnnotation.position.x - annotationWidth / 2;
-              const leftTopY = firstAnnotation.position.y - ANNOTATION_HEIGHT_ESTIMATE / 2;
+              const leftTopY = firstAnnotation.position.y - annotationHeight / 2;
               
               rtp = {
                 x: leftTopX - question.bbox.x,

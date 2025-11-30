@@ -67,7 +67,7 @@ const Navbar = () => {
             </div>
 
             {/* Mobile Toggle */}
-            <div className="md:hidden">
+            <div className="md:hidden ml-auto">
               <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-2 text-slate-600">
                 {isMobileMenuOpen ? <X /> : <Menu />}
               </button>

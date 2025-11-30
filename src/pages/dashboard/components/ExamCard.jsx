@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Card, Button, Modal, message } from "antd";
+import { Card, Button, Modal, message, Dropdown } from "antd";
 import {
   UploadOutlined,
   FileTextOutlined,
@@ -8,10 +8,12 @@ import {
   ExclamationCircleOutlined,
   DeleteOutlined,
   EditOutlined,
+  MoreOutlined,
 } from "@ant-design/icons";
 import ScoreRulesModal from "./ScoreRulesModal";
 import { formatDate } from "../../../utils/tools";
 import gradingApi from "../../../api/grading";
+import { useIsMobile } from "../../../hooks/useIsMobile";
 import "../styles/ExamCard.css";
 
 /**
@@ -22,6 +24,7 @@ import "../styles/ExamCard.css";
  * @param {Function} props.onDelete - 删除后的回调函数
  */
 const ExamCard = ({ exam, navigate, onDelete }) => {
+  const isMobile = useIsMobile();
   // 控制评分细则弹窗的显示状态
   const [scoreRulesModalVisible, setScoreRulesModalVisible] = useState(false);
   // 控制评分过程显示的状态
@@ -210,23 +213,23 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
       style={{ width: "100%", borderColor: "rgb(206, 204, 204)" }}
       className="card-hover"
       hoverable
+      bodyStyle={{ padding: isMobile ? "12px" : "24px" }}
     >
       <div
         style={{
           display: "flex",
+          flexDirection: isMobile ? "column" : "row",
           justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: "8px",
-          flexWrap: "wrap",
+          alignItems: isMobile ? "stretch" : "center",
+          gap: isMobile ? "12px" : "8px",
         }}
       >
         <div>
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "8px" }}>
             <span
               style={{
-                fontSize: "20px",
+                fontSize: isMobile ? "16px" : "20px",
                 fontWeight: "bold",
-                marginRight: "12px",
               }}
             >
               {exam.paper_title}
@@ -236,130 +239,168 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
           <div
             style={{
               marginTop: "4px",
-              fontSize: "15px",
+              fontSize: isMobile ? "12px" : "15px",
               color: "#666",
             }}
           >
             <span>
               创建时间: {formatDate(exam.created_time, "YYYY-MM-DD")}
             </span>
-            {/* 学科: {exam.subject} 年级: {exam.grade} 总分:
-            {exam.totalScore}分 创建时间: {exam.createTime} */}
           </div>
         </div>
-        <div style={{ display: "flex", gap: "8px" }}>
-          {/* 删除按钮 - 所有状态都显示在最左边 */}
-          <Button
-            type="default"
-            danger
-            icon={<DeleteOutlined />}
-            onClick={handleDeleteExam}
-          >
-            删除该考试
-          </Button>
-
-          {/* 已完成状态显示查看评分细则、查看评分过程和数据分析 */}
-          {/* 完成显示数据分析 */}
-          {(exam.status === "READY" ||
-            exam.status === "PROCESSING" ||
-            exam.status === "COMPLETED") && (
+        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {/* 移动端：使用下拉菜单 */}
+          {isMobile ? (
             <>
-              <Button
-                type="default"
-                icon={<FileTextOutlined />}
-                onClick={showScoreRulesModal}
+              {/* 主要操作按钮 */}
+              {exam.status === "READY" && (
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={() => navigate(`/upload-answer-sheet?grading_id=${exam.grading_id}`)}
+                  icon={<UploadOutlined />}
+                >
+                  上传答题卡
+                </Button>
+              )}
+              {exam.status === "COMPLETED" && (
+                <Button
+                  type="primary"
+                  size="small"
+                  onClick={() => navigate(`/data-analysis?grading_id=${exam.grading_id}`)}
+                  icon={<BarChartOutlined />}
+                >
+                  数据分析
+                </Button>
+              )}
+              {/* 更多操作下拉菜单 */}
+              <Dropdown
+                menu={{
+                  items: [
+                    (exam.status === "READY" || exam.status === "PROCESSING" || exam.status === "COMPLETED") && {
+                      key: 'scoreRules',
+                      icon: <FileTextOutlined />,
+                      label: '查看评分细则',
+                      onClick: showScoreRulesModal,
+                    },
+                    exam.status === "COMPLETED" && {
+                      key: 'essay',
+                      icon: <FileTextOutlined />,
+                      label: '查看作文批改',
+                      onClick: () => navigate(`/essay-grading?grading_id=${exam.grading_id}`),
+                    },
+                    exam.status === "COMPLETED" && {
+                      key: 'question',
+                      icon: <BarChartOutlined />,
+                      label: '查看题目分析',
+                      onClick: () => navigate(`/question-analysis?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`),
+                    },
+                    exam.status === "COMPLETED" && {
+                      key: 'manual',
+                      icon: <FileTextOutlined />,
+                      label: '人工阅卷',
+                      onClick: () => navigate(`/manual-review?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`),
+                    },
+                    exam.status === "COMPLETED" && {
+                      key: 'trace',
+                      icon: <EditOutlined />,
+                      label: '手动留痕',
+                      onClick: () => navigate(`/trace?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`),
+                    },
+                    { type: 'divider' },
+                    {
+                      key: 'delete',
+                      icon: <DeleteOutlined />,
+                      label: '删除该考试',
+                      danger: true,
+                      onClick: handleDeleteExam,
+                    },
+                  ].filter(Boolean),
+                }}
+                trigger={['click']}
               >
-                查看评分细则
-              </Button>
+                <Button size="small" icon={<MoreOutlined />}>更多</Button>
+              </Dropdown>
             </>
-          )}
-
-          {exam.status === "READY" && (
+          ) : (
             <>
-              <Button
-                type="primary"
-                onClick={() => {
-                  navigate(
-                    `/upload-answer-sheet?grading_id=${exam.grading_id}`
-                  );
-                }}
-                icon={<UploadOutlined />}
-              >
-                上传答题卡
-              </Button>
-            </>
-          )}
-
-          {/* {exam.status === "COMPLETED" && (
-            <Button
-              type="default"
-              icon={<ClockCircleOutlined />}
-              onClick={() => {
-                navigate(`/score-process?examId=${exam.id}`);
-              }}
-            >
-              查看评分过程
-            </Button>
-          )} */}
-
-          {/* 完成显示数据分析 */}
-          {exam.status === "COMPLETED" && (
-            <>
+              {/* 桌面端：显示所有按钮 */}
+              {/* 删除按钮 - 所有状态都显示在最左边 */}
               <Button
                 type="default"
-                icon={<BarChartOutlined />}
-                onClick={() => {
-                  navigate(`/data-analysis?grading_id=${exam.grading_id}`);
-                }}
+                danger
+                icon={<DeleteOutlined />}
+                onClick={handleDeleteExam}
               >
-                数据分析
+                删除该考试
               </Button>
 
-              <Button
-                type="default"
-                icon={<FileTextOutlined />}
-                onClick={() => {
-                  navigate(`/essay-grading?grading_id=${exam.grading_id}`);
-                }}
-              >
-                查看作文批改
-              </Button>
+              {/* 已完成状态显示查看评分细则、查看评分过程和数据分析 */}
+              {(exam.status === "READY" ||
+                exam.status === "PROCESSING" ||
+                exam.status === "COMPLETED") && (
+                <Button
+                  type="default"
+                  icon={<FileTextOutlined />}
+                  onClick={showScoreRulesModal}
+                >
+                  查看评分细则
+                </Button>
+              )}
 
-              <Button
-                type="default"
-                icon={<BarChartOutlined />}
-                onClick={() => {
-                  navigate(
-                    `/question-analysis?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`
-                  );
-                }}
-              >
-                查看题目分析
-              </Button>
+              {exam.status === "READY" && (
+                <Button
+                  type="primary"
+                  onClick={() => navigate(`/upload-answer-sheet?grading_id=${exam.grading_id}`)}
+                  icon={<UploadOutlined />}
+                >
+                  上传答题卡
+                </Button>
+              )}
 
-              <Button
-                type="default"
-                icon={<FileTextOutlined />}
-                onClick={() => {
-                  navigate(
-                    `/manual-review?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`
-                  );
-                }}
-              >
-                人工阅卷
-              </Button>
+              {exam.status === "COMPLETED" && (
+                <>
+                  <Button
+                    type="default"
+                    icon={<BarChartOutlined />}
+                    onClick={() => navigate(`/data-analysis?grading_id=${exam.grading_id}`)}
+                  >
+                    数据分析
+                  </Button>
 
-              <Button
-                type="default"
-                icon={<EditOutlined />}
-                onClick={() => {
-                  navigate(
-                    `/trace?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`
-                  );
-                }}
-              >
-                手动留痕
-              </Button>
+                  <Button
+                    type="default"
+                    icon={<FileTextOutlined />}
+                    onClick={() => navigate(`/essay-grading?grading_id=${exam.grading_id}`)}
+                  >
+                    查看作文批改
+                  </Button>
+
+                  <Button
+                    type="default"
+                    icon={<BarChartOutlined />}
+                    onClick={() => navigate(`/question-analysis?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`)}
+                  >
+                    查看题目分析
+                  </Button>
+
+                  <Button
+                    type="default"
+                    icon={<FileTextOutlined />}
+                    onClick={() => navigate(`/manual-review?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`)}
+                  >
+                    人工阅卷
+                  </Button>
+
+                  <Button
+                    type="default"
+                    icon={<EditOutlined />}
+                    onClick={() => navigate(`/trace?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`)}
+                  >
+                    手动留痕
+                  </Button>
+                </>
+              )}
             </>
           )}
         </div>

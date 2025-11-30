@@ -81,6 +81,21 @@ export const calculateAnnotationWidth = (content) => {
 };
 
 /**
+ * 根据内容和宽度估算批注高度
+ * @param {string} content - 批注内容
+ * @param {number} width - 批注宽度
+ * @returns {number} 估算的高度
+ */
+export const estimateAnnotationHeight = (content, width) => {
+  if (!content) return ANNOTATION_HEIGHT_MIN;
+  const contentLength = content.length;
+  const charsPerLine = Math.max(1, Math.floor(width / 14)); // 每行约能容纳的字符数
+  const lineCount = Math.ceil(contentLength / charsPerLine);
+  const estimatedHeight = lineCount * 24 + 16; // 行高24px + padding
+  return Math.max(ANNOTATION_HEIGHT_MIN, Math.min(estimatedHeight, ANNOTATION_HEIGHT_MAX));
+};
+
+/**
  * 限制位置在图片边界内
  * @param {Object} position - 位置 {x, y}
  * @param {number} width - 批注宽度

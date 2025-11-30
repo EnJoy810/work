@@ -1,31 +1,17 @@
 import {
-  Card,
   Button,
-  Row,
-  Col,
-  Statistic,
   Typography,
-  Avatar,
-  Badge,
-  Progress,
   List,
   Spin,
 } from "antd";
 import {
-  FileTextOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
-  UserOutlined,
-  ArrowUpOutlined,
   PlusOutlined,
-  UploadOutlined,
-  RobotOutlined,
-  BarChartOutlined,
 } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { getGradingList } from "../../api/exam";
+import { useIsMobile } from "../../hooks/useIsMobile";
 import "./styles/home.css";
 import ExamCard from "./components/ExamCard";
 
@@ -33,6 +19,7 @@ const { Title, Text } = Typography;
 
 const Home = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [recentExams, setRecentExams] = useState([]);
   const [loading, setLoading] = useState(true);
   const { userInfo } = useSelector((state) => state.user);
@@ -121,22 +108,28 @@ const Home = () => {
       <div
         style={{
           display: "flex",
+          flexDirection: isMobile ? "column" : "row",
           justifyContent: "space-between",
-          alignItems: "center",
+          alignItems: isMobile ? "stretch" : "center",
+          gap: isMobile ? "16px" : "0",
           marginBottom: "24px",
+          padding: isMobile ? "16px" : "0",
         }}
       >
         <div>
-          <Title level={3} style={{ margin: 0 }}>
+          <Title level={isMobile ? 4 : 3} style={{ margin: 0 }}>
             欢迎回来，{getDisplayName()}
           </Title>
-          <Text type="secondary">{getCurrentDate()}</Text>
+          <Text type="secondary" style={{ fontSize: isMobile ? 12 : 14 }}>
+            {getCurrentDate()}
+          </Text>
         </div>
         <Button
           type="primary"
-          size="large"
+          size={isMobile ? "middle" : "large"}
           icon={<PlusOutlined />}
           onClick={() => navigate("/create-exam")}
+          block={isMobile}
         >
           创建新考试
         </Button>

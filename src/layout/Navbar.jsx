@@ -234,7 +234,7 @@ const Navbar = () => {
           style={{
             display: "flex",
             alignItems: "center",
-            padding: "0 24px",
+            padding: isMobile ? "0 12px" : "0 24px",
             color: "#000",
             fontSize: 18,
             fontWeight: "bold",
@@ -247,11 +247,12 @@ const Navbar = () => {
                 marginLeft: 8,
                 color: "#000",
                 marginRight: 8,
-                fontSize: isMobile ? 15 : 22,
+                fontSize: isMobile ? 14 : 22,
                 fontWeight: "bold",
+                whiteSpace: "nowrap",
               }}
             >
-              清境智能 在线阅卷系统
+              {isMobile ? "清境智能" : "清境智能 在线阅卷系统"}
             </span>
           )}
         </div>
