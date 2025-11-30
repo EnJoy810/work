@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { message } from "antd";
 import { uploadTrace } from "../../../api/trace";
 import {
@@ -17,6 +17,31 @@ import {
 const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) => {
   const [selectedAnnotationId, setSelectedAnnotationId] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  // 追踪被修改的题目ID
+  const modifiedQuestionIdsRef = useRef(new Set());
+
+  /**
+   * 根据 annotationId 获取对应的 questionId
+   */
+  const getQuestionIdByAnnotationId = useCallback((annotationId) => {
+    if (!answerSheetData?.questions) return null;
+    for (const question of answerSheetData.questions) {
+      if (question.annotations?.some(ann => ann.id === annotationId)) {
+        return question.questionId;
+      }
+    }
+    return null;
+  }, [answerSheetData]);
+
+  /**
+   * 标记题目为已修改
+   */
+  const markQuestionModified = useCallback((annotationId) => {
+    const questionId = getQuestionIdByAnnotationId(annotationId);
+    if (questionId) {
+      modifiedQuestionIdsRef.current.add(questionId);
+    }
+  }, [getQuestionIdByAnnotationId]);
 
   /**
    * 处理批注拖拽
@@ -55,8 +80,9 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
 
       return { ...prevData, questions: updatedQuestions };
     });
+    markQuestionModified(annotationId);
     setHasUnsavedChanges(true);
-  }, [setAnswerSheetData]);
+  }, [setAnswerSheetData, markQuestionModified]);
 
   /**
    * 处理批注缩放变化
@@ -87,9 +113,10 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
     });
     
     if (hasChange) {
+      markQuestionModified(annotationId);
       setHasUnsavedChanges(true);
     }
-  }, [setAnswerSheetData]);
+  }, [setAnswerSheetData, markQuestionModified]);
 
   /**
    * 处理批注尺寸变化
@@ -127,9 +154,10 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
     });
     
     if (hasChange) {
+      markQuestionModified(annotationId);
       setHasUnsavedChanges(true);
     }
-  }, [setAnswerSheetData]);
+  }, [setAnswerSheetData, markQuestionModified]);
 
   /**
    * 处理批注内容编辑
@@ -169,9 +197,10 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
     });
 
     if (hasChange) {
+      markQuestionModified(annotationId);
       setHasUnsavedChanges(true);
     }
-  }, [setAnswerSheetData]);
+  }, [setAnswerSheetData, markQuestionModified]);
 
   /**
    * 选择批注
@@ -228,9 +257,10 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
       return { ...prevData, questions: updatedQuestions };
     });
     
+    markQuestionModified(annotationId);
     setHasUnsavedChanges(true);
     message.success("批注位置已恢复");
-  }, [setAnswerSheetData]);
+  }, [setAnswerSheetData, markQuestionModified]);
 
   /**
    * 获取所有批注列表
@@ -264,10 +294,19 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
         message.loading({ content: "正在保存...", key: "save" });
       }
 
+      // 只保存被修改的题目
+      const modifiedIds = modifiedQuestionIdsRef.current;
+      if (modifiedIds.size === 0) {
+        if (!silent) message.info('没有需要保存的修改');
+        return true;
+      }
+
       const savePromises = answerSheetData.questions
         .filter(question => {
-          // 只保存非选择题的批注（选择题的红X不需要保存）
-          return question.bbox && question.question_type !== 'choice';
+          // 只保存被修改的非选择题
+          return question.bbox && 
+                 question.question_type !== 'choice' && 
+                 modifiedIds.has(question.questionId);
         })
         .map(async (question) => {
           // 默认值
@@ -281,10 +320,9 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
             // 计算 rtp：position 是中心点坐标，转换为左上角相对于 bbox 的偏移
             if (firstAnnotation.position) {
               const annotationWidth = firstAnnotation.width || ANNOTATION_WIDTH_DEFAULT;
-              const annotationHeight = firstAnnotation.height || ANNOTATION_HEIGHT_ESTIMATE;
               
               const leftTopX = firstAnnotation.position.x - annotationWidth / 2;
-              const leftTopY = firstAnnotation.position.y - annotationHeight / 2;
+              const leftTopY = firstAnnotation.position.y - ANNOTATION_HEIGHT_ESTIMATE / 2;
               
               rtp = {
                 x: leftTopX - question.bbox.x,
@@ -297,9 +335,8 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
             width = firstAnnotation.width || ANNOTATION_WIDTH_DEFAULT;
           }
           
-          // 保存的数据结构：与后端格式一致
-          const traceData = {
-            bbox: question.bbox,
+          // trace_update: 留痕更新信息（不含 bbox）
+          const traceUpdateData = {
             rtp,
             score_reason: scoreReason,
             width
@@ -308,12 +345,14 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           return uploadTrace({
             paperId: selectedStudent.student_id,
             questionId: question.questionId,
-            trace: JSON.stringify(traceData)
+            traceUpdate: JSON.stringify(traceUpdateData)
           });
         });
 
       await Promise.all(savePromises);
       
+      // 清空修改记录
+      modifiedQuestionIdsRef.current.clear();
       setHasUnsavedChanges(false);
       if (!silent) {
         message.success({ content: "保存成功", key: "save" });
@@ -332,6 +371,7 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
    * 清除未保存状态
    */
   const clearUnsavedChanges = useCallback(() => {
+    modifiedQuestionIdsRef.current.clear();
     setHasUnsavedChanges(false);
     setSelectedAnnotationId(null);
   }, []);
