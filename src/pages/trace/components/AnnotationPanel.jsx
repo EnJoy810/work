@@ -109,7 +109,7 @@ const AnnotationPanel = ({
                       {annotation.questionNo && <Tag color="default">题目 {annotation.questionNo}</Tag>}
                     </Space>
                     {annotation.score !== undefined && annotation.score !== null && (
-                      <span style={{ fontWeight: "bold", color: "#52c41a" }}>{annotation.score}分</span>
+                      <span style={{ fontWeight: "bold", color: "#1890ff" }}>{annotation.score}分</span>
                     )}
                   </div>
 

@@ -26,104 +26,25 @@ export const clamp = (value, min, max) => {
 };
 
 /**
- * RTP坐标 → 整页比例坐标
- * @param {Object} rtp - 相对题目的位置 {x, y}
- * @param {Object} bbox - 题目在整页的位置 {x, y, width, height}
- * @returns {Object} 整页比例坐标 {x, y}
- */
-export const rtpToPage = (rtp, bbox) => {
-  return {
-    x: bbox.x + rtp.x * bbox.width,
-    y: bbox.y + rtp.y * bbox.height
-  };
-};
-
-/**
- * 整页比例坐标 → RTP坐标
- * @param {Object} pagePos - 整页比例位置 {x, y}
- * @param {Object} bbox - 题目在整页的位置 {x, y, width, height}
- * @returns {Object} 相对题目的位置 {x, y}
- */
-export const pageToRtp = (pagePos, bbox) => {
-  if (bbox.width === 0 || bbox.height === 0) {
-    return { x: 0.5, y: 0.5 }; // 兜底：返回中心点
-  }
-  
-  return {
-    x: clamp((pagePos.x - bbox.x) / bbox.width, 0, 1),
-    y: clamp((pagePos.y - bbox.y) / bbox.height, 0, 1)
-  };
-};
-
-/**
- * 整页比例坐标 → 像素坐标
- * @param {Object} pagePos - 整页比例位置 {x, y}
- * @param {Object} containerRect - 容器的像素矩形 {width, height}
- * @returns {Object} 像素坐标 {x, y}
- */
-export const pageToPixel = (pagePos, containerRect) => {
-  return {
-    x: pagePos.x * containerRect.width,
-    y: pagePos.y * containerRect.height
-  };
-};
-
-/**
- * 像素坐标 → 整页比例坐标
- * @param {Object} pixelPos - 像素位置 {x, y}
- * @param {Object} containerRect - 容器的像素矩形 {width, height}
- * @returns {Object} 整页比例坐标 {x, y}
- */
-export const pixelToPage = (pixelPos, containerRect) => {
-  if (containerRect.width === 0 || containerRect.height === 0) {
-    return { x: 0, y: 0 };
-  }
-  
-  return {
-    x: clamp(pixelPos.x / containerRect.width, 0, 1),
-    y: clamp(pixelPos.y / containerRect.height, 0, 1)
-  };
-};
-
-/**
- * RTP坐标 → 像素坐标（完整转换）
+ * RTP 像素偏移 → 整页像素坐标
  * @param {Object} rtp - 相对题目的像素偏移 {x, y}
  * @param {Object} bbox - 题目在整页的位置 {x, y, width, height}
- * @param {Object} containerRect - 容器的像素矩形 {width, height}（原始图片尺寸）
- * @returns {Object} 像素坐标 {x, y}
+ * @returns {Object} 整页像素坐标 {x, y}
  */
-export const rtpToPixel = (rtp, bbox, containerRect) => {
-  // rtp 是像素偏移，直接加到 bbox 得到整页像素坐标
-  const pagePixelPos = {
+export const rtpToPagePixel = (rtp, bbox) => {
+  return {
     x: bbox.x + rtp.x,
     y: bbox.y + rtp.y
   };
-  
-  // 转换为归一化坐标（0-1）
-  const normalizedPos = {
-    x: pagePixelPos.x / containerRect.width,
-    y: pagePixelPos.y / containerRect.height
-  };
-  
-  // 归一化坐标会在 AnswerSheetCanvas 中再次缩放到显示尺寸
-  return normalizedPos;
 };
 
 /**
- * 像素坐标 → RTP坐标（完整转换）
- * @param {Object} pixelPos - 归一化坐标 {x, y} (0-1)
+ * 整页像素坐标 → RTP 像素偏移
+ * @param {Object} pagePixelPos - 整页像素位置 {x, y}
  * @param {Object} bbox - 题目在整页的位置 {x, y, width, height}
- * @param {Object} containerRect - 容器的像素矩形 {width, height}（原始图片尺寸）
  * @returns {Object} 相对题目的像素偏移 {x, y}
  */
-export const pixelToRtp = (pixelPos, bbox, containerRect) => {
-  // 归一化坐标转整页像素坐标
-  const pagePixelPos = {
-    x: pixelPos.x * containerRect.width,
-    y: pixelPos.y * containerRect.height
-  };
-  
-  // 整页像素坐标转 rtp 像素偏移
+export const pagePixelToRtp = (pagePixelPos, bbox) => {
   return {
     x: pagePixelPos.x - bbox.x,
     y: pagePixelPos.y - bbox.y
@@ -131,12 +52,52 @@ export const pixelToRtp = (pixelPos, bbox, containerRect) => {
 };
 
 /**
- * 计算批注文本框的像素位置
- * @param {Object} annotation - 批注对象 {currentPosition: {x, y}}
- * @param {Object} bbox - 题目在整页的位置
- * @param {Object} containerRect - 容器的像素矩形
- * @returns {Object} 像素坐标 {x, y}
+ * 整页像素坐标 → 显示坐标
+ * @param {Object} pagePixelPos - 整页像素位置 {x, y}
+ * @param {Object} imageDimensions - 显示尺寸 {width, height}
+ * @param {number} imageWidth - 原始图片宽度
+ * @param {number} imageHeight - 原始图片高度
+ * @returns {Object} 显示坐标 {x, y}
  */
-export const getAnnotationPixelPosition = (annotation, bbox, containerRect) => {
-  return rtpToPixel(annotation.currentPosition, bbox, containerRect);
+export const pagePixelToDisplay = (pagePixelPos, imageDimensions, imageWidth, imageHeight) => {
+  return {
+    x: pagePixelPos.x * (imageDimensions.width / imageWidth),
+    y: pagePixelPos.y * (imageDimensions.height / imageHeight)
+  };
+};
+
+/**
+ * 显示坐标 → 整页像素坐标
+ * @param {Object} displayPos - 显示位置 {x, y}
+ * @param {Object} imageDimensions - 显示尺寸 {width, height}
+ * @param {number} imageWidth - 原始图片宽度
+ * @param {number} imageHeight - 原始图片高度
+ * @returns {Object} 整页像素坐标 {x, y}
+ */
+export const displayToPagePixel = (displayPos, imageDimensions, imageWidth, imageHeight) => {
+  // 先转归一化坐标
+  const normalizedPos = {
+    x: displayPos.x / imageDimensions.width,
+    y: displayPos.y / imageDimensions.height
+  };
+  
+  // 再转整页像素坐标
+  return {
+    x: normalizedPos.x * imageWidth,
+    y: normalizedPos.y * imageHeight
+  };
+};
+
+/**
+ * 计算缩放比例
+ * @param {Object} imageDimensions - 显示尺寸 {width, height}
+ * @param {number} imageWidth - 原始图片宽度
+ * @param {number} imageHeight - 原始图片高度
+ * @returns {Object} 缩放比例 {scaleX, scaleY}
+ */
+export const getScaleFactors = (imageDimensions, imageWidth, imageHeight) => {
+  return {
+    scaleX: imageDimensions.width / imageWidth,
+    scaleY: imageDimensions.height / imageHeight
+  };
 };

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Spin, Empty } from "antd";
 import AnnotationCard from "./AnnotationCard";
+import { SCORE_BOX_WIDTH, ANNOTATION_HEIGHT_MIN } from "../constants";
 
 /**
  * 答题卡画布组件
@@ -126,8 +127,7 @@ const AnswerSheetCanvas = ({
     return currentQuestions.flatMap((question) =>
       question.annotations
         .map((annotation) => {
-          // 兼容 position 和 currentPosition 两种字段
-          const pos = annotation.position || annotation.currentPosition;
+          const pos = annotation.position;
           if (!pos) return null;
           
           // position 是整页像素坐标（基于拼接图），转换为显示坐标
@@ -230,14 +230,22 @@ const AnswerSheetCanvas = ({
 
   // 渲染简答题分数（在 bbox 右上角，蓝色边框）
   const renderQuestionScores = () => {
-    if (!imageDimensions) return null;
+    if (!imageDimensions || !naturalImageSize) return null;
+
+    // 计算缩放比例（与 renderQuestionBoxes 保持一致）
+    const scaleX = imageDimensions.width / naturalImageSize.width;
+    const scaleY = imageDimensions.height / naturalImageSize.height;
 
     return getCurrentPageQuestions()
       .filter(q => q.question_type !== 'choice' && q.score !== undefined)
       .map((question) => {
-        // 计算 bbox 的右上角位置
-        const bboxRight = (question.bbox.x + question.bbox.width) * imageDimensions.width;
-        const bboxTop = question.bbox.y * imageDimensions.height;
+        // 计算 bbox 的右上角位置（bbox 是像素坐标，需要缩放）
+        const bboxRight = (question.bbox.x + question.bbox.width) * scaleX;
+        const bboxTop = question.bbox.y * scaleY;
+        
+        // position 是卡片中心点，让卡片右上角与 bbox 右上角对齐
+        const scoreCenterX = bboxRight - SCORE_BOX_WIDTH / 2;
+        const scoreCenterY = bboxTop + ANNOTATION_HEIGHT_MIN / 2;
 
         // 创建分数批注框对象
         const scoreAnnotation = {
@@ -245,14 +253,14 @@ const AnswerSheetCanvas = ({
           content: String(question.score),
           source: "score",  // 标记为分数类型
           scale: 1.0,
-          width: 60,  // 较小的宽度
+          width: SCORE_BOX_WIDTH,
         };
 
         return (
           <AnnotationCard
             key={`score-${question.questionId}`}
             annotation={scoreAnnotation}
-            position={{ x: bboxRight, y: bboxTop }}
+            position={{ x: scoreCenterX, y: scoreCenterY }}
             isSelected={false}
             canvasScale={scale}
             annotationScale={1.0}

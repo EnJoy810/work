@@ -501,13 +501,13 @@
   box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.3);
 }
 
-/* 分数框样�?- 未选中时不显示边框 */
+/* 分数框样式 - 未选中时不显示边框 */
 .trace-demo-page .annotation-card.score-card {
   border-color: transparent;
   box-shadow: none;
 }
 
-/* 分数框样�?- 选中时显示蓝色边�?*/
+/* 分数框样式 - 选中时显示蓝色边框 */
 .trace-demo-page .annotation-card.score-card.selected {
   border-color: rgba(24, 144, 255, 0.8);
   box-shadow: 0 0 0 1px rgba(24, 144, 255, 0.5);
@@ -750,7 +750,7 @@
   transition: opacity 0.2s ease;
 }
 
-/* 选中时显示调整手�?*/
+/* 选中时显示调整手柄 */
 .trace-demo-page .annotation-card.selected .annotation-card__resize-handle {
   opacity: 1;
 }
@@ -785,5 +785,5 @@
 }
 
 /* ==================== 打印样式 ==================== */
-/* 注意：现在使�?Canvas 导出打印（html2canvas），不再需�?CSS 打印样式 */
-/* 如果需要回退�?CSS 打印，可以恢复此处的样式 */
+/* 注意：现在使用 Canvas 导出打印（html2canvas），不再需要 CSS 打印样式 */
+/* 如果需要回退到 CSS 打印，可以恢复此处的样式 */
