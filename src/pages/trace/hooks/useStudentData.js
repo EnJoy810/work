@@ -104,7 +104,6 @@ const useStudentData = (gradingId) => {
             const rtp = traceData.rtp || { x: 0, y: 0 };
             
             if (item.question_type === 'choice' && item.score === 0) {
-              // 选择题错误：显示 ❌
               const choiceWidth = 28;
               const choiceHeight = ANNOTATION_HEIGHT_ESTIMATE;
               
@@ -116,7 +115,7 @@ const useStudentData = (gradingId) => {
               
               annotations.push({
                 id: `annotation-${item.question_id}`,
-                content: "❌",
+                content: "x",
                 position,
                 width: choiceWidth,
                 isChoiceError: true
