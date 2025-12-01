@@ -3,9 +3,7 @@ import { message } from "antd";
 import { uploadTrace } from "../../../api/trace";
 import {
   ANNOTATION_WIDTH_DEFAULT,
-  clampAnnotationScale,
-  clampPositionInBounds,
-  estimateAnnotationHeight
+  ANNOTATION_HEIGHT_ESTIMATE
 } from "../constants";
 
 /**
@@ -44,7 +42,7 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
   }, [getQuestionIdByAnnotationId]);
 
   /**
-   * 处理批注拖拽
+   * 处理批注拖拽（限制在 bbox 范围内）
    */
   const handleAnnotationDrag = useCallback((annotationId, newDisplayPos, bbox, imageDimensions) => {
     setAnswerSheetData(prevData => {
@@ -67,10 +65,13 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           };
           
           const width = ann.width || ANNOTATION_WIDTH_DEFAULT;
-          const height = estimateAnnotationHeight(ann.content, width);
-          const clampedPos = clampPositionInBounds(
-            pagePixelPos, width, height, question.imageWidth, question.imageHeight
-          );
+          const height = ANNOTATION_HEIGHT_ESTIMATE;
+          
+          // 限制在 bbox 范围内（position 是中心点坐标）
+          const clampedPos = {
+            x: Math.max(question.bbox.x + width / 2, Math.min(pagePixelPos.x, question.bbox.x + question.bbox.width - width / 2)),
+            y: Math.max(question.bbox.y + height / 2, Math.min(pagePixelPos.y, question.bbox.y + question.bbox.height - height / 2))
+          };
           
           return { 
             ...ann, 
@@ -86,41 +87,7 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
   }, [setAnswerSheetData, markQuestionModified]);
 
   /**
-   * 处理批注缩放变化
-   */
-  const handleAnnotationScaleChange = useCallback((annotationId, nextScaleValue) => {
-    const normalizedScale = clampAnnotationScale(nextScaleValue);
-    let hasChange = false;
-
-    setAnswerSheetData(prevData => {
-      if (!prevData) return prevData;
-      
-      const updatedQuestions = prevData.questions.map((question) => {
-        if (!Array.isArray(question.annotations)) return question;
-        
-        let questionChanged = false;
-        const updatedAnnotations = question.annotations.map((ann) => {
-          if (ann.id !== annotationId) return ann;
-          if (ann.scale === normalizedScale) return ann;
-          questionChanged = true;
-          hasChange = true;
-          return { ...ann, scale: normalizedScale };
-        });
-        
-        return questionChanged ? { ...question, annotations: updatedAnnotations } : question;
-      });
-
-      return hasChange ? { ...prevData, questions: updatedQuestions } : prevData;
-    });
-    
-    if (hasChange) {
-      markQuestionModified(annotationId);
-      setHasUnsavedChanges(true);
-    }
-  }, [setAnswerSheetData, markQuestionModified]);
-
-  /**
-   * 处理批注尺寸变化
+   * 处理批注尺寸变化（调整宽度后自动调整位置，确保不超出 bbox）
    */
   const handleAnnotationSizeChange = useCallback((annotationId, nextSize) => {
     if (!nextSize) return;
@@ -145,7 +112,23 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           
           questionChanged = true;
           hasChange = true;
-          return { ...ann, width, ...(height && { height }) };
+          
+          // 调整位置，确保不超出 bbox
+          let newPosition = ann.position;
+          if (ann.position && question.bbox) {
+            const annHeight = ANNOTATION_HEIGHT_ESTIMATE;
+            const minX = question.bbox.x + width / 2;
+            const maxX = question.bbox.x + question.bbox.width - width / 2;
+            const minY = question.bbox.y + annHeight / 2;
+            const maxY = question.bbox.y + question.bbox.height - annHeight / 2;
+            
+            newPosition = {
+              x: Math.max(minX, Math.min(ann.position.x, maxX)),
+              y: Math.max(minY, Math.min(ann.position.y, maxY))
+            };
+          }
+          
+          return { ...ann, width, position: newPosition, ...(height && { height }) };
         });
         
         return questionChanged ? { ...question, annotations: updatedAnnotations } : question;
@@ -225,32 +208,15 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           const width = ann.width || ANNOTATION_WIDTH_DEFAULT;
           const height = estimateAnnotationHeight(ann.content, width);
           
-          let defaultPosition;
-          if (ann.isChoiceError) {
-            // 选择题错误：重置到 bbox 中心
-            defaultPosition = {
-              x: question.bbox.x + question.bbox.width / 2,
-              y: question.bbox.y + question.bbox.height / 2
-            };
-          } else {
-            // 主观题：重置到 bbox 右上角（与分数框位置一致）
-            // 左上角位置 = bbox 右上角
-            const leftTopX = question.bbox.x + question.bbox.width - width;
-            const leftTopY = question.bbox.y;
-            // 转换为中心点坐标
-            defaultPosition = {
-              x: leftTopX + width / 2,
-              y: leftTopY + height / 2
-            };
-          }
-          
-          const clampedPosition = clampPositionInBounds(
-            defaultPosition, width, height, question.imageWidth, question.imageHeight
-          );
+          // 主观题：重置到 bbox 左上角（rtp = {x: 0, y: 0}）
+          const defaultPosition = {
+            x: question.bbox.x + width / 2,
+            y: question.bbox.y + height / 2
+          };
           
           return {
             ...ann,
-            position: clampedPosition
+            position: defaultPosition
           };
         })
       }));
@@ -337,17 +303,17 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
             width = firstAnnotation.width || ANNOTATION_WIDTH_DEFAULT;
           }
           
-          // trace_update: 留痕更新信息（不含 bbox）
-          const traceUpdateData = {
+          // trace: 位置信息（rtp, width）
+          const traceData = {
             rtp,
-            score_reason: scoreReason,
             width
           };
 
           return uploadTrace({
             paperId: selectedStudent.student_id,
             questionId: question.questionId,
-            traceUpdate: JSON.stringify(traceUpdateData)
+            trace: JSON.stringify(traceData),
+            scoreReason
           });
         });
 
@@ -382,7 +348,6 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
     selectedAnnotationId,
     hasUnsavedChanges,
     handleAnnotationDrag,
-    handleAnnotationScaleChange,
     handleAnnotationSizeChange,
     handleEditAnnotation,
     handleSelectAnnotation,

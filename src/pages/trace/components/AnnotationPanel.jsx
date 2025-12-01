@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { List, Input, Button, Tag, Space, Empty, Modal } from "antd";
 import { EditOutlined, UndoOutlined, SaveOutlined } from "@ant-design/icons";
-import { ANNOTATION_SCALE_DEFAULT } from "../constants";
 
 const { TextArea } = Input;
 
@@ -15,7 +14,6 @@ const { TextArea } = Input;
  * @param {Function} props.onResetAnnotation - 重置回调
  * @param {Function} props.onSave - 保存回调
  * @param {boolean} props.hasUnsavedChanges - 是否有未保存的修改
- * @param {Function} props.onScaleChange - 缩放调整回调
  */
 const AnnotationPanel = ({
   annotations,
@@ -24,8 +22,7 @@ const AnnotationPanel = ({
   onEditAnnotation,
   onResetAnnotation,
   onSave,
-  hasUnsavedChanges,
-  onScaleChange
+  hasUnsavedChanges
 }) => {
   const [editModalVisible, setEditModalVisible] = useState(false);
   const [editingAnnotation, setEditingAnnotation] = useState(null);
@@ -60,13 +57,6 @@ const AnnotationPanel = ({
       return <Tag color="green">AI</Tag>;
     }
     return <Tag>未知</Tag>;
-  };
-
-  const handleScaleChange = (annotation, delta) => {
-    if (!onScaleChange) return;
-    const currentScale = annotation.scale || ANNOTATION_SCALE_DEFAULT;
-    const newScale = currentScale + delta;
-    onScaleChange(annotation.id, newScale);
   };
 
   if (!annotations || annotations.length === 0) {
@@ -149,31 +139,6 @@ const AnnotationPanel = ({
                       >
                         重置
                       </Button>
-                    )}
-                    {onScaleChange && (
-                      <>
-                        <Button
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleScaleChange(annotation, -0.1);
-                          }}
-                        >
-                          -
-                        </Button>
-                        <span style={{ fontSize: 12, color: '#8c8c8c', padding: '0 4px' }}>
-                          {Math.round((annotation.scale || ANNOTATION_SCALE_DEFAULT) * 100)}%
-                        </span>
-                        <Button
-                          size="small"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleScaleChange(annotation, 0.1);
-                          }}
-                        >
-                          +
-                        </Button>
-                      </>
                     )}
                   </Space>
                 </div>

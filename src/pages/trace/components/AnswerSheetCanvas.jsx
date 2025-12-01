@@ -150,20 +150,23 @@ const AnswerSheetCanvas = ({
             y: Math.max(estimatedHeight / 2, Math.min(displayPos.y, imageDimensions.height - estimatedHeight / 2))
           };
 
+          // 选择题红X为只读，不可拖拽
+          const isChoiceError = annotation.isChoiceError;
+
           return (
             <AnnotationCard
               key={annotation.id}
               annotation={annotation}
               position={displayPos}
-              isSelected={selectedAnnotationId === annotation.id}
+              isSelected={!isChoiceError && selectedAnnotationId === annotation.id}
               canvasScale={scale}
-              annotationScale={annotation.scale || 1}
-              onDrag={(newPixelPos) =>
+              onDrag={isChoiceError ? () => {} : (newPixelPos) =>
                 onAnnotationDrag(annotation.id, newPixelPos, question.bbox, imageDimensions)
               }
-              onClick={() => onAnnotationSelect(annotation.id)}
-              onEdit={onAnnotationEdit}
-              onResize={(annotationId, nextSize) => onAnnotationResize && onAnnotationResize(annotationId, nextSize)}
+              onClick={isChoiceError ? () => {} : () => onAnnotationSelect(annotation.id)}
+              onEdit={isChoiceError ? () => {} : onAnnotationEdit}
+              onResize={isChoiceError ? () => {} : (annotationId, nextSize) => onAnnotationResize && onAnnotationResize(annotationId, nextSize)}
+              readOnly={isChoiceError}
             />
           );
         })
@@ -256,7 +259,6 @@ const AnswerSheetCanvas = ({
           id: `score-${question.questionId}`,
           content: String(question.score),
           source: "score",  // 标记为分数类型
-          scale: 1.0,
           width: SCORE_BOX_WIDTH,
         };
 
@@ -267,12 +269,9 @@ const AnswerSheetCanvas = ({
             position={{ x: scoreCenterX, y: scoreCenterY }}
             isSelected={false}
             canvasScale={scale}
-            annotationScale={1.0}
             onDrag={() => {}}
             onClick={() => {}}
-            onEdit={() => {
-              // 不允许编辑
-            }}
+            onEdit={() => {}}
             onResize={() => {}}
             readOnly={true}
           />
@@ -296,7 +295,6 @@ const AnswerSheetCanvas = ({
       id: "total-score",
       content: String(totalScore),
       source: "score",  // 标记为分数类型
-      scale: 1.5,
       width: 80,  // 稍大的宽度
     };
 
@@ -307,12 +305,9 @@ const AnswerSheetCanvas = ({
         position={{ x: leftPosition, y: topPosition }}
         isSelected={false}
         canvasScale={scale}
-        annotationScale={1.5}
         onDrag={() => {}}
         onClick={() => {}}
-        onEdit={() => {
-          // 不允许编辑
-        }}
+        onEdit={() => {}}
         onResize={() => {}}
         readOnly={true}
       />

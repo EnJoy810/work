@@ -1,5 +1,5 @@
 import React, { memo, useMemo, useState, useEffect } from "react";
-import { Button, Badge, Tabs } from "antd";
+import { Button, Tabs } from "antd";
 import { LeftOutlined, RightOutlined, UserSwitchOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
 
 /**

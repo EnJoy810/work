@@ -19,14 +19,16 @@ export const getGradingResultV2 = (gradingId) => {
  * @param {Object} data
  * @param {string} data.paperId - 试卷ID
  * @param {string} data.questionId - 题目ID
- * @param {string} data.traceUpdate - 留痕信息（JSON字符串，包含 rtp, score_reason, width）
+ * @param {string} data.trace - 位置信息（JSON字符串，包含 rtp, width）
+ * @param {string} data.scoreReason - 批注内容
  * @returns {Promise}
  */
 export const uploadTrace = (data) => {
   return request.put('/exam-question/grading/trace', {
     paper_id: data.paperId,
     question_id: data.questionId,
-    trace_update: data.traceUpdate
+    trace: data.trace,
+    score_reason: data.scoreReason
   });
 };
 

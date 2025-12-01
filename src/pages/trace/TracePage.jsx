@@ -68,7 +68,6 @@ const TracePage = () => {
     selectedAnnotationId,
     hasUnsavedChanges,
     handleAnnotationDrag,
-    handleAnnotationScaleChange,
     handleAnnotationSizeChange,
     handleEditAnnotation,
     handleSelectAnnotation,
@@ -236,7 +235,6 @@ const TracePage = () => {
               onResetAnnotation={handleResetAnnotation}
               onSave={handleSave}
               hasUnsavedChanges={hasUnsavedChanges}
-              onScaleChange={handleAnnotationScaleChange}
             />
           </div>
         )}

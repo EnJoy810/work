@@ -2,7 +2,6 @@ import { useState, useCallback, useRef } from "react";
 import { message } from "antd";
 import { getGradingResultV2, getStudentTraceList } from "../../../api/trace";
 import {
-  ANNOTATION_WIDTH_DEFAULT,
   ANNOTATION_HEIGHT_ESTIMATE,
   DEFAULT_IMAGE_WIDTH,
   DEFAULT_IMAGE_HEIGHT,

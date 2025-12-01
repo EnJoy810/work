@@ -13,7 +13,6 @@ import {
   ANNOTATION_WIDTH_MAX,
   ANNOTATION_HEIGHT_MIN,
   ANNOTATION_HEIGHT_MAX,
-  ANNOTATION_SCALE_DEFAULT,
   ANNOTATION_PADDING_VERTICAL,
   ANNOTATION_INIT_MEASURE_DELAY,
   ANNOTATION_CONTENT_MEASURE_DELAY,
@@ -125,7 +124,6 @@ const AnnotationCard = ({
   onEdit,
   onResize,
   canvasScale = 1,
-  annotationScale = 1,
   readOnly = false
 }) => {
   const centerX = position?.x ?? 0;
@@ -235,21 +233,12 @@ const AnnotationCard = ({
     }, ANNOTATION_CONTENT_MEASURE_DELAY);
     
     return () => clearTimeout(timer);
-  }, [pendingContent, annotationScale, currentWidth, measureContentHeight, frame.height]);
+  }, [pendingContent, currentWidth, measureContentHeight, frame.height]);
 
-  // 字体缩放逻辑：结合答题卡缩放和批注自身缩放
-  const safeAnnotationScale =
-    typeof annotationScale === "number" && Number.isFinite(annotationScale) && annotationScale > 0
-      ? annotationScale
-      : ANNOTATION_SCALE_DEFAULT;
-
+  // 字体缩放逻辑：基于答题卡缩放
   const baseFontSize = 14;
   const baseLineHeight = 1.4;
-  
-  // 字体大小 = 基准字体 × 答题卡缩放 × 批注缩放
-  // canvasScale: 答题卡缩放比例（用户通过 +/- 控制）
-  // safeAnnotationScale: 批注自身缩放（保留用于兼容旧数据）
-  const computedFontSize = baseFontSize * canvasScale * safeAnnotationScale;
+  const computedFontSize = baseFontSize * canvasScale;
   const computedLineHeight = baseLineHeight;
 
   const handleDrag = useCallback(
