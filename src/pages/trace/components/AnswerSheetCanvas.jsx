@@ -397,6 +397,7 @@ const AnswerSheetCanvas = ({
                     src={currentPaperUrl}
                     alt={`答题卡${currentPage === 0 ? "正面" : "背面"}`}
                     className="answer-sheet-image"
+                    crossOrigin="anonymous"
                     style={
                       imageDimensions
                         ? {
