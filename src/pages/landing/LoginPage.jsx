@@ -49,24 +49,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* 社会认可 */}
-          <div className="mt-12">
-            <p className="text-sm text-slate-400 mb-6">获得顶尖高校信赖</p>
-            <div className="flex items-center gap-8 opacity-60">
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-6 h-6" />
-                <span className="text-sm font-medium">清华大学</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-6 h-6" />
-                <span className="text-sm font-medium">北京大学</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <GraduationCap className="w-6 h-6" />
-                <span className="text-sm font-medium">复旦大学</span>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 

@@ -77,7 +77,7 @@ const TracePage = () => {
     clearUnsavedChanges
   } = useAnnotations(answerSheetData, setAnswerSheetData, selectedStudent);
 
-  const { handlePrint } = usePrint();
+  const { handlePrint, handleBatchPrint } = usePrint();
 
   // UI 状态
   const [showLeftPanel, setShowLeftPanel] = useState(() => getInitialPanelState().left);
@@ -222,6 +222,7 @@ const TracePage = () => {
             students={students}
             currentStudentIndex={currentStudentIndex}
             onStudentClick={handleStudentClick}
+            onBatchPrint={() => handleBatchPrint(students, handleStudentClick)}
           />
         )}
 

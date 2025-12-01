@@ -1,29 +1,25 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import Button from './Button';
+
+const subjects = ['语文', '数学', '英语', '物理', '化学', '生物', '政治', '历史', '地理'];
 
 const HeroSection = () => {
   const navigate = useNavigate();
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % subjects.length);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section className="relative min-h-screen flex flex-col justify-center items-center pt-20">
       <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
-        
-        {/* Floating Tag */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="inline-flex items-center gap-2 bg-white/50 backdrop-blur-md border border-slate-200/50 rounded-full px-4 py-1.5 mb-8 shadow-sm"
-        >
-          <span className="flex h-2 w-2 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span className="text-sm font-medium text-slate-600">AI 阅卷引擎 V2.0 已上线</span>
-        </motion.div>
-
         {/* Main Headline */}
         <motion.h1 
           initial={{ opacity: 0, y: 30 }}
@@ -31,21 +27,34 @@ const HeroSection = () => {
           transition={{ duration: 0.8, delay: 0.1, ease: [0.16, 1, 0.3, 1] }}
           className="text-5xl md:text-7xl font-extrabold text-slate-900 tracking-tight leading-[1.1] mb-6"
         >
-          让阅卷回归<br className="md:hidden" />
-          <span className="bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-slate-700 to-slate-900">教学本身</span>
+          学习，从模糊<br className="md:hidden" />
+          <span className="text-slate-900">变得明朗</span>
         </motion.h1>
 
         {/* Subheadline */}
-        <motion.p
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
           className="text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed"
         >
-          AI 驱动的智能阅卷平台，为 K12 及高校教师节省 80% 批改时间。
-          <br className="hidden md:block" />
-          告别重复劳动，专注于学生成长。
-        </motion.p>
+          师生的专属AI助手，让
+          <span className="inline-block relative w-12 h-12 overflow-hidden align-middle mx-1">
+            <AnimatePresence mode="wait">
+              <motion.span
+                key={currentIndex}
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: -20, opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0 flex items-center justify-center text-emerald-600 font-semibold"
+              >
+                {subjects[currentIndex]}
+              </motion.span>
+            </AnimatePresence>
+          </span>
+          的每一步都更清晰
+        </motion.div>
 
         {/* Buttons */}
         <motion.div

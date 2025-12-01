@@ -86,30 +86,30 @@ const FeatureBlock = ({ feature, index }) => {
 const FeaturesSection = () => {
   const features = [
     {
-      title: '简单易用，批改飞快',
-      description: '上手即用，批改速度提升 3 倍',
+      title: '评分细则，一秒成型',
+      description: '一秒生成、随时可改，让批改精确到每一个字',
       options: [
-        { title: '零门槛使用', description: '快速创建考试任务', image: '/零门槛使用.png' },
-        { title: '一键上传', description: '支持图片批量上传', image: '/一键上传.png' },
-        { title: '秒级批改', description: '客观题秒判，主观题辅助', image: '/秒级批改.png' },
+        { title: '细则生成，智能高效', description: 'AI自动生成评分标准，告别手动编写', image: '/零门槛使用.png' },
+        { title: '灵活调整，随心所欲', description: '随时修改评分细则，适配各类题型', image: '/一键上传.png' },
+        { title: '批改结果，瞬时到达', description: '分秒级批改能力，单班批改仅需5分钟', image: '/秒级批改.png' },
       ],
     },
     {
-      title: '分析细致，准确度高',
-      description: '多维度数据分析，准确率达 99%',
+      title: '学情报告，一目了然',
+      description: '数据可视化呈现，薄弱点一眼看穿',
       options: [
-        { title: '成绩统计', description: '班级成绩分布分析', image: '/成绩统计.png' },
-        { title: '答题分析', description: '题目得分率统计', image: '/答题分析.png' },
-        { title: '数据导出', description: '支持多种格式导出', image: '/数据导出.png' },
+        { title: '成绩总览，清晰直观', description: '班级排名、分数分布，一眼掌握全局', image: '/成绩统计.png' },
+        { title: '错题聚焦，重点突破', description: '高频错题自动汇总，精准定位薄弱点', image: '/答题分析.png' },
+        { title: '一键导出，分享无忧', description: '多格式报告下载，家校沟通更便捷', image: '/数据导出.png' },
       ],
     },
     {
-      title: '全程留痕，个性化教育',
-      description: '完整记录批改过程，支持个性化教学',
+      title: '批改留痕，有迹可循',
+      description: '每一笔批注都有记录，教学复盘更轻松',
       options: [
-        { title: '批改留痕', description: '完整保留批改痕迹', image: '/批改留痕.png' },
-        { title: '历史追溯', description: '查看历次考试记录', image: '/历史追溯.png' },
-        { title: '多维对比', description: '横向纵向数据对比', image: '/多维对比.png' },
+        { title: '痕迹保留，随时回看', description: '红笔批注完整保存，批改过程可追溯', image: '/批改留痕.png' },
+        { title: '历史对比，进步可见', description: '多次考试成绩对比，学生成长看得见', image: '/历史追溯.png' },
+        { title: '个性追踪，因材施教', description: '每个学生独立档案，针对性辅导更精准', image: '/多维对比.png' },
       ],
     },
   ];

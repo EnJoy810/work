@@ -15,72 +15,49 @@ const QQIcon = () => (
 
 const Footer = () => {
   return (
-    <footer className="bg-transparent pt-20 pb-10">
+    <footer id="about" className="bg-transparent pt-20 pb-10">
       <div className="max-w-7xl mx-auto px-6">
-        {/* 桌面端：6列布局；移动端：品牌区 + 链接区分开 */}
-        <div className="grid grid-cols-1 md:grid-cols-6 gap-8 md:gap-8 mb-16">
+        {/* 品牌区域 */}
+        <div className="mb-16">
           
           {/* Brand */}
-          <div className="col-span-1 md:col-span-3">
-            <div className="mb-4 flex flex-row items-center gap-6">
-              <img src="/Logo.svg" alt="清境智能 Logo" className="h-24 w-auto flex-shrink-0" />
+          <div className="flex flex-col items-center">
+            <div className="mb-4 flex flex-row items-center justify-center gap-6">
+              <img src="/清净科技.svg" alt="清净科技 Logo" className="h-12 w-auto flex-shrink-0" />
               <img src="/Badge.svg" alt="X-Lab Logo" className="h-12 w-auto flex-shrink-0" />
             </div>
-            <p className="text-slate-500 text-sm leading-relaxed mb-6">
+            <p className="text-slate-500 text-sm leading-relaxed mb-6 text-center max-w-md">
               致力于利用人工智能技术，为教育工作者提供高效、精准的阅卷与学情分析服务。
             </p>
             <div className="flex gap-4">
-              <a href="#" className="text-slate-400 hover:text-emerald-600 transition-colors" title="微信公众号">
-                <WechatIcon />
-              </a>
+              {/* 微信图标 - 悬停显示二维码 */}
+              <div className="relative group">
+                <span className="text-slate-400 hover:text-emerald-600 transition-colors cursor-pointer">
+                  <WechatIcon />
+                </span>
+                {/* 二维码弹出层 */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50 pointer-events-none group-hover:pointer-events-auto">
+                  <div className="bg-white rounded-2xl shadow-2xl p-2 border border-slate-100">
+                    <img src="/wechat-qrcode.jpg" alt="微信公众号二维码" className="w-24 h-24 object-contain rounded-lg" style={{ transform: 'rotate(-0deg)' }} />
+                    <p className="text-sm text-slate-600 text-center mt-3 font-medium whitespace-nowrap">扫码关注公众号</p>
+                  </div>
+                  {/* 小三角 */}
+                  <div className="absolute left-1/2 -translate-x-1/2 -bottom-2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-white drop-shadow-sm"></div>
+                </div>
+              </div>
               <a href="#" className="text-slate-400 hover:text-emerald-600 transition-colors" title="QQ">
                 <QQIcon />
               </a>
             </div>
           </div>
 
-          {/* 移动端：3列横向排列；桌面端：各占1列 */}
-          <div className="col-span-1 md:col-span-3 grid grid-cols-3 gap-4 md:contents">
-            {/* Links Column 1 */}
-            <div>
-              <h4 className="font-bold text-slate-900 mb-4 md:mb-6 text-sm md:text-base">产品功能</h4>
-              <ul className="space-y-2 md:space-y-4 text-xs md:text-sm text-slate-500">
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">智能阅卷</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">OCR 识别</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">学情分析</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">API 集成</a></li>
-              </ul>
-            </div>
-
-            {/* Links Column 2 */}
-            <div>
-              <h4 className="font-bold text-slate-900 mb-4 md:mb-6 text-sm md:text-base">资源中心</h4>
-              <ul className="space-y-2 md:space-y-4 text-xs md:text-sm text-slate-500">
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">帮助文档</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">客户案例</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">白皮书</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">社区论坛</a></li>
-              </ul>
-            </div>
-
-            {/* Links Column 3 */}
-            <div>
-              <h4 className="font-bold text-slate-900 mb-4 md:mb-6 text-sm md:text-base">公司</h4>
-              <ul className="space-y-2 md:space-y-4 text-xs md:text-sm text-slate-500">
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">关于我们</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">加入我们</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">联系方式</a></li>
-                <li><a href="#" className="hover:text-emerald-600 transition-colors">隐私政策</a></li>
-              </ul>
-            </div>
-          </div>
         </div>
 
         <div className="pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-slate-400">
           <div>© 2025 Qingjing AI. All rights reserved.</div>
           <div className="flex gap-8">
-            <a href="#" className="hover:text-slate-600">京ICP备12345678号</a>
-            <a href="#" className="hover:text-slate-600">服务条款</a>
+            <a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-600">京ICP备2025146902号</a>
+
           </div>
         </div>
       </div>

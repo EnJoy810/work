@@ -1,6 +1,6 @@
 import React, { memo, useMemo, useState, useEffect } from "react";
 import { Button, Tabs } from "antd";
-import { LeftOutlined, RightOutlined, UserSwitchOutlined, CheckCircleOutlined, ExclamationCircleOutlined } from "@ant-design/icons";
+import { LeftOutlined, RightOutlined, UserSwitchOutlined, CheckCircleOutlined, ExclamationCircleOutlined, PrinterOutlined } from "@ant-design/icons";
 
 /**
  * 学生列表组件 - 参考作文批改页面
@@ -8,11 +8,13 @@ import { LeftOutlined, RightOutlined, UserSwitchOutlined, CheckCircleOutlined, E
  * @param {Array} props.students - 学生列表
  * @param {number} props.currentStudentIndex - 当前选中的学生索引
  * @param {Function} props.onStudentClick - 选择学生的回调
+ * @param {Function} props.onBatchPrint - 批量打印回调
  */
 const StudentList = memo(({ 
   students, 
   currentStudentIndex,
-  onStudentClick
+  onStudentClick,
+  onBatchPrint
 }) => {
   // 过滤 Tab：all | matched | absent | abnormal
   const [filterTab, setFilterTab] = useState("all");
@@ -98,6 +100,19 @@ const StudentList = memo(({
             disabled={isNextDisabled}
           />
         </div>
+      </div>
+
+      {/* 批量打印按钮 */}
+      <div className="batch-print-container" style={{ padding: '8px 12px', borderBottom: '1px solid #e8e8e8' }}>
+        <Button 
+          type="primary"
+          icon={<PrinterOutlined />} 
+          onClick={onBatchPrint}
+          disabled={!students || students.length === 0}
+          block
+        >
+          批量打印全部学生
+        </Button>
       </div>
 
       {/* 筛选 Tab */}

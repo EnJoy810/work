@@ -16,7 +16,7 @@ const Navbar = () => {
 
   const links = [
     { label: "产品", href: "#features" },
-    { label: "案例", href: "#cases" },
+    { label: "关于我们", href: "#about" },
     { label: "价格", href: "#pricing" },
   ];
 
@@ -33,7 +33,7 @@ const Navbar = () => {
           <div className="h-full flex items-center px-6">
             {/* Left: Logo */}
             <div className="flex items-center cursor-pointer">
-              <img src="/Logo.svg" alt="清境智能 Logo" className="h-24 w-auto" />
+              <img src="/清净科技.svg" alt="清净科技 Logo" className="h-8 w-auto" />
             </div>
             {/* Center: Links - absolutely centered */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">

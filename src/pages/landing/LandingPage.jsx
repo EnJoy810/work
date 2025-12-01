@@ -3,6 +3,7 @@ import HeroSection from './components/HeroSection';
 import ProductDemoSection from './components/ProductDemoSection';
 import FeaturesSection from './components/FeaturesSection';
 import StatsSection from './components/StatsSection';
+import PricingSection from './components/PricingSection';
 import CTASection from './components/CTASection';
 import Footer from './components/Footer';
 
@@ -25,10 +26,13 @@ function LandingPage() {
           <div id="demo">
             <ProductDemoSection />
           </div>
+          <StatsSection />
           <div id="features">
             <FeaturesSection />
           </div>
-          <StatsSection />
+          <div id="pricing">
+            <PricingSection />
+          </div>
           <CTASection />
         </main>
         <Footer />
