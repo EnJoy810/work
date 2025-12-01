@@ -104,8 +104,8 @@ const useStudentData = (gradingId) => {
             const rtp = traceData.rtp || { x: 0, y: 0 };
             
             if (item.question_type === 'choice' && item.score === 0) {
-              // 选择题错误：显示红X
-              const choiceWidth = 20;
+              // 选择题错误：显示 ❌
+              const choiceWidth = 28;
               const choiceHeight = ANNOTATION_HEIGHT_ESTIMATE;
               
               // rtp 是左上角偏移，转换为中心点坐标
@@ -116,7 +116,7 @@ const useStudentData = (gradingId) => {
               
               annotations.push({
                 id: `annotation-${item.question_id}`,
-                content: "X",
+                content: "❌",
                 position,
                 width: choiceWidth,
                 isChoiceError: true
