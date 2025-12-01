@@ -267,8 +267,8 @@ const AnswerSheetCanvas = ({
         const bboxRight = (question.bbox.x + question.bbox.width) * scaleX;
         const bboxTop = question.bbox.y * scaleY;
         
-        // 分数框位置：右上角内侧，留 4px 边距
-        const margin = 4;
+        // 分数框位置：完全抵住右上角
+        const margin = 0;
 
         return (
           <div

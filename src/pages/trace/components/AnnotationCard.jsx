@@ -265,7 +265,7 @@ const AnnotationCard = ({
   // 字体缩放逻辑：基于答题卡缩放
   // 总分使用更大的字体
   const isTotalScore = annotation.source === "total_score";
-  const baseFontSize = isTotalScore ? 24 : 14;
+  const baseFontSize = isTotalScore ? 24 : 10;
   const baseLineHeight = 1.4;
   const computedFontSize = baseFontSize * canvasScale;
   const computedLineHeight = baseLineHeight;

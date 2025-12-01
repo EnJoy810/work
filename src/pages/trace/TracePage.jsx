@@ -86,7 +86,7 @@ const TracePage = () => {
   const [autoSaveOnSwitch, setAutoSaveOnSwitch] = useState(false);
   const [showScoreReason, setShowScoreReason] = useState(() => {
     const saved = localStorage.getItem('trace_show_score_reason');
-    return saved === null ? true : saved === 'true';
+    return saved === null ? false : saved === 'true';
   });
 
   // 保存显示评语偏好
