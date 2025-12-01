@@ -124,7 +124,8 @@ const AnnotationCard = ({
   onEdit,
   onResize,
   canvasScale = 1,
-  readOnly = false
+  readOnly = false,
+  bboxBounds = null
 }) => {
   const centerX = position?.x ?? 0;
   const centerY = position?.y ?? 0;
@@ -159,7 +160,7 @@ const AnnotationCard = ({
     }
   }, [annotation.width, currentWidth]);
 
-  // 监听 position 变化（例如重置时），更新 frame 位置
+  // 监听 position 变化（例如重置时），更新 frame 位置，并应用边界限制
   useEffect(() => {
     setFrame(prevFrame => {
       // 计算新的中心位置
@@ -174,16 +175,29 @@ const AnnotationCard = ({
       const threshold = 1;
       if (Math.abs(newCenterX - currentCenterX) > threshold || 
           Math.abs(newCenterY - currentCenterY) > threshold) {
+        let newX = newCenterX - prevFrame.width / 2;
+        let newY = newCenterY - prevFrame.height / 2;
+        
+        // 应用边界限制
+        if (bboxBounds) {
+          const minX = bboxBounds.left;
+          const maxX = bboxBounds.left + bboxBounds.width - prevFrame.width;
+          const minY = bboxBounds.top;
+          const maxY = bboxBounds.top + bboxBounds.height - prevFrame.height;
+          newX = Math.max(minX, Math.min(newX, maxX));
+          newY = Math.max(minY, Math.min(newY, maxY));
+        }
+        
         return {
           ...prevFrame,
-          x: newCenterX - prevFrame.width / 2,
-          y: newCenterY - prevFrame.height / 2
+          x: newX,
+          y: newY
         };
       }
       
       return prevFrame;
     });
-  }, [centerX, centerY]);
+  }, [centerX, centerY, bboxBounds]);
 
   // 测量文本内容的实际高度（宽度保持固定）
   const measureContentHeight = useCallback(() => {
@@ -222,21 +236,36 @@ const AnnotationCard = ({
           const heightDiff = measuredHeight - prevFrame.height;
           
           // 保持中心位置不变，调整 y 坐标
+          let newX = prevFrame.x + (prevFrame.width - currentWidth) / 2;
+          let newY = prevFrame.y - heightDiff / 2;
+          
+          // 应用边界限制
+          if (bboxBounds) {
+            const minX = bboxBounds.left;
+            const maxX = bboxBounds.left + bboxBounds.width - currentWidth;
+            const minY = bboxBounds.top;
+            const maxY = bboxBounds.top + bboxBounds.height - measuredHeight;
+            newX = Math.max(minX, Math.min(newX, maxX));
+            newY = Math.max(minY, Math.min(newY, maxY));
+          }
+          
           return {
             width: currentWidth,
             height: measuredHeight,
-            x: prevFrame.x + (prevFrame.width - currentWidth) / 2, // 宽度变化时调整 x
-            y: prevFrame.y - heightDiff / 2 // 高度变化时调整 y，保持中心
+            x: newX,
+            y: newY
           };
         });
       }
     }, ANNOTATION_CONTENT_MEASURE_DELAY);
     
     return () => clearTimeout(timer);
-  }, [pendingContent, currentWidth, measureContentHeight, frame.height]);
+  }, [pendingContent, currentWidth, measureContentHeight, frame.height, bboxBounds]);
 
   // 字体缩放逻辑：基于答题卡缩放
-  const baseFontSize = 14;
+  // 总分使用更大的字体
+  const isTotalScore = annotation.source === "total_score";
+  const baseFontSize = isTotalScore ? 24 : 14;
   const baseLineHeight = 1.4;
   const computedFontSize = baseFontSize * canvasScale;
   const computedLineHeight = baseLineHeight;
@@ -328,8 +357,8 @@ const AnnotationCard = ({
     []
   );
 
-  // 判断是否为分数框
-  const isScoreCard = annotation.source === "score";
+  // 判断是否为分数框或总分框
+  const isScoreCard = annotation.source === "score" || annotation.source === "total_score";
 
   const resizeHandleStyles = useMemo(() => {
     // 根据是否为分数框选择不同的边框颜色
@@ -407,13 +436,24 @@ const AnnotationCard = ({
     [finishEditing]
   );
 
+  // 计算拖拽边界：批注框不能超出 bbox
+  const dragBounds = useMemo(() => {
+    if (!bboxBounds) return "parent";
+    return {
+      left: bboxBounds.left,
+      top: bboxBounds.top,
+      right: bboxBounds.left + bboxBounds.width - frame.width,
+      bottom: bboxBounds.top + bboxBounds.height - frame.height
+    };
+  }, [bboxBounds, frame.width, frame.height]);
+
   return (
     <Rnd
       className={`annotation-card ${isSelected ? "selected" : ""} ${isEditing ? "editing" : ""} ${isScoreCard ? "score-card" : ""}`}
       size={{ width: frame.width, height: frame.height }}
       position={{ x: frame.x, y: frame.y }}
       scale={canvasScale || 1}
-      bounds="parent"
+      bounds={dragBounds}
       enableResizing={{ top: false, right: true, bottom: false, left: true, topRight: true, topLeft: true, bottomLeft: true, bottomRight: true }}
       resizeHandleClasses={resizeHandleClasses}
       resizeHandleStyles={resizeHandleStyles}

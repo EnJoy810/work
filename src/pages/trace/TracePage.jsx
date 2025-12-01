@@ -84,6 +84,16 @@ const TracePage = () => {
   const [showRightPanel, setShowRightPanel] = useState(() => getInitialPanelState().right);
   const [scale, setScale] = useState(1);
   const [autoSaveOnSwitch, setAutoSaveOnSwitch] = useState(false);
+  const [showScoreReason, setShowScoreReason] = useState(() => {
+    const saved = localStorage.getItem('trace_show_score_reason');
+    return saved === null ? true : saved === 'true';
+  });
+
+  // 保存显示评语偏好
+  const handleShowScoreReasonChange = useCallback((checked) => {
+    setShowScoreReason(checked);
+    localStorage.setItem('trace_show_score_reason', String(checked));
+  }, []);
 
   // 当前学生索引
   const currentStudentIndex = useMemo(() => {
@@ -166,6 +176,16 @@ const TracePage = () => {
               />
             </div>
           </Tooltip>
+          <Tooltip title={showScoreReason ? "显示分数和评语" : "只显示分数"}>
+            <div className="auto-save-switch">
+              <span>显示评语</span>
+              <Switch 
+                size="small" 
+                checked={showScoreReason} 
+                onChange={handleShowScoreReasonChange}
+              />
+            </div>
+          </Tooltip>
           <Button 
             size="small" 
             icon={<PrinterOutlined />} 
@@ -217,6 +237,7 @@ const TracePage = () => {
               selectedAnnotationId={selectedAnnotationId}
               scale={ENABLE_CANVAS_ZOOM ? scale : 1}
               totalScore={answerSheetData.total_score}
+              showScoreReason={showScoreReason}
             />
           ) : (
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>

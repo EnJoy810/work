@@ -14,6 +14,7 @@ import { SCORE_BOX_WIDTH, ANNOTATION_HEIGHT_MIN } from "../constants";
  * @param {Function} props.onAnnotationResize
  * @param {string} props.selectedAnnotationId
  * @param {number} props.totalScore - 总分
+ * @param {boolean} props.showScoreReason - 是否显示评语
  */
 const AnswerSheetCanvas = ({
   paperUrls,
@@ -24,7 +25,8 @@ const AnswerSheetCanvas = ({
   onAnnotationResize,
   selectedAnnotationId,
   scale = 1,
-  totalScore
+  totalScore,
+  showScoreReason = true
 }) => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
@@ -121,6 +123,7 @@ const AnswerSheetCanvas = ({
 
   const renderAnnotations = () => {
     if (!imageDimensions || !naturalImageSize) return null;
+    
     const currentQuestions = getCurrentPageQuestions();
 
     // 计算缩放比例
@@ -129,6 +132,12 @@ const AnswerSheetCanvas = ({
         .map((annotation) => {
           const pos = annotation.position;
           if (!pos) return null;
+          
+          // 选择题红X不受影响
+          const isChoiceError = annotation.isChoiceError;
+          
+          // 关闭评语显示时，只保留选择题错误标注
+          if (!showScoreReason && !isChoiceError) return null;
           
           // position 是整页像素坐标（基于拼接图），转换为显示坐标
           // 使用 question.imageWidth/imageHeight（拼接图尺寸）而不是 naturalImageSize（当前页尺寸）
@@ -145,13 +154,20 @@ const AnswerSheetCanvas = ({
           const lineCount = Math.ceil(contentLength / charsPerLine);
           const estimatedHeight = Math.max(40, Math.min(lineCount * 24 + 16, 200));
           
+          // 计算 bbox 的显示坐标边界
+          const bboxScaleX = imageDimensions.width / question.imageWidth;
+          const bboxScaleY = imageDimensions.height / question.imageHeight;
+          const bboxBounds = question.bbox ? {
+            left: question.bbox.x * bboxScaleX,
+            top: question.bbox.y * bboxScaleY,
+            width: question.bbox.width * bboxScaleX,
+            height: question.bbox.height * bboxScaleY
+          } : null;
+          
           displayPos = {
             x: Math.max(width / 2, Math.min(displayPos.x, imageDimensions.width - width / 2)),
             y: Math.max(estimatedHeight / 2, Math.min(displayPos.y, imageDimensions.height - estimatedHeight / 2))
           };
-
-          // 选择题红X为只读，不可拖拽
-          const isChoiceError = annotation.isChoiceError;
 
           return (
             <AnnotationCard
@@ -160,6 +176,7 @@ const AnswerSheetCanvas = ({
               position={displayPos}
               isSelected={!isChoiceError && selectedAnnotationId === annotation.id}
               canvasScale={scale}
+              bboxBounds={bboxBounds}
               onDrag={isChoiceError ? () => {} : (newPixelPos) =>
                 onAnnotationDrag(annotation.id, newPixelPos, question.bbox, imageDimensions)
               }
@@ -239,42 +256,37 @@ const AnswerSheetCanvas = ({
   const renderQuestionScores = () => {
     if (!imageDimensions || !naturalImageSize) return null;
 
-    // 计算缩放比例（与 renderQuestionBoxes 保持一致）
+    // 使用与 renderQuestionBoxes 相同的缩放比例
     const scaleX = imageDimensions.width / naturalImageSize.width;
     const scaleY = imageDimensions.height / naturalImageSize.height;
 
     return getCurrentPageQuestions()
-      .filter(q => q.question_type !== 'choice' && q.score !== undefined)
+      .filter(q => q.question_type !== 'choice' && q.score !== undefined && q.bbox)
       .map((question) => {
         // 计算 bbox 的右上角位置（bbox 是像素坐标，需要缩放）
         const bboxRight = (question.bbox.x + question.bbox.width) * scaleX;
         const bboxTop = question.bbox.y * scaleY;
         
-        // position 是卡片中心点，让卡片右上角与 bbox 右上角对齐
-        const scoreCenterX = bboxRight - SCORE_BOX_WIDTH / 2;
-        const scoreCenterY = bboxTop + ANNOTATION_HEIGHT_MIN / 2;
-
-        // 创建分数批注框对象
-        const scoreAnnotation = {
-          id: `score-${question.questionId}`,
-          content: String(question.score),
-          source: "score",  // 标记为分数类型
-          width: SCORE_BOX_WIDTH,
-        };
+        // 分数框位置：右上角内侧，留 4px 边距
+        const margin = 4;
 
         return (
-          <AnnotationCard
+          <div
             key={`score-${question.questionId}`}
-            annotation={scoreAnnotation}
-            position={{ x: scoreCenterX, y: scoreCenterY }}
-            isSelected={false}
-            canvasScale={scale}
-            onDrag={() => {}}
-            onClick={() => {}}
-            onEdit={() => {}}
-            onResize={() => {}}
-            readOnly={true}
-          />
+            className="question-score"
+            style={{
+              position: "absolute",
+              right: imageDimensions.width - bboxRight + margin,
+              top: bboxTop + margin,
+              color: "#d32029",
+              fontSize: 14 * scale,
+              fontWeight: "bold",
+              fontFamily: '"KaiTi", "STKaiti", "SimKai", serif',
+              pointerEvents: "none",
+            }}
+          >
+            {question.score}
+          </div>
         );
       });
   };
@@ -294,8 +306,8 @@ const AnswerSheetCanvas = ({
     const totalScoreAnnotation = {
       id: "total-score",
       content: String(totalScore),
-      source: "score",  // 标记为分数类型
-      width: 80,  // 稍大的宽度
+      source: "total_score",  // 标记为总分类型，使用更大字体
+      width: 100,  // 稍大的宽度
     };
 
     return (
