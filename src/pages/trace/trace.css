@@ -1,4 +1,4 @@
-﻿/* 留痕 Demo 页面样式 - 与人工阅卷页面保持一�?*/
+﻿/* 留痕 Demo 页面样式 - 与人工阅卷页面保持一致 */
 
 .trace-demo-page {
   height: calc(100vh - 110px);
@@ -70,7 +70,7 @@
   font-weight: 500;
 }
 
-/* 主体内容�?*/
+/* 主体内容区 */
 .trace-demo-content {
   display: flex;
   flex: 1;
@@ -80,7 +80,7 @@
   padding: 0 0 20px 0;
 }
 
-/* 左侧面板 - 与人工阅卷一�?*/
+/* 左侧面板 - 与人工阅卷一致 */
 .trace-demo-page .left-panel {
   width: 280px;
   flex-shrink: 0;
@@ -236,13 +236,13 @@
   margin: 0 12px;
 }
 
-/* 只有左栏�?*/
+/* 只有左栏时 */
 .trace-demo-content:has(.left-panel):not(:has(.right-panel)) .center-panel {
   margin-left: 12px;
   margin-right: 0;
 }
 
-/* 只有右栏�?*/
+/* 只有右栏时 */
 .trace-demo-content:not(:has(.left-panel)):has(.right-panel) .center-panel {
   margin-left: 0;
   margin-right: 12px;
@@ -331,7 +331,6 @@
   min-height: 0;
 }
 
-/* 画布顶部控制�?*/
 .trace-demo-page .canvas-toolbar {
   display: flex;
   align-items: center;
@@ -398,7 +397,6 @@
   padding: 0 4px;
 }
 
-/* 答题卡容�?- 填满展示�?*/
 .trace-demo-page .answer-sheet-container {
   flex: 1;
   background-color: #fafafa;
@@ -473,6 +471,16 @@
   border: 1px solid transparent;
   z-index: 100;
   transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+/* 只读批注（总分、选择题错误等） */
+.trace-demo-page .annotation-card.read-only {
+  cursor: default !important;
+}
+
+.trace-demo-page .annotation-card.read-only .annotation-card__inner,
+.trace-demo-page .annotation-card.read-only .annotation-card__drag-region {
+  cursor: default !important;
 }
 
 /* 选择题错误标记 */
@@ -598,7 +606,7 @@
 
 
 
-/* 加载状�?*/
+/* 加载状态 */
 .trace-demo-loading {
   display: flex;
   justify-content: center;
@@ -722,7 +730,7 @@
   color: #8a8f9c;
 }
 
-/* 响应式调�?*/
+/* 响应式调整 */
 @media (max-width: 1400px) {
   .trace-demo-page .left-panel {
     width: 240px;

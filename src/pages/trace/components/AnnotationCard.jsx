@@ -449,16 +449,16 @@ const AnnotationCard = ({
 
   return (
     <Rnd
-      className={`annotation-card ${isSelected ? "selected" : ""} ${isEditing ? "editing" : ""} ${isScoreCard ? "score-card" : ""}`}
+      className={`annotation-card ${isSelected ? "selected" : ""} ${isEditing ? "editing" : ""} ${isScoreCard ? "score-card" : ""} ${readOnly ? "read-only" : ""}`}
       size={{ width: frame.width, height: frame.height }}
       position={{ x: frame.x, y: frame.y }}
       scale={canvasScale || 1}
       bounds={dragBounds}
-      enableResizing={{ top: false, right: true, bottom: false, left: true, topRight: true, topLeft: true, bottomLeft: true, bottomRight: true }}
+      enableResizing={readOnly ? false : { top: false, right: true, bottom: false, left: true, topRight: true, topLeft: true, bottomLeft: true, bottomRight: true }}
       resizeHandleClasses={resizeHandleClasses}
       resizeHandleStyles={resizeHandleStyles}
       dragHandleClassName="annotation-card__drag-region"
-      disableDragging={isEditing}
+      disableDragging={isEditing || readOnly}
       onDrag={(e, data) => handleDrag(data)}
       onDragStop={(e, data) => handleDragStop(data)}
       onResize={(e, direction, ref, delta, position) => handleResizeInternal(ref, position, direction)}
