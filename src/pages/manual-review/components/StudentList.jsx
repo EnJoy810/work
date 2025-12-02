@@ -51,7 +51,12 @@ const StudentList = ({
                 <span className="student-list__info">
                   <span className="student-list__name">
                     {iconType === "matched" ? (
-                      <CheckCircle2 size={16} color="#2463eb" />
+                      // 正常学生：根据 teacher_alter 判断是否已批改
+                      s.teacherAlter ? (
+                        <CheckCircle2 size={16} color="#1ca87a" />
+                      ) : (
+                        <Circle size={16} color="#a0a7ba" />
+                      )
                     ) : iconType === "absent" ? (
                       <Circle size={16} color="#a0a7ba" />
                     ) : (

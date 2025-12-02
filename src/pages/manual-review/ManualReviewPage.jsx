@@ -9,6 +9,7 @@ import ScoringPanel from "./components/ScoringPanel";
 import StudentFilterTabs from "../dashboard/components/QuestionAnalysis/StudentFilterTabs";
 import {
   fetchManualStudents,
+  fetchManualStudentsV2,
   fetchManualQuestions,
   fetchManualQuestionScoreList,
   fetchManualAnswerDetail,
@@ -37,6 +38,7 @@ const normalizeStudent = (record) => {
     name,
     studentNo,
     status: record?.status ?? "",
+    teacherAlter: record?.teacher_alter ?? record?.teacherAlter ?? false,
     raw: record,
   };
 };
@@ -141,6 +143,11 @@ const ManualReviewPage = () => {
   }, []);
 
   const getStudentType = useCallback((s) => {
+    // 优先使用已设置的 __type__（来自 v2 接口）
+    if (s?.__type__ && ["matched", "absent", "abnormal"].includes(s.__type__)) {
+      return s.__type__;
+    }
+    // 否则根据 status 字段判断
     const st = String(s?.status || "");
     if (/^\s*正常\s*$/.test(st)) return "matched";
     if (/缺考|缺席|未到|未交/.test(st)) return "absent";
@@ -204,11 +211,56 @@ const ManualReviewPage = () => {
     }
     setIsLoadingStudents(true);
     try {
-      const response = await fetchManualStudents(gradingId);
-      const list = Array.isArray(response?.data) ? response.data : [];
-      const formatted = list
-        .map((item) => normalizeStudent(item))
-        .filter((student) => student.id && student.paperId);
+      // 并行调用两个接口
+      const [studentListRes, v2Res] = await Promise.all([
+        fetchManualStudents(gradingId),
+        fetchManualStudentsV2(gradingId),
+      ]);
+      
+      // 从 student-list 获取 teacher_alter
+      const studentList = Array.isArray(studentListRes?.data) ? studentListRes.data : [];
+      const teacherAlterMap = new Map();
+      studentList.forEach((item) => {
+        const key = String(item.student_no || item.studentNo || "");
+        if (key) {
+          teacherAlterMap.set(key, item.teacher_alter ?? item.teacherAlter ?? false);
+        }
+      });
+      
+      // 从 v2 获取分组状态
+      const v2Data = v2Res?.data || {};
+      const normalList = Array.isArray(v2Data.normal) ? v2Data.normal : [];
+      const absentList = Array.isArray(v2Data.absent) ? v2Data.absent : [];
+      const exceptionalList = Array.isArray(v2Data.exceptional) ? v2Data.exceptional : [];
+      
+      // 合并数据，标记类型和 teacherAlter
+      const formatted = [
+        ...normalList.map((item) => {
+          const studentNo = String(item.student_no || item.studentNo || "");
+          return {
+            ...normalizeStudent(item),
+            __type__: "matched",
+            teacherAlter: teacherAlterMap.get(studentNo) ?? false,
+          };
+        }),
+        ...absentList.map((item) => {
+          const studentNo = item.student_no || item.studentNo;
+          return {
+            ...normalizeStudent(item),
+            __type__: "absent",
+            teacherAlter: teacherAlterMap.get(studentNo) ?? false,
+          };
+        }),
+        ...exceptionalList.map((item) => {
+          const studentNo = item.student_no || item.studentNo;
+          return {
+            ...normalizeStudent(item),
+            __type__: "abnormal",
+            teacherAlter: teacherAlterMap.get(studentNo) ?? false,
+          };
+        }),
+      ].filter((student) => student.id);
+      
       setStudents(formatted);
       if (formatted.length > 0) {
         setCurrentStudentId((prev) => (formatted.some((student) => student.id === prev) ? prev : formatted[0].id));
@@ -434,7 +486,8 @@ const ManualReviewPage = () => {
     fetchDetail();
     
     return () => controller.abort();
-  }, [currentStudent, currentQuestionId, gradingId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStudent?.paperId, currentQuestionId, gradingId]);
 
   const handleScoreSubmit = useCallback(
     async (newScore) => {

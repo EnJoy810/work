@@ -84,11 +84,8 @@ const TracePage = () => {
   const [showRightPanel, setShowRightPanel] = useState(() => getInitialPanelState().right);
   const [scale, setScale] = useState(1);
   const [autoSaveOnSwitch, setAutoSaveOnSwitch] = useState(false);
-  const [showScoreReason, setShowScoreReason] = useState(() => {
-    const saved = localStorage.getItem('trace_show_score_reason');
-    return saved === null ? false : saved === 'true';
-  });
 
+  const [showScoreReason, setShowScoreReason] = useState(false);
   // 保存显示评语偏好
   const handleShowScoreReasonChange = useCallback((checked) => {
     setShowScoreReason(checked);

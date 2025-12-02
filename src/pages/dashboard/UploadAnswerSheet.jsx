@@ -1,15 +1,14 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { Typography, Upload, Button, Card } from "antd";
+import { Typography, Upload, Button, Card, Progress } from "antd";
 import { useMessageService } from "../../components/common/message";
 import {
   UploadOutlined,
   FileTextOutlined,
-  FileProtectOutlined,
   PlusOutlined,
 } from "@ant-design/icons";
-import { uploadWithInit } from "../../services/ossUpload";
+import { multipartUploadWithProgress } from "../../services/ossUpload";
 import { gradeStudentPaperOSS } from "../../api/grading";
 import "./styles/home.css";
 
@@ -26,6 +25,13 @@ const UploadAnswerSheet = () => {
   const [answerSheetFiles, setAnswerSheetFiles] = useState([]);
   const [gradingId, setGradingId] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0); // 上传进度 0-100
+  const [currentFileIndex, setCurrentFileIndex] = useState(0); // 当前上传的文件索引
+  const [cancelling, setCancelling] = useState(false); // 是否正在取消
+  const [uploadSpeed, setUploadSpeed] = useState(0); // 上传速度 bytes/s
+  const abortControllerRef = useRef(null); // 用于中断上传
+  const uploadStartTimeRef = useRef(null); // 上传开始时间
+  const uploadedBytesRef = useRef(0); // 已上传字节数
   const { showSuccess, showError, showInfo } = useMessageService();
   const userId = useSelector((state) => state?.user?.userInfo?.userId);
 
@@ -54,18 +60,57 @@ const UploadAnswerSheet = () => {
 
     // 设置上传中状态
     setUploading(true);
+    setUploadProgress(0);
+    setCurrentFileIndex(0);
+    setUploadSpeed(0);
+    abortControllerRef.current = new AbortController();
+    uploadStartTimeRef.current = Date.now();
+    uploadedBytesRef.current = 0;
+    
     try {
-      // 批量 STS → init → PUT，收集 object_key 列表
+      // 批量分片上传，收集 object_key 列表
       const keys = [];
-      for (const f of answerSheetFiles) {
-        const { objectKey } = await uploadWithInit(f, {
+      const totalFiles = answerSheetFiles.length;
+      
+      for (let i = 0; i < totalFiles; i++) {
+        // 检查是否已中断
+        if (abortControllerRef.current?.signal?.aborted) {
+          throw new Error("上传已取消");
+        }
+        
+        const f = answerSheetFiles[i];
+        setCurrentFileIndex(i);
+        
+        const { objectKey } = await multipartUploadWithProgress(f, {
           userId,
           contentType: f.type || "application/pdf",
           channel: 'grading',
+          onProgress: (percent) => {
+            // 计算总进度：已完成文件 + 当前文件进度
+            const totalProgress = Math.round(((i * 100) + percent) / totalFiles);
+            setUploadProgress(totalProgress);
+            
+            // 计算已上传字节数
+            const previousFilesSize = answerSheetFiles.slice(0, i).reduce((sum, file) => sum + file.size, 0);
+            const currentFileUploaded = (percent / 100) * f.size;
+            const totalUploaded = previousFilesSize + currentFileUploaded;
+            uploadedBytesRef.current = totalUploaded;
+            
+            // 计算上传速度和剩余时间
+            const elapsed = (Date.now() - uploadStartTimeRef.current) / 1000; // 秒
+            if (elapsed > 0.5) { // 至少 0.5 秒后再计算，避免初始值不准
+              const speed = totalUploaded / elapsed; // bytes/s
+              setUploadSpeed(speed);
+            }
+          },
+          signal: abortControllerRef.current?.signal,
         });
         keys.push(objectKey);
       }
-      // 提交业务接口触发评分（下划线命名：grading_id + answer_sheet_object_keys[]）
+      
+      setUploadProgress(100);
+      
+      // 提交业务接口触发评分
       await gradeStudentPaperOSS({
         grading_id: gradingId,
         answer_sheet_object_keys: keys,
@@ -74,10 +119,24 @@ const UploadAnswerSheet = () => {
       setAnswerSheetFiles([]);
       navigate("/");
     } catch (error) {
-      console.error("答题卡上传失败:", error);
-      showError(error?.message || "答题卡上传失败，请重试");
+      if (error?.message === "上传已取消" || error?.name === "AbortError") {
+        showInfo("上传已取消");
+      } else {
+        console.error("答题卡上传失败:", error);
+        showError(error?.message || "答题卡上传失败，请重试");
+      }
     } finally {
       setUploading(false);
+      setCancelling(false);
+      abortControllerRef.current = null;
+    }
+  };
+
+  // 取消上传
+  const handleCancelUpload = () => {
+    if (abortControllerRef.current && !cancelling) {
+      setCancelling(true); // 立即显示"取消中"状态
+      abortControllerRef.current.abort();
     }
   };
 
@@ -171,6 +230,86 @@ const UploadAnswerSheet = () => {
           </div>
         </Card>
       </div>
+
+      {/* 上传进度条 */}
+      {uploading && (
+        <Card 
+          style={{ 
+            marginBottom: "24px",
+            borderRadius: "16px",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", padding: "8px 16px" }}>
+            {/* 左侧进度环 */}
+            <div style={{ marginRight: "32px" }}>
+              <Progress
+                percent={uploadProgress}
+                type="circle"
+                size={100}
+                strokeWidth={10}
+                strokeLinecap="round"
+                trailColor="#edf2ff" // 极淡的蓝紫色轨迹
+                strokeColor={{
+                  '0%': '#4c6ef5',
+                  '100%': '#63e6be',
+                }}
+                format={(percent) => (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', lineHeight: 1 }}>
+                    <span style={{ fontSize: '24px', fontWeight: 700, color: '#333' }}>
+                      {percent}<span style={{ fontSize: '12px', color: '#888' }}>%</span>
+                    </span>
+                    <span style={{ fontSize: '12px', color: '#999', marginTop: 4 }}>已上传</span>
+                  </div>
+                )}
+              />
+            </div>
+
+            {/* 右侧信息区 */}
+            <div style={{ flex: 1 }}>
+              <h3 style={{ margin: "0 0 10px 0", fontSize: "18px", fontWeight: 600, color: "#1a1a1a" }}>
+                正在上传答题卡...
+              </h3>
+              
+              <div style={{ marginBottom: "12px", display: "flex", gap: "16px", flexWrap: "wrap" }}>
+                <span style={{ 
+                  fontSize: "13px", 
+                  color: "#666", 
+                  background: "#f5f7fa", 
+                  padding: "6px 12px", 
+                  borderRadius: "6px",
+                  border: "1px solid #eef0f5"
+                }}>
+                  文件：<span style={{ color: "#4c6ef5", fontWeight: "bold" }}>{currentFileIndex + 1}</span> / {answerSheetFiles.length}
+                </span>
+                <span style={{ 
+                  fontSize: "13px", 
+                  color: "#666", 
+                  background: "#f5f7fa", 
+                  padding: "6px 12px", 
+                  borderRadius: "6px",
+                  border: "1px solid #eef0f5"
+                }}>
+                  速度：<span style={{ color: "#4c6ef5", fontWeight: "bold" }}>
+                    {uploadSpeed > 0 ? (uploadSpeed / 1024 / 1024).toFixed(2) : '--'} MB/s
+                  </span>
+                </span>
+              </div>
+
+              <Button 
+                danger 
+                size="middle"
+                shape="default"
+                onClick={handleCancelUpload}
+                loading={cancelling}
+                disabled={cancelling}
+                style={{ minWidth: "90px" }}
+              >
+                {cancelling ? "取消中..." : "取消任务"}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
 
       {/* 上传答题卡按钮 */}
       <div

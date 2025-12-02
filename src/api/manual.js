@@ -6,11 +6,19 @@ import request from "../utils/request";
  */
 
 /**
- * 获取指定批改的学生列表
+ * 获取指定批改的学生列表（包含 teacher_alter）
  * @param {string} gradingId 批改会话ID
  */
 export const fetchManualStudents = (gradingId) => {
   return request.get("/exam-question/student-list", { grading_id: gradingId });
+};
+
+/**
+ * 获取指定批改的学生列表 v2（包含分组状态：normal/absent/exceptional）
+ * @param {string} gradingId 批改会话ID
+ */
+export const fetchManualStudentsV2 = (gradingId) => {
+  return request.get("/grading/result/v2", { grading_id: gradingId });
 };
 
 /**
@@ -19,14 +27,6 @@ export const fetchManualStudents = (gradingId) => {
  */
 export const fetchManualQuestions = (examId) => {
   return request.get("/exam-question/exam-question-list", { exam_id: examId });
-};
-
-/**
- * 获取试卷详情（包含各题分值）
- * @param {string} examId 考试ID
- */
-export const fetchExamPaperDetail = (examId) => {
-  return request.get("/grading/exam/paper-detail", { exam_id: examId });
 };
 
 /**
@@ -50,16 +50,6 @@ export const fetchManualAnswerDetail = (params) => {
 };
 
 /**
- * 获取学生作文结果（包含文本与图片）
- * @param {Object} params
- * @param {string} params.grading_id 批改会话ID
- * @param {string} params.paper_id 学生paper_id
- */
-export const fetchEssayResult = (params) => {
-  return request.get("/exam-question/essay-result", params);
-};
-
-/**
  * 更新学生的小题得分
  * @param {Object} data
  * @param {string} data.grading_id 批改会话ID
@@ -73,24 +63,10 @@ export const submitManualScore = (data) => {
   return request.put("/exam-question/grading/score-update", data);
 };
 
-/**
- * 修改得分原因（可选）
- * @param {Object} data
- * @param {string} data.grading_id 批改会话ID
- * @param {string} data.question_id 题目ID
- * @param {string} data.reason 得分原因
- */
-export const submitManualReason = (data) => {
-  return request.put("/exam-question/grading/alter-reason", data);
-};
-
 export default {
   fetchManualStudents,
   fetchManualQuestions,
-  fetchExamPaperDetail,
   fetchManualQuestionScoreList,
   fetchManualAnswerDetail,
-  fetchEssayResult,
   submitManualScore,
-  submitManualReason,
 };

@@ -26,7 +26,7 @@ const AnswerSheetCanvas = ({
   selectedAnnotationId,
   scale = 1,
   totalScore,
-  showScoreReason = true
+  showScoreReason = false
 }) => {
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
