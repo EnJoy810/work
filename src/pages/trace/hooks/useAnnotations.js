@@ -87,7 +87,7 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
   }, [setAnswerSheetData, markQuestionModified]);
 
   /**
-   * 处理批注尺寸变化（调整宽度后自动调整位置，确保不超出 bbox）
+   * 处理批注尺寸变化（只调整宽度，不改变位置）
    */
   const handleAnnotationSizeChange = useCallback((annotationId, nextSize) => {
     if (!nextSize) return;
@@ -113,22 +113,8 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           questionChanged = true;
           hasChange = true;
           
-          // 调整位置，确保不超出 bbox
-          let newPosition = ann.position;
-          if (ann.position && question.bbox) {
-            const annHeight = ANNOTATION_HEIGHT_ESTIMATE;
-            const minX = question.bbox.x + width / 2;
-            const maxX = question.bbox.x + question.bbox.width - width / 2;
-            const minY = question.bbox.y + annHeight / 2;
-            const maxY = question.bbox.y + question.bbox.height - annHeight / 2;
-            
-            newPosition = {
-              x: Math.max(minX, Math.min(ann.position.x, maxX)),
-              y: Math.max(minY, Math.min(ann.position.y, maxY))
-            };
-          }
-          
-          return { ...ann, width, position: newPosition, ...(height && { height }) };
+          // 只更新尺寸，不改变位置
+          return { ...ann, width, ...(height && { height }) };
         });
         
         return questionChanged ? { ...question, annotations: updatedAnnotations } : question;
@@ -206,7 +192,7 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           if (ann.id !== annotationId) return ann;
           
           const width = ann.width || ANNOTATION_WIDTH_DEFAULT;
-          const height = estimateAnnotationHeight(ann.content, width);
+          const height = ann.height || ANNOTATION_HEIGHT_ESTIMATE;
           
           // 主观题：重置到 bbox 左上角（rtp = {x: 0, y: 0}）
           const defaultPosition = {
@@ -287,7 +273,7 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
             // 计算 rtp：position 是中心点坐标，转换为左上角相对于 bbox 的偏移
             if (firstAnnotation.position) {
               const annotationWidth = firstAnnotation.width || ANNOTATION_WIDTH_DEFAULT;
-              const annotationHeight = estimateAnnotationHeight(firstAnnotation.content, annotationWidth);
+              const annotationHeight = firstAnnotation.height || ANNOTATION_HEIGHT_ESTIMATE;
               
               const leftTopX = firstAnnotation.position.x - annotationWidth / 2;
               const leftTopY = firstAnnotation.position.y - annotationHeight / 2;

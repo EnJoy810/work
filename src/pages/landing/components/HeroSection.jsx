@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import Button from './Button';
 
-const subjects = ['语文', '数学', '英语', '物理', '化学', '生物', '政治', '历史', '地理'];
+const subjects = ['主观题', '客观题', '作文', '数学公式'];
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -36,18 +36,18 @@ const HeroSection = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
-          className="text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed"
+          className="text-xl text-slate-600 max-w-2xl mx-auto mb-10"
         >
           师生的专属AI助手，让
-          <span className="inline-block relative w-12 h-12 overflow-hidden align-middle mx-1">
+          <span className="inline-block w-24 text-center text-emerald-600 font-semibold">
             <AnimatePresence mode="wait">
               <motion.span
                 key={currentIndex}
-                initial={{ y: 20, opacity: 0 }}
+                initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                exit={{ y: -20, opacity: 0 }}
+                exit={{ y: -10, opacity: 0 }}
                 transition={{ duration: 0.3 }}
-                className="absolute inset-0 flex items-center justify-center text-emerald-600 font-semibold"
+                className="inline-block"
               >
                 {subjects[currentIndex]}
               </motion.span>

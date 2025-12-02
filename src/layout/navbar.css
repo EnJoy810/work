@@ -1,17 +1,19 @@
 .nav-bar-header .menu-item {
   height: 32px;
   line-height: 32px;
-  padding: 0 12px;
+  padding: 0 10px;
   border-radius: 10px;
   background-color: transparent;
   color: #030213;
   font-weight: bold;
-  margin-right: 10px;
+  margin-right: 6px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .nav-bar-header .menu-item:hover {
@@ -24,8 +26,8 @@
 }
 
 .nav-bar-header .menu-item-label {
-  margin-left: 10px;
-  font-size: 16px;
+  margin-left: 6px;
+  font-size: 14px;
 }
 
 .nav-bar-header .user-drop {

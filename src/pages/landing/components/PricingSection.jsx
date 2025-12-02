@@ -105,8 +105,7 @@ const PricingSection = () => {
     {
       tag: '免费体验',
       name: '基础版',
-      price: '¥19.9',
-      period: '/月',
+      price: '免费',
       description: '适合个人教师体验使用',
       buttonText: '立即体验',
       features: [
@@ -119,8 +118,7 @@ const PricingSection = () => {
     {
       tag: '最受欢迎',
       name: '专业版',
-      price: '¥199',
-      period: '/月',
+      price: '敬请期待',
       description: '适合学校和教育机构使用',
       buttonText: '联系我们',
       features: [

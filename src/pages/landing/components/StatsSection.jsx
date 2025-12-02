@@ -22,8 +22,8 @@ const StatCard = ({ number, description, delay }) => {
 const StatsSection = () => {
   const stats = [
     { number: '3x', description: '批改效率提升\n从繁重阅卷中解放' },
-    { number: '3,000+', description: '累计服务学生\n未来将覆盖全国多所名校' },
-    { number: '20,000+', description: '智能批改试卷\n持续优化算法模型' },
+    { number: '3000+', description: '累计服务学生\n未来将覆盖全国多所名校' },
+    { number: '20000+', description: '智能批改试卷\n持续优化算法模型' },
     { number: '99%', description: '识别准确率\n精准还原手写字迹' },
   ];
 
@@ -39,7 +39,7 @@ const StatsSection = () => {
           className="text-center mb-16"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-6">
-            清净智能 · 让教育更纯粹
+            清境智能 · 让教育更纯粹
           </h2>
           <p className="text-slate-600 text-lg max-w-3xl mx-auto leading-relaxed">
             我们专注于利用前沿人工智能技术，为教育工作者打造高效、精准的智能阅卷与学情分析平台。<br className="hidden md:block" />

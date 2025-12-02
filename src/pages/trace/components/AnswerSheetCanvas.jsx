@@ -154,16 +154,6 @@ const AnswerSheetCanvas = ({
           const lineCount = Math.ceil(contentLength / charsPerLine);
           const estimatedHeight = Math.max(40, Math.min(lineCount * 24 + 16, 200));
           
-          // 计算 bbox 的显示坐标边界
-          const bboxScaleX = imageDimensions.width / question.imageWidth;
-          const bboxScaleY = imageDimensions.height / question.imageHeight;
-          const bboxBounds = question.bbox ? {
-            left: question.bbox.x * bboxScaleX,
-            top: question.bbox.y * bboxScaleY,
-            width: question.bbox.width * bboxScaleX,
-            height: question.bbox.height * bboxScaleY
-          } : null;
-          
           displayPos = {
             x: Math.max(width / 2, Math.min(displayPos.x, imageDimensions.width - width / 2)),
             y: Math.max(estimatedHeight / 2, Math.min(displayPos.y, imageDimensions.height - estimatedHeight / 2))
@@ -176,7 +166,6 @@ const AnswerSheetCanvas = ({
               position={displayPos}
               isSelected={!isChoiceError && selectedAnnotationId === annotation.id}
               canvasScale={scale}
-              bboxBounds={bboxBounds}
               onDrag={isChoiceError ? () => {} : (newPixelPos) =>
                 onAnnotationDrag(annotation.id, newPixelPos, question.bbox, imageDimensions)
               }
@@ -252,7 +241,7 @@ const AnswerSheetCanvas = ({
     });
   };
 
-  // 渲染简答题分数（在 bbox 右上角，蓝色边框）
+  // 渲染简答题分数（在 bbox 右上角）
   const renderQuestionScores = () => {
     if (!imageDimensions || !naturalImageSize) return null;
 
