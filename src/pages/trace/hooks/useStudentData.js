@@ -87,6 +87,17 @@ const useStudentData = (gradingId) => {
           full_score: 100,
           paper_urls: paperUrls,
           questions: traces.map((item) => {
+            // 作文题特殊处理：即使没有 trace 也保留，用于显示分数
+            if (item.question_type === 'essay') {
+              return {
+                questionId: item.question_id,
+                question_type: item.question_type,
+                score: item.score || 0,
+                bbox: null,
+                annotations: []
+              };
+            }
+            
             if (!item.trace) return null;
             
             let traceData = {};

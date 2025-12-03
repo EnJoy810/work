@@ -136,12 +136,11 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
     const safeContent = typeof nextContent === "string"
       ? nextContent
       : nextContent == null ? "" : String(nextContent);
-    
-    let hasChange = false;
 
     setAnswerSheetData(prevData => {
       if (!prevData) return prevData;
 
+      let hasChange = false;
       const updatedQuestions = prevData.questions.map((question) => {
         if (!Array.isArray(question.annotations)) return question;
         
@@ -163,13 +162,14 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
         return questionChanged ? { ...question, annotations: updatedAnnotations } : question;
       });
 
-      return hasChange ? { ...prevData, questions: updatedQuestions } : prevData;
+      if (hasChange) {
+        // 在状态更新回调内标记修改，确保同步执行
+        markQuestionModified(annotationId);
+        setHasUnsavedChanges(true);
+        return { ...prevData, questions: updatedQuestions };
+      }
+      return prevData;
     });
-
-    if (hasChange) {
-      markQuestionModified(annotationId);
-      setHasUnsavedChanges(true);
-    }
   }, [setAnswerSheetData, markQuestionModified]);
 
   /**
@@ -289,8 +289,9 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
             width = firstAnnotation.width || ANNOTATION_WIDTH_DEFAULT;
           }
           
-          // trace: 位置信息（rtp, width）
+          // trace_update: 位置信息（bbox, rtp, width）
           const traceData = {
+            bbox: question.bbox,
             rtp,
             width
           };
@@ -298,8 +299,13 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           return uploadTrace({
             paperId: selectedStudent.student_id,
             questionId: question.questionId,
-            trace: JSON.stringify(traceData),
-            scoreReason
+            traceUpdate: JSON.stringify(traceData),
+            scoreReason,
+            questionType: question.question_type,
+            score: question.score,
+            fullScore: question.full_score,
+            imageWidth: question.imageWidth,
+            imageHeight: question.imageHeight
           });
         });
 

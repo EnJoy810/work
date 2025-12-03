@@ -112,7 +112,7 @@ export function LoginForm() {
         <Input
           id="password"
           type="password"
-          placeholder="••••••••"
+          placeholder="请输入密码"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required

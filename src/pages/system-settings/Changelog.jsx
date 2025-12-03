@@ -70,17 +70,19 @@ const Changelog = () => {
     return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
   };
 
-  const loadPage = async (page) => {
-    if (loading) return;
+  const loadPage = async (page, force = false) => {
+    if (loading && !force) return;
     setLoading(true);
     try {
       // 计算需要跳过的条数
       const skipCount = (page - 1) * PAGE_SIZE;
       
       // 获取从最新开始的所有数据直到当前页
+      // 加 1 分钟余量，确保能查到刚创建的日志
+      const futureTime = new Date(Date.now() + 60 * 1000);
       const res = await getUpdateLogsPage({ 
         pageSize: skipCount + PAGE_SIZE, 
-        lastCreatedAt: formatTs(new Date()) 
+        lastCreatedAt: formatTs(futureTime) 
       });
       const allData = res?.data || [];
       
@@ -120,7 +122,7 @@ const Changelog = () => {
     form.resetFields();
     setVideoUrl("");
     setCurrentPage(1);
-    await loadPage(1);
+    await loadPage(1, true);
   };
 
   const handleVideoUpload = async (file) => {
@@ -152,7 +154,13 @@ const Changelog = () => {
       // 上传到 OSS
       const url = await uploadVideo(file, myUserId);
       setVideoUrl(url);
-      antMessage.success('视频上传成功！');
+      
+      // 自动插入视频到内容中
+      const currentContent = form.getFieldValue('content') || '';
+      const videoTag = `\n\n<video src="${url}" controls width="100%"></video>\n\n`;
+      form.setFieldsValue({ content: currentContent + videoTag });
+      
+      antMessage.success('视频上传成功并已插入到内容中！');
     } catch (error) {
       console.error('视频上传失败:', error);
       antMessage.error(error.message || '视频上传失败，请重试');
@@ -163,16 +171,6 @@ const Changelog = () => {
     return false; // 阻止默认上传行为
   };
 
-  const handleInsertVideo = () => {
-    if (!videoUrl) {
-      antMessage.warning('请先上传视频');
-      return;
-    }
-    const currentContent = form.getFieldValue('content') || '';
-    const videoTag = `\n\n<video src="${videoUrl}" controls width="100%"></video>\n\n`;
-    form.setFieldsValue({ content: currentContent + videoTag });
-    antMessage.success('视频已插入到内容中');
-  };
 
   const handleDelete = async (id) => {
     Modal.confirm({
@@ -291,17 +289,7 @@ const Changelog = () => {
                 </p>
               </Upload.Dragger>
               {videoUrl && (
-                <div>
-                  <video src={videoUrl} controls style={{ width: '100%', maxHeight: '200px' }} />
-                  <Button 
-                    type="primary" 
-                    size="small" 
-                    onClick={handleInsertVideo}
-                    style={{ marginTop: 8 }}
-                  >
-                    插入视频到内容
-                  </Button>
-                </div>
+                <video src={videoUrl} controls style={{ width: '100%', maxHeight: '200px', marginTop: 8 }} />
               )}
             </Space>
           </Form.Item>

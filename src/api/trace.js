@@ -19,16 +19,26 @@ export const getGradingResultV2 = (gradingId) => {
  * @param {Object} data
  * @param {string} data.paperId - 试卷ID
  * @param {string} data.questionId - 题目ID
- * @param {string} data.trace - 位置信息（JSON字符串，包含 rtp, width）
+ * @param {string} data.traceUpdate - 位置信息（JSON字符串，包含 bbox, rtp, width）
  * @param {string} data.scoreReason - 批注内容
+ * @param {string} data.questionType - 题目类型
+ * @param {number} data.score - 分数
+ * @param {number} data.fullScore - 满分
+ * @param {number} data.imageWidth - 图片宽度
+ * @param {number} data.imageHeight - 图片高度
  * @returns {Promise}
  */
 export const uploadTrace = (data) => {
   return request.put('/exam-question/grading/trace', {
     paper_id: data.paperId,
     question_id: data.questionId,
-    trace: data.trace,
-    score_reason: data.scoreReason
+    trace_update: data.traceUpdate,
+    score_reason: data.scoreReason,
+    question_type: data.questionType,
+    score: data.score,
+    full_score: data.fullScore,
+    image_width: data.imageWidth,
+    image_height: data.imageHeight
   });
 };
 

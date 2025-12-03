@@ -132,9 +132,10 @@ const ManualReviewPage = () => {
   const [currentAnswerDetail, setCurrentAnswerDetail] = useState(null);
   const [isLoadingStudents, setIsLoadingStudents] = useState(false);
   const [isAutoAdvanceEnabled, setIsAutoAdvanceEnabled] = useState(true);
-  // 左侧列表对齐题目分析：Tab与键
   const [activeTab, setActiveTab] = useState("all"); // all | matched | absent | abnormal
   const [selectedStudentKey, setSelectedStudentKey] = useState(undefined);
+  // 记录在当前页面手动批改过的学生（格式："questionId-paperId"）
+  const [manuallyGradedSet, setManuallyGradedSet] = useState(new Set());
 
   const getStudentItemKey = useCallback((s, idx) => {
     return String(
@@ -508,6 +509,11 @@ const ManualReviewPage = () => {
         });
         
         message.success("提交成功");
+        
+        // 记录在当前页面手动批改过
+        const gradeKey = `${currentQuestionId}-${currentStudent.paperId}`;
+        setManuallyGradedSet((prev) => new Set(prev).add(gradeKey));
+        
         setScoreMap((prev) => {
           const next = { ...prev };
           const bucket = { ...(next[currentQuestionId] || {}) };
@@ -714,6 +720,8 @@ const ManualReviewPage = () => {
               onSelectKey={handleSelectKey}
               getKeyFn={(s, i) => getStudentItemKey(s, i)}
               isLoading={isLoadingStudents}
+              currentQuestionId={currentQuestionId}
+              manuallyGradedSet={manuallyGradedSet}
             />
           </div>
         </div>

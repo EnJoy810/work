@@ -9,10 +9,21 @@ const StudentList = ({
   onSelectKey,
   getKeyFn,
   isLoading = false,
+  currentQuestionId,
+  manuallyGradedSet = new Set(),
 }) => {
   const getKey = (s, idx) => {
     if (typeof getKeyFn === "function") return getKeyFn(s, idx);
     return String(s?.paperId || s?.id || s?.studentNo || `${s?.name || "unknown"}-${idx}`);
+  };
+
+  // 判断学生在当前题目是否已在本页面手动批改过
+  const isGradedForCurrentQuestion = (student) => {
+    if (!currentQuestionId) return false;
+    const paperId = String(student?.paperId || student?.id || "");
+    if (!paperId) return false;
+    const gradeKey = `${currentQuestionId}-${paperId}`;
+    return manuallyGradedSet.has(gradeKey);
   };
 
   const groups = useMemo(() => {
@@ -51,8 +62,8 @@ const StudentList = ({
                 <span className="student-list__info">
                   <span className="student-list__name">
                     {iconType === "matched" ? (
-                      // 正常学生：根据 teacher_alter 判断是否已批改
-                      s.teacherAlter ? (
+                      // 正常学生：根据当前题目的批改状态判断
+                      isGradedForCurrentQuestion(s) ? (
                         <CheckCircle2 size={16} color="#1ca87a" />
                       ) : (
                         <Circle size={16} color="#a0a7ba" />

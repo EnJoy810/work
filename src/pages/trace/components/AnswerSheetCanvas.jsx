@@ -187,7 +187,9 @@ const AnswerSheetCanvas = ({
     const scaleX = imageDimensions.width / naturalImageSize.width;
     const scaleY = imageDimensions.height / naturalImageSize.height;
 
-    return getCurrentPageQuestions().map((question) => {
+    return getCurrentPageQuestions()
+      .filter(question => question.bbox)  // 过滤掉没有 bbox 的题目（如作文）
+      .map((question) => {
       // bbox 是像素坐标（相对当前页），直接缩放
       const left = question.bbox.x * scaleX;
       const top = question.bbox.y * scaleY;
@@ -282,37 +284,66 @@ const AnswerSheetCanvas = ({
 
   // 渲染总分（在答题卡顶部中间，蓝色边框）
   const renderTotalScore = () => {
-    if (!imageDimensions || totalScore === undefined) return null;
+    if (!imageDimensions) return null;
     
-    // 只在第一页显示总分
-    if (currentPage !== 0) return null;
-
     // 总分位置：顶部中间，距离顶部 5% 的位置
     const topPosition = imageDimensions.height * 0.05;
     const leftPosition = imageDimensions.width * 0.5;
 
-    // 创建总分批注框对象
-    const totalScoreAnnotation = {
-      id: "total-score",
-      content: String(totalScore),
-      source: "total_score",  // 标记为总分类型，使用更大字体
-      width: 100,  // 稍大的宽度
-    };
+    // 第一页显示总分
+    if (currentPage === 0 && totalScore !== undefined) {
+      const totalScoreAnnotation = {
+        id: "total-score",
+        content: String(totalScore),
+        source: "total_score",  // 标记为总分类型，使用更大字体
+        width: 100,  // 稍大的宽度
+      };
 
-    return (
-      <AnnotationCard
-        key="total-score"
-        annotation={totalScoreAnnotation}
-        position={{ x: leftPosition, y: topPosition }}
-        isSelected={false}
-        canvasScale={scale}
-        onDrag={() => {}}
-        onClick={() => {}}
-        onEdit={() => {}}
-        onResize={() => {}}
-        readOnly={true}
-      />
-    );
+      return (
+        <AnnotationCard
+          key="total-score"
+          annotation={totalScoreAnnotation}
+          position={{ x: leftPosition, y: topPosition }}
+          isSelected={false}
+          canvasScale={scale}
+          onDrag={() => {}}
+          onClick={() => {}}
+          onEdit={() => {}}
+          onResize={() => {}}
+          readOnly={true}
+        />
+      );
+    }
+    
+    // 第二页（作文页）显示作文分数
+    if (currentPage === 1) {
+      const essayQuestion = questions?.find(q => q.question_type === 'essay');
+      if (essayQuestion && essayQuestion.score !== undefined) {
+        const essayScoreAnnotation = {
+          id: "essay-score",
+          content: String(essayQuestion.score),
+          source: "total_score",  // 使用相同样式（大字体）
+          width: 100,
+        };
+
+        return (
+          <AnnotationCard
+            key="essay-score"
+            annotation={essayScoreAnnotation}
+            position={{ x: leftPosition, y: topPosition }}
+            isSelected={false}
+            canvasScale={scale}
+            onDrag={() => {}}
+            onClick={() => {}}
+            onEdit={() => {}}
+            onResize={() => {}}
+            readOnly={true}
+          />
+        );
+      }
+    }
+    
+    return null;
   };
 
   if (!paperUrls || paperUrls.length === 0) {
