@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { Button, Card, Modal, Form, Input, Space, Typography, Avatar, Empty, Pagination } from "antd";
-import { LikeOutlined, DeleteOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons";
-import "./Forum.css";
+import React, { useCallback, useEffect, useState } from "react";
+import { Modal, Form, Input, Pagination } from "antd";
+import { Plus, FileText } from "lucide-react";
 import { useSelector } from "react-redux";
 import {
   getPostsPage,
@@ -10,12 +9,8 @@ import {
   likePost,
   deletePost,
   getCommentList,
-  createComment,
-  deleteComment,
-  likeComment,
 } from "../../api/communication";
-
-const { Text } = Typography;
+import ForumPost from "./components/ForumPost";
 
 const PAGE_SIZE = 10;
 
@@ -26,16 +21,8 @@ const Forum = () => {
   const [total, setTotal] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [postOpen, setPostOpen] = useState(false);
-  const [commentOpen, setCommentOpen] = useState(false);
-  const [currentPostId, setCurrentPostId] = useState(null);
   const [comments, setComments] = useState({});
-  const [expandedPosts, setExpandedPosts] = useState(new Set());
-  const [replyTarget, setReplyTarget] = useState(null); 
   const [form] = Form.useForm();
-  const [commentForm] = Form.useForm();
-
-  // 超级管理员账号为 root（唯一）或角色为 ADMIN
-  const isAdmin = useMemo(() => userInfo?.username === "root" || ["ADMIN", "ROOT", "SUPER_ADMIN"].includes(userInfo?.role), [userInfo]);
   const myUserId = userInfo?.userId;
 
   const formatTs = useCallback((d) => {
@@ -44,8 +31,8 @@ const Forum = () => {
     return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}`;
   }, []);
 
-  const loadPage = useCallback(async (page) => {
-    if (loading) return;
+  const loadPage = useCallback(async (page, force = false) => {
+    if (loading && !force) return;
     setLoading(true);
     try {
       // 计算需要跳过的条数
@@ -68,7 +55,8 @@ const Forum = () => {
     } finally {
       setLoading(false);
     }
-  }, [formatTs, loading]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formatTs]);
 
   useEffect(() => {
     loadPage(currentPage);
@@ -77,11 +65,36 @@ const Forum = () => {
 
   const handleCreate = async () => {
     const values = await form.validateFields();
-    await createPost({ title: values.title, content: values.content, owner_id: myUserId });
+    
+    // 乐观更新：先在本地插入新帖子
+    const optimisticPost = {
+      id: Date.now(), // 临时 ID
+      title: values.title,
+      content: values.content,
+      owner_id: myUserId,
+      owner_name: userInfo?.username || '我',
+      created_at: new Date().toISOString(),
+      like_count: 0,
+    };
+    
+    // 立即更新 UI
+    setItems(prev => [optimisticPost, ...prev]);
+    setTotal(prev => prev + 1);
     setPostOpen(false);
     form.resetFields();
     setCurrentPage(1);
-    await loadPage(1);
+    
+    // 后台发送请求
+    try {
+      await createPost({ title: values.title, content: values.content, owner_id: myUserId });
+      // 延迟刷新以获取真实数据（包括真实 ID）
+      setTimeout(() => loadPage(1, true), 1000);
+    } catch (error) {
+      // 如果失败，回滚乐观更新
+      console.error('发布失败:', error);
+      setItems(prev => prev.filter(p => p.id !== optimisticPost.id));
+      setTotal(prev => prev - 1);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -90,7 +103,7 @@ const Forum = () => {
       onOk: async () => {
         await deletePost(id);
         // 删除后重新加载当前页
-        await loadPage(currentPage);
+        await loadPage(currentPage, true); // 强制刷新
       },
     });
   };
@@ -100,11 +113,15 @@ const Forum = () => {
   };
 
   const handleLike = async (postId) => {
-    await likePost(postId);
-    // 后端未提供点赞计数返回，暂不显示数值，若需刷新可调用 load(true)
+    try {
+      await likePost(postId);
+    } catch (error) {
+      console.error('点赞失败:', error);
+    }
   };
 
   const loadComments = async (postId) => {
+    if (comments[postId]) return; // 已加载过
     try {
       const res = await getCommentList({ post_id: postId });
       const list = res?.data || [];
@@ -114,167 +131,130 @@ const Forum = () => {
     }
   };
 
-  const toggleComments = async (postId) => {
-    const newExpanded = new Set(expandedPosts);
-    if (newExpanded.has(postId)) {
-      newExpanded.delete(postId);
-    } else {
-      newExpanded.add(postId);
-      if (!comments[postId]) {
-        await loadComments(postId);
-      }
-    }
-    setExpandedPosts(newExpanded);
-  };
-
-  const handleCommentOpen = (postId, replyTo = null) => {
-    setCurrentPostId(postId);
-    setReplyTarget(replyTo); // { commentId, userId, userName } or null
-    setCommentOpen(true);
-  };
-
-  const handleCommentCreate = async () => {
-    const values = await commentForm.validateFields();
-    
-    const params = {
-      content: values.content,
-      owner_id: myUserId,
-      post_id: currentPostId,
-    };
-    
-    // 如果是回复评论（子级评论）
-    if (replyTarget) {
-      params.parent_comment_id = replyTarget.commentId;
-      params.answer_id = replyTarget.userId;
-      params.answer_name = replyTarget.userName;
-    }
-    
-    await createComment(params);
-    setCommentOpen(false);
-    commentForm.resetFields();
-    setReplyTarget(null);
-    await loadComments(currentPostId);
-  };
-
-  const handleCommentDelete = async (commentId, postId) => {
-    Modal.confirm({
-      title: "确认删除该评论？",
-      onOk: async () => {
-        await deleteComment(commentId);
-        await loadComments(postId);
-      },
-    });
-  };
-
-  const handleCommentLike = async (commentId) => {
-    await likeComment(commentId);
-  };
-
 
   return (
-    <div className="forum-page">
-      <Card className="forum-card">
-        <div className="forum-header">
-          <h2>论坛</h2>
-          <span>共 {total} 条帖子</span>
-        </div>
-
-        <div className="forum-actions">
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setPostOpen(true)}>
-            发帖
-          </Button>
-        </div>
-
-        {items.length === 0 && !loading ? (
-          <Empty description="暂无帖子，快来发布第一条吧！" />
-        ) : (
-          <>
-            {items.map((item) => (
-              <div key={item.id} className="forum-post-item">
-                <div className="forum-post-title">{item.title}</div>
-                <div className="forum-post-meta">
-                  <Avatar size={20} icon={<UserOutlined />} />
-                  <span>{item.owner_name || "匿名用户"}</span>
-                  <span>·</span>
-                  <span>{new Date(item.created_at).toLocaleString()}</span>
-                </div>
-                <div className="forum-post-content">{item.content}</div>
-                <div className="forum-post-actions">
-                  <div className="forum-action-btn" onClick={() => handleLike(item.id)}>
-                    <LikeOutlined />
-                    <span>点赞 ({item.like_count || 0})</span>
-                  </div>
-                  <div className="forum-action-btn" onClick={() => handleCommentOpen(item.id)}>
-                    <span>评论</span>
-                  </div>
-                  <div className="forum-action-btn" onClick={() => toggleComments(item.id)}>
-                    <span>{expandedPosts.has(item.id) ? "收起" : "查看"}评论 ({comments[item.id]?.length || 0})</span>
-                  </div>
-                  {(isAdmin || item.owner_id === myUserId) && (
-                    <div className="forum-action-btn danger" onClick={() => handleDelete(item.id)}>
-                      <DeleteOutlined />
-                      <span>删除</span>
-                    </div>
-                  )}
-                </div>
-                {expandedPosts.has(item.id) && comments[item.id] && (
-                  <div className="forum-comments-section">
-                    {comments[item.id].length === 0 ? (
-                      <div className="forum-no-comments">暂无评论</div>
-                    ) : (
-                      comments[item.id].map((comment) => (
-                        <div key={comment.id} className="forum-comment-item">
-                          <div className="forum-comment-meta">
-                            <Avatar size={16} icon={<UserOutlined />} />
-                            <span>{comment.owner_name || "匿名用户"}</span>
-                            <span>·</span>
-                            <span>{new Date(comment.created_at).toLocaleString()}</span>
-                          </div>
-                          <div className="forum-comment-content">{comment.content}</div>
-                          <div className="forum-comment-actions">
-                            <div className="forum-action-btn" onClick={() => handleCommentLike(comment.id)}>
-                              <LikeOutlined />
-                              <span>点赞 ({comment.like_count || 0})</span>
-                            </div>
-                            <div 
-                              className="forum-action-btn" 
-                              onClick={() => handleCommentOpen(item.id, {
-                                commentId: comment.id,
-                                userId: comment.owner_id,
-                                userName: comment.owner_name || "匿名用户"
-                              })}
-                            >
-                              <span>回复</span>
-                            </div>
-                            {(isAdmin || comment.owner_id === myUserId) && (
-                              <div className="forum-action-btn danger" onClick={() => handleCommentDelete(comment.id, item.id)}>
-                                <DeleteOutlined />
-                                <span>删除</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                )}
-              </div>
-            ))}
-
-            <div className="forum-pagination">
-              <Pagination
-                current={currentPage}
-                total={total}
-                pageSize={PAGE_SIZE}
-                onChange={handlePageChange}
-                showSizeChanger={false}
-                showTotal={(total) => `共 ${total} 条`}
-              />
+    <div className="min-h-screen bg-[#f0f2f5]">
+      {/* Navigation Bar */}
+      <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-8">
+            <div className="text-sm text-gray-500">
+              共 <span className="font-semibold text-brand-primary">{total}</span> 条帖子
             </div>
-          </>
-        )}
-      </Card>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => setPostOpen(true)}
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-white px-4 py-2 rounded shadow-sm transition-all font-medium text-sm"
+            >
+              <Plus size={16} />
+              发布帖子
+            </button>
+          </div>
+        </div>
+      </nav>
 
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-8 flex gap-6 items-start">
+        {/* Left Column: Post List */}
+        <div className="flex-1 min-w-0">
+          {items.length === 0 && !loading ? (
+            <div className="bg-white rounded-md shadow-sm border border-gray-100 p-12 text-center">
+              <div className="text-6xl mb-4 opacity-50">📭</div>
+              <p className="text-gray-400 text-lg">暂无帖子，快来发布第一条吧！</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <ForumPost
+                    key={item.id}
+                    post={item}
+                    currentUser={userInfo}
+                    onDelete={() => handleDelete(item.id)}
+                    onLike={handleLike}
+                    onLoadComments={loadComments}
+                    comments={comments[item.id]}
+                  />
+                ))}
+              </div>
+
+              {total > PAGE_SIZE && (
+                <div className="mt-8 flex justify-center">
+                  <Pagination
+                    current={currentPage}
+                    total={total}
+                    pageSize={PAGE_SIZE}
+                    onChange={handlePageChange}
+                    showSizeChanger={false}
+                    showTotal={(total) => `共 ${total} 条`}
+                  />
+                </div>
+              )}
+              
+              {items.length > 0 && (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  <p>已经到底啦 ~</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Right Column: Sidebar */}
+        <aside className="hidden lg:block w-80 shrink-0 space-y-6 sticky top-20">
+          {/* User Card */}
+          <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
+            <div className="flex flex-col items-center text-center">
+              <div className="w-16 h-16 rounded bg-brand-primary flex items-center justify-center text-white text-2xl font-bold mb-4">
+                {userInfo?.username?.[0] || 'U'}
+              </div>
+              <h3 className="font-bold text-lg text-brand-text mb-1">{userInfo?.username || '未登录用户'}</h3>
+              <p className="text-brand-text-secondary text-sm mb-6">{userInfo?.role || '普通用户'}</p>
+              
+              <div className="grid grid-cols-2 w-full border-t border-gray-100 pt-4 gap-4">
+                <div className="flex flex-col">
+                  <span className="font-bold text-brand-text text-lg">{total}</span>
+                  <span className="text-xs text-brand-text-secondary">总帖子</span>
+                </div>
+                <div className="flex flex-col border-l border-gray-100">
+                  <span className="font-bold text-brand-text text-lg">-</span>
+                  <span className="text-xs text-brand-text-secondary">获赞数</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Guidelines */}
+          <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-2 mb-4 pb-3 border-b border-gray-50">
+              <FileText size={18} className="text-brand-primary" />
+              <h3 className="font-bold text-brand-text">社区规范</h3>
+            </div>
+            <ul className="space-y-3 text-sm text-brand-text-secondary">
+              <li className="flex gap-2 items-start">
+                <span className="text-brand-primary mt-1">•</span>
+                <span>请保持理性和友善，共同维护良好的阅卷交流环境。</span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="text-brand-primary mt-1">•</span>
+                <span>禁止发布与考试、阅卷工作无关的广告或垃圾信息。</span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="text-brand-primary mt-1">•</span>
+                <span>遇到系统问题，请优先查看“更新日志”或联系管理员。</span>
+              </li>
+            </ul>
+          </div>
+          
+          <div className="text-xs text-gray-400 text-center">
+            © 2024 清境智能在线阅卷系统
+          </div>
+        </aside>
+      </main>
+
+      {/* 发帖弹窗 - 保留 Antd */}
       <Modal
         title="发布帖子"
         open={postOpen}
@@ -283,38 +263,14 @@ const Forum = () => {
         okText="发布"
         cancelText="取消"
         destroyOnClose
+        width={600}
       >
         <Form form={form} layout="vertical">
           <Form.Item name="title" label="标题" rules={[{ required: true, message: "请输入标题" }]}>
-            <Input maxLength={100} showCount />
+            <Input maxLength={100} showCount placeholder="给你的帖子起个标题" />
           </Form.Item>
           <Form.Item name="content" label="内容" rules={[{ required: true, message: "请输入内容" }]}>
-            <Input.TextArea rows={6} maxLength={2000} showCount />
-          </Form.Item>
-        </Form>
-      </Modal>
-
-      <Modal
-        title={replyTarget ? `回复 @${replyTarget.userName}` : "发表评论"}
-        open={commentOpen}
-        onCancel={() => {
-          setCommentOpen(false);
-          commentForm.resetFields();
-          setReplyTarget(null);
-        }}
-        onOk={handleCommentCreate}
-        okText="发表"
-        cancelText="取消"
-        destroyOnClose
-      >
-        <Form form={commentForm} layout="vertical">
-          <Form.Item name="content" label="评论内容" rules={[{ required: true, message: "请输入评论内容" }]}>
-            <Input.TextArea 
-              rows={4} 
-              maxLength={500} 
-              showCount 
-              placeholder={replyTarget ? `回复 @${replyTarget.userName}` : "说点什么..."} 
-            />
+            <Input.TextArea rows={8} maxLength={2000} showCount placeholder="分享你的想法..." />
           </Form.Item>
         </Form>
       </Modal>

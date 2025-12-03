@@ -4,11 +4,22 @@ export default {
   content: [
     "./index.html",
     "./src/pages/landing/**/*.{js,jsx}",
+    "./src/pages/communication/**/*.{js,jsx}",
     "./src/layout/LandingLayout.jsx",
   ],
   
   theme: {
     extend: {
+      colors: {
+        brand: {
+          primary: '#1677ff', // Antd Blue
+          'primary-hover': '#4096ff',
+          blue: '#1677ff',
+          gray: '#f0f2f5', // Antd layout background
+          text: '#000000e0', // Antd main text
+          'text-secondary': '#00000073', // Antd secondary text
+        }
+      },
       animation: {
         blob: "blob 7s infinite",
         "fade-in-up": "fadeInUp 0.6s ease-out",
