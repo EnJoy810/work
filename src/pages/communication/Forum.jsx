@@ -249,7 +249,7 @@ const Forum = () => {
           </div>
           
           <div className="text-xs text-gray-400 text-center">
-            © 2024 清境智能在线阅卷系统
+            © 2025 清境智能在线阅卷系统
           </div>
         </aside>
       </main>

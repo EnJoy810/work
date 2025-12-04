@@ -138,11 +138,13 @@ const useStudentData = (gradingId) => {
               const content = traceData.score_reason || item.score_reason || `${item.score}分`;
               // 优先使用 trace 中保存的 width，否则根据内容计算
               const width = traceData.width || calculateAnnotationWidth(content);
+              // 读取字号（如果有保存）
+              const fontSize = traceData.fontSize;
               const height = ANNOTATION_HEIGHT_ESTIMATE;
               
-              // rtp 是左上角偏移，转换为中心点坐标
+              // rtp 是偏移，转换为中心点坐标
               const position = {
-                x: traceData.bbox.x + rtp.x + width / 2,
+                x: traceData.bbox.x + rtp.x,
                 y: traceData.bbox.y + rtp.y + height / 2
               };
               
@@ -151,7 +153,8 @@ const useStudentData = (gradingId) => {
                 content,
                 position,
                 width,
-                source: hasTeacherEdit ? "teacher" : "algorithm"  // 批注来源
+                fontSize,  // 字号（可能为 undefined，会使用默认值）
+                source: hasTeacherEdit ? "teacher" : "algorithm"
               });
             }
             

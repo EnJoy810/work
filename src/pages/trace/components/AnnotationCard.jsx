@@ -8,15 +8,18 @@ import { HistoryPlugin } from "@lexical/react/LexicalHistoryPlugin";
 import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
 import { $createParagraphNode, $createTextNode, $getRoot } from "lexical";
 import {
-  ANNOTATION_WIDTH_DEFAULT,
   ANNOTATION_WIDTH_MIN,
   ANNOTATION_WIDTH_MAX,
   ANNOTATION_HEIGHT_MIN,
   ANNOTATION_HEIGHT_MAX,
   ANNOTATION_PADDING_VERTICAL,
-  ANNOTATION_INIT_MEASURE_DELAY,
   ANNOTATION_CONTENT_MEASURE_DELAY,
-  ANNOTATION_RESIZE_SAVE_DELAY
+  ANNOTATION_RESIZE_SAVE_DELAY,
+  ANNOTATION_FONT_SIZE_DEFAULT,
+  ANNOTATION_FONT_SIZE_MIN,
+  ANNOTATION_FONT_SIZE_MAX,
+  ANNOTATION_FONT_SIZE_STEP,
+  calculateAnnotationWidth
 } from "../constants";
 
 const EditorPlaceholder = () => <div className="annotation-card__placeholder">请输入批注</div>;
@@ -123,24 +126,29 @@ const AnnotationCard = ({
   onClick,
   onEdit,
   onResize,
+  onFontSizeChange,
   canvasScale = 1,
   readOnly = false
 }) => {
+  // 使用批注自己的字号，默认为 ANNOTATION_FONT_SIZE_DEFAULT
+  const fontSize = annotation.fontSize ?? ANNOTATION_FONT_SIZE_DEFAULT;
   const centerX = position?.x ?? 0;
   const centerY = position?.y ?? 0;
 
   const [isEditing, setIsEditing] = useState(false);
   const [pendingContent, setPendingContent] = useState(annotation.content || "");
   const contentRef = useRef(null);
-  const editorRef = useRef(null); // 直接测量编辑器内容
+  const editorRef = useRef(null);
   
-  // 宽度状态：使用保存的宽度或默认值
-  const [currentWidth, setCurrentWidth] = useState(annotation.width ?? ANNOTATION_WIDTH_DEFAULT);
+  // 宽度状态：根据字号和内容自动计算
+  const [currentWidth, setCurrentWidth] = useState(
+    calculateAnnotationWidth(annotation.content, fontSize)
+  );
   
   // 批注框的位置和尺寸状态
   const [frame, setFrame] = useState({
     width: currentWidth,
-    height: ANNOTATION_HEIGHT_MIN, // 使用最小高度作为初始值
+    height: ANNOTATION_HEIGHT_MIN,
     x: centerX - currentWidth / 2,
     y: centerY - ANNOTATION_HEIGHT_MIN / 2
   });
@@ -151,13 +159,20 @@ const AnnotationCard = ({
     }
   }, [annotation.content, isEditing]);
 
-  // 监听外部 width 变化（例如重置时）
+  // 当字号或内容变化时，自动调整宽度（包括编辑时的实时内容）
   useEffect(() => {
-    const newWidth = annotation.width ?? ANNOTATION_WIDTH_DEFAULT;
-    if (Math.abs(newWidth - currentWidth) >= 1) {
-      setCurrentWidth(newWidth);
-    }
-  }, [annotation.width, currentWidth]);
+    // 编辑时使用 pendingContent，否则使用 annotation.content
+    const contentToMeasure = isEditing ? pendingContent : annotation.content;
+    const newWidth = calculateAnnotationWidth(contentToMeasure, fontSize);
+    if (Math.abs(newWidth - currentWidth) < 1) return;
+    
+    setCurrentWidth(newWidth);
+    setFrame(prevFrame => ({
+      ...prevFrame,
+      width: newWidth,
+      x: prevFrame.x + (prevFrame.width - newWidth) / 2
+    }));
+  }, [annotation.content, pendingContent, fontSize, currentWidth, isEditing]);
 
   // 监听 position 变化（例如重置时），更新 frame 位置
   useEffect(() => {
@@ -211,36 +226,28 @@ const AnnotationCard = ({
     return Math.max(ANNOTATION_HEIGHT_MIN, Math.min(measuredHeight, ANNOTATION_HEIGHT_MAX));
   }, [canvasScale]);
 
-  // 当内容、缩放或宽度变化时，自动调整高度
+  // 当内容变化时，自动调整高度
   useEffect(() => {
-    // 延迟测量，确保 DOM 已更新
     const timer = setTimeout(() => {
       const measuredHeight = measureContentHeight();
       if (measuredHeight && measuredHeight !== frame.height) {
         setFrame(prevFrame => {
-          // 计算高度变化量
           const heightDiff = measuredHeight - prevFrame.height;
-          
-          // 保持中心位置不变，调整 y 坐标
           return {
-            width: currentWidth,
+            ...prevFrame,
             height: measuredHeight,
-            x: prevFrame.x + (prevFrame.width - currentWidth) / 2, // 宽度变化时调整 x
-            y: prevFrame.y - heightDiff / 2 // 高度变化时调整 y，保持中心
+            y: prevFrame.y - heightDiff / 2
           };
         });
       }
     }, ANNOTATION_CONTENT_MEASURE_DELAY);
     
     return () => clearTimeout(timer);
-  }, [pendingContent, currentWidth, measureContentHeight, frame.height]);
+  }, [pendingContent, fontSize, measureContentHeight, frame.height]);
 
-  // 字体缩放逻辑：基于答题卡缩放
-  // 总分使用更大的字体
-  const isTotalScore = annotation.source === "total_score";
-  const baseFontSize = isTotalScore ? 24 : 10;
+  // 字体设置：使用传入的 fontSize
   const baseLineHeight = 1.4;
-  const computedFontSize = baseFontSize * canvasScale;
+  const computedFontSize = fontSize * canvasScale;
   const computedLineHeight = baseLineHeight;
 
   const handleDrag = useCallback(
@@ -281,7 +288,6 @@ const AnnotationCard = ({
       const measuredWidth = parseFloat(ref.style.width);
       const clampedWidth = Math.max(ANNOTATION_WIDTH_MIN, Math.min(measuredWidth, ANNOTATION_WIDTH_MAX));
       
-      // 更新宽度状态，触发高度重新计算
       setCurrentWidth(clampedWidth);
       
       setFrame(prevFrame => ({
@@ -302,7 +308,6 @@ const AnnotationCard = ({
       if (!result) return;
       const { size: finalSize } = result;
 
-      // 延迟保存，等待高度计算完成
       setTimeout(() => {
         setFrame(currentFrame => {
           onResize?.(annotation.id, { width: finalSize.width, height: currentFrame.height });
@@ -334,10 +339,9 @@ const AnnotationCard = ({
   const isScoreCard = annotation.source === "score" || annotation.source === "total_score";
 
   const resizeHandleStyles = useMemo(() => {
-    // 根据是否为分数框选择不同的边框颜色
     const borderColor = isScoreCard 
-      ? "1.5px solid rgba(24, 144, 255, 0.85)"  // 蓝色
-      : "1.5px solid rgba(211, 32, 41, 0.85)";  // 红色
+      ? "1.5px solid rgba(24, 144, 255, 0.85)"
+      : "1.5px solid rgba(211, 32, 41, 0.85)";
     
     const baseStyle = {
       width: "6px",
@@ -409,6 +413,19 @@ const AnnotationCard = ({
     [finishEditing]
   );
 
+  // 字号调整处理
+  const handleFontSizeIncrease = useCallback((e) => {
+    e.stopPropagation();
+    if (fontSize >= ANNOTATION_FONT_SIZE_MAX) return;
+    onFontSizeChange?.(annotation.id, fontSize + ANNOTATION_FONT_SIZE_STEP);
+  }, [annotation.id, fontSize, onFontSizeChange]);
+
+  const handleFontSizeDecrease = useCallback((e) => {
+    e.stopPropagation();
+    if (fontSize <= ANNOTATION_FONT_SIZE_MIN) return;
+    onFontSizeChange?.(annotation.id, fontSize - ANNOTATION_FONT_SIZE_STEP);
+  }, [annotation.id, fontSize, onFontSizeChange]);
+
   return (
     <Rnd
       className={`annotation-card ${isSelected ? "selected" : ""} ${isEditing ? "editing" : ""} ${isScoreCard ? "score-card" : ""} ${readOnly ? "read-only" : ""}`}
@@ -423,9 +440,31 @@ const AnnotationCard = ({
       disableDragging={isEditing || readOnly}
       onDrag={(e, data) => handleDrag(data)}
       onDragStop={(e, data) => handleDragStop(data)}
-      onResize={(e, direction, ref, delta, position) => handleResizeInternal(ref, position, direction)}
-      onResizeStop={(e, direction, ref, delta, position) => handleResizeStop(ref, position, direction)}
+      onResize={(e, direction, ref, delta, position) => handleResizeInternal(ref, position)}
+      onResizeStop={(e, direction, ref, delta, position) => handleResizeStop(ref, position)}
     >
+      {/* 字号调整按钮 - 仅选中且非只读时显示 */}
+      {isSelected && !readOnly && !isEditing && (
+        <div className="annotation-card__font-controls" onClick={e => e.stopPropagation()}>
+          <button
+            type="button"
+            onClick={handleFontSizeDecrease}
+            disabled={fontSize <= ANNOTATION_FONT_SIZE_MIN}
+            title="减小字号"
+          >
+            A-
+          </button>
+          <span>{fontSize}</span>
+          <button
+            type="button"
+            onClick={handleFontSizeIncrease}
+            disabled={fontSize >= ANNOTATION_FONT_SIZE_MAX}
+            title="增大字号"
+          >
+            A+
+          </button>
+        </div>
+      )}
       <div
         ref={contentRef}
         className={`annotation-card__inner annotation-card__drag-region ${isEditing ? "annotation-card__inner--editing" : ""}`}

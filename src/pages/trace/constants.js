@@ -19,29 +19,38 @@ export const ANNOTATION_INIT_MEASURE_DELAY = 50; // 初始化测量延迟 (ms)
 export const ANNOTATION_CONTENT_MEASURE_DELAY = 10; // 内容变化测量延迟 (ms)
 export const ANNOTATION_RESIZE_SAVE_DELAY = 50; // 调整尺寸保存延迟 (ms)
 
-// ==================== 缩放控制常量 ====================
+// ==================== 画布缩放控制常量 ====================
 export const CANVAS_ZOOM_MIN = 0.5;
 export const CANVAS_ZOOM_MAX = 2;
 export const CANVAS_ZOOM_STEP = 0.1;
 
+// ==================== 批注字号常量 ====================
+export const ANNOTATION_FONT_SIZE_DEFAULT = 10;
+export const ANNOTATION_FONT_SIZE_MIN = 6;
+export const ANNOTATION_FONT_SIZE_MAX = 24;
+export const ANNOTATION_FONT_SIZE_STEP = 2;
+
 // ==================== 工具函数 ====================
 
 /**
- * 根据内容长度计算批注宽度
+ * 根据内容长度和字号计算批注宽度
  * @param {string} content - 批注内容
+ * @param {number} fontSize - 字号（默认14）
  * @returns {number} 计算出的宽度
  */
-export const calculateAnnotationWidth = (content) => {
-  if (!content) return ANNOTATION_WIDTH_DEFAULT;
-  const contentLength = content.length;
+export const calculateAnnotationWidth = (content, fontSize = ANNOTATION_FONT_SIZE_DEFAULT) => {
+  if (!content) return fontSize * 4;
   
-  if (contentLength <= 10) {
-    return 80;   // 短文本：如 "5分"
-  } else if (contentLength <= 30) {
-    return 200;  // 中等文本
-  } else if (contentLength <= 60) {
-    return 300;  // 较长文本
+  const contentLength = content.length;
+  const charWidth = fontSize * 0.7; // 中文字符约0.7倍字号宽度
+  const padding = 16; // 左右padding
+  const maxCharsPerLine = 15; // 每行最多字符数
+  
+  if (contentLength <= 5) {
+    return Math.max(contentLength * charWidth + padding, fontSize * 3);
+  } else if (contentLength <= maxCharsPerLine) {
+    return contentLength * charWidth + padding;
   } else {
-    return 400;  // 长文本
+    return maxCharsPerLine * charWidth + padding;
   }
 };

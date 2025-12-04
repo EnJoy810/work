@@ -9,21 +9,18 @@ const StudentList = ({
   onSelectKey,
   getKeyFn,
   isLoading = false,
-  currentQuestionId,
-  manuallyGradedSet = new Set(),
+  teacherAlterMap = {},
 }) => {
   const getKey = (s, idx) => {
     if (typeof getKeyFn === "function") return getKeyFn(s, idx);
     return String(s?.paperId || s?.id || s?.studentNo || `${s?.name || "unknown"}-${idx}`);
   };
 
-  // 判断学生在当前题目是否已在本页面手动批改过
+  // 判断学生是否已人工批改（从后端接口获取）
   const isGradedForCurrentQuestion = (student) => {
-    if (!currentQuestionId) return false;
     const paperId = String(student?.paperId || student?.id || "");
     if (!paperId) return false;
-    const gradeKey = `${currentQuestionId}-${paperId}`;
-    return manuallyGradedSet.has(gradeKey);
+    return teacherAlterMap[paperId] === true;
   };
 
   const groups = useMemo(() => {

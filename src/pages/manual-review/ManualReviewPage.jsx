@@ -14,6 +14,7 @@ import {
   fetchManualQuestionScoreList,
   fetchManualAnswerDetail,
   submitManualScore,
+  fetchTeacherAlterStatus,
 } from "../../api/manual";
 import "./manualReview.css";
 
@@ -134,8 +135,8 @@ const ManualReviewPage = () => {
   const [isAutoAdvanceEnabled, setIsAutoAdvanceEnabled] = useState(true);
   const [activeTab, setActiveTab] = useState("all"); // all | matched | absent | abnormal
   const [selectedStudentKey, setSelectedStudentKey] = useState(undefined);
-  // 记录在当前页面手动批改过的学生（格式："questionId-paperId"）
-  const [manuallyGradedSet, setManuallyGradedSet] = useState(new Set());
+  // 存储当前题目的人工批改状态（paperId -> boolean）
+  const [teacherAlterMap, setTeacherAlterMap] = useState({});
 
   const getStudentItemKey = useCallback((s, idx) => {
     return String(
@@ -429,6 +430,37 @@ const ManualReviewPage = () => {
     loadScoreMap();
   }, [loadScoreMap]);
 
+  // 加载当前题目的人工批改状态
+  const loadTeacherAlterStatus = useCallback(async () => {
+    if (!gradingId || !currentQuestionId) {
+      setTeacherAlterMap({});
+      return;
+    }
+    try {
+      const response = await fetchTeacherAlterStatus({
+        grading_id: gradingId,
+        question_id: currentQuestionId,
+      });
+      const list = Array.isArray(response?.data) ? response.data : [];
+      const map = {};
+      list.forEach((item) => {
+        const paperId = String(item?.paperId || item?.paper_id || "");
+        if (paperId) {
+          map[paperId] = item?.teacherAlter ?? item?.teacher_alter ?? false;
+        }
+      });
+      setTeacherAlterMap(map);
+    } catch (error) {
+      console.error("加载批改状态失败", error);
+      setTeacherAlterMap({});
+    }
+  }, [gradingId, currentQuestionId]);
+
+  // 切换题目时加载批改状态
+  useEffect(() => {
+    loadTeacherAlterStatus();
+  }, [loadTeacherAlterStatus]);
+
   useEffect(() => {
     setCurrentAnswerDetail(null);
     
@@ -510,9 +542,11 @@ const ManualReviewPage = () => {
         
         message.success("提交成功");
         
-        // 记录在当前页面手动批改过
-        const gradeKey = `${currentQuestionId}-${currentStudent.paperId}`;
-        setManuallyGradedSet((prev) => new Set(prev).add(gradeKey));
+        // 乐观更新：标记当前学生为已人工批改
+        setTeacherAlterMap((prev) => ({
+          ...prev,
+          [currentStudent.paperId]: true,
+        }));
         
         setScoreMap((prev) => {
           const next = { ...prev };
@@ -720,8 +754,7 @@ const ManualReviewPage = () => {
               onSelectKey={handleSelectKey}
               getKeyFn={(s, i) => getStudentItemKey(s, i)}
               isLoading={isLoadingStudents}
-              currentQuestionId={currentQuestionId}
-              manuallyGradedSet={manuallyGradedSet}
+              teacherAlterMap={teacherAlterMap}
             />
           </div>
         </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ThumbsUp, MessageSquare, Share2, Trash2 } from 'lucide-react';
+import { ThumbsUp, MessageSquare, Trash2 } from 'lucide-react';
 import CommentList from './CommentList';
 
 const ForumPost = ({ post, currentUser, onDelete, onLike, onLoadComments, comments }) => {
@@ -117,16 +117,6 @@ const ForumPost = ({ post, currentUser, onDelete, onLike, onLoadComments, commen
             </span>
           </button>
 
-          <button className="flex items-center gap-1.5 group outline-none text-gray-400">
-            <Share2 
-              size={18} 
-              className="group-hover:text-brand-primary transition-colors" 
-            />
-            <span className="text-sm group-hover:text-brand-primary transition-colors">
-              分享
-            </span>
-          </button>
-          
           {isAuthor && onDelete && (
             <button onClick={onDelete} className="ml-auto text-gray-400 hover:text-red-500 flex items-center gap-1 text-sm transition-colors">
               <Trash2 size={16} /> 删除

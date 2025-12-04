@@ -63,10 +63,21 @@ export const submitManualScore = (data) => {
   return request.put("/exam-question/grading/score-update", data);
 };
 
+/**
+ * 获取某道题的学生人工批改状态列表
+ * @param {Object} params
+ * @param {string} params.grading_id 批改会话ID
+ * @param {string} params.question_id 题目ID
+ */
+export const fetchTeacherAlterStatus = (params) => {
+  return request.get("/exam-question/grading/teacher-alter-status-student-list", params);
+};
+
 export default {
   fetchManualStudents,
   fetchManualQuestions,
   fetchManualQuestionScoreList,
   fetchManualAnswerDetail,
   submitManualScore,
+  fetchTeacherAlterStatus,
 };

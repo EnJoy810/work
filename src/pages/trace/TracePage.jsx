@@ -6,7 +6,11 @@ import StudentList from "./components/StudentList";
 import AnswerSheetCanvas from "./components/AnswerSheetCanvas";
 import AnnotationPanel from "./components/AnnotationPanel";
 import { useStudentData, useAnnotations, usePrint } from "./hooks";
-import { CANVAS_ZOOM_MIN, CANVAS_ZOOM_MAX, CANVAS_ZOOM_STEP } from "./constants";
+import { 
+  CANVAS_ZOOM_MIN, 
+  CANVAS_ZOOM_MAX, 
+  CANVAS_ZOOM_STEP
+} from "./constants";
 import "./trace.css";
 
 // 缩放功能开关
@@ -69,6 +73,7 @@ const TracePage = () => {
     hasUnsavedChanges,
     handleAnnotationDrag,
     handleAnnotationSizeChange,
+    handleAnnotationFontSizeChange,
     handleEditAnnotation,
     handleSelectAnnotation,
     handleResetAnnotation,
@@ -232,6 +237,7 @@ const TracePage = () => {
               onAnnotationSelect={handleSelectAnnotation}
               onAnnotationEdit={handleEditAnnotation}
               onAnnotationResize={handleAnnotationSizeChange}
+              onAnnotationFontSizeChange={handleAnnotationFontSizeChange}
               selectedAnnotationId={selectedAnnotationId}
               scale={ENABLE_CANVAS_ZOOM ? scale : 1}
               totalScore={answerSheetData.total_score}

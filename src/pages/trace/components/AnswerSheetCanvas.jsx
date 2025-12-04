@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Spin, Empty } from "antd";
 import AnnotationCard from "./AnnotationCard";
-import { SCORE_BOX_WIDTH, ANNOTATION_HEIGHT_MIN } from "../constants";
+import { SCORE_BOX_WIDTH, ANNOTATION_HEIGHT_MIN, ANNOTATION_FONT_SIZE_DEFAULT, calculateAnnotationWidth } from "../constants";
 
 /**
  * 答题卡画布组件
@@ -12,6 +12,7 @@ import { SCORE_BOX_WIDTH, ANNOTATION_HEIGHT_MIN } from "../constants";
  * @param {Function} props.onAnnotationSelect
  * @param {Function} props.onAnnotationEdit
  * @param {Function} props.onAnnotationResize
+ * @param {Function} props.onAnnotationFontSizeChange
  * @param {string} props.selectedAnnotationId
  * @param {number} props.totalScore - 总分
  * @param {boolean} props.showScoreReason - 是否显示评语
@@ -23,6 +24,7 @@ const AnswerSheetCanvas = ({
   onAnnotationSelect,
   onAnnotationEdit,
   onAnnotationResize,
+  onAnnotationFontSizeChange,
   selectedAnnotationId,
   scale = 1,
   totalScore,
@@ -146,13 +148,16 @@ const AnswerSheetCanvas = ({
             y: pos.y * (imageDimensions.height / question.imageHeight)
           };
           
-          // 限制显示坐标在边界内
-          const width = annotation.width || 80;
-          // 根据内容长度估算高度（每行约20字符，行高约24px）
+          // 选择题使用固定字号，主观题使用批注自己的字号
+          const effectiveFontSize = isChoiceError ? 10 : (annotation.fontSize ?? ANNOTATION_FONT_SIZE_DEFAULT);
+          
+          // 根据字号自动计算宽度
+          const width = calculateAnnotationWidth(annotation.content, effectiveFontSize);
+          // 根据内容长度估算高度
           const contentLength = annotation.content?.length || 0;
-          const charsPerLine = Math.max(1, Math.floor(width / 14)); // 每行字符数
+          const charsPerLine = Math.max(1, Math.floor(width / (effectiveFontSize * 0.7)));
           const lineCount = Math.ceil(contentLength / charsPerLine);
-          const estimatedHeight = Math.max(40, Math.min(lineCount * 24 + 16, 200));
+          const estimatedHeight = Math.max(40, Math.min(lineCount * (effectiveFontSize * 1.5) + 16, 200));
           
           displayPos = {
             x: Math.max(width / 2, Math.min(displayPos.x, imageDimensions.width - width / 2)),
@@ -171,7 +176,8 @@ const AnswerSheetCanvas = ({
               }
               onClick={isChoiceError ? () => {} : () => onAnnotationSelect(annotation.id)}
               onEdit={isChoiceError ? () => {} : onAnnotationEdit}
-              onResize={isChoiceError ? () => {} : (annotationId, nextSize) => onAnnotationResize && onAnnotationResize(annotationId, nextSize)}
+              onResize={isChoiceError ? () => {} : (annotationId, nextSize) => onAnnotationResize?.(annotationId, nextSize)}
+              onFontSizeChange={isChoiceError ? () => {} : onAnnotationFontSizeChange}
               readOnly={isChoiceError}
             />
           );
@@ -306,10 +312,10 @@ const AnswerSheetCanvas = ({
           position={{ x: leftPosition, y: topPosition }}
           isSelected={false}
           canvasScale={scale}
+          fontSize={24}
           onDrag={() => {}}
           onClick={() => {}}
           onEdit={() => {}}
-          onResize={() => {}}
           readOnly={true}
         />
       );
@@ -333,10 +339,10 @@ const AnswerSheetCanvas = ({
             position={{ x: leftPosition, y: topPosition }}
             isSelected={false}
             canvasScale={scale}
+            fontSize={24}
             onDrag={() => {}}
             onClick={() => {}}
             onEdit={() => {}}
-            onResize={() => {}}
             readOnly={true}
           />
         );

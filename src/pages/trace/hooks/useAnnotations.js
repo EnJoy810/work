@@ -3,7 +3,8 @@ import { message } from "antd";
 import { uploadTrace } from "../../../api/trace";
 import {
   ANNOTATION_WIDTH_DEFAULT,
-  ANNOTATION_HEIGHT_ESTIMATE
+  ANNOTATION_HEIGHT_ESTIMATE,
+  ANNOTATION_FONT_SIZE_DEFAULT
 } from "../constants";
 
 /**
@@ -64,12 +65,11 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
             y: normalizedPos.y * question.imageHeight
           };
           
-          const width = ann.width || ANNOTATION_WIDTH_DEFAULT;
           const height = ANNOTATION_HEIGHT_ESTIMATE;
           
           // 限制在 bbox 范围内（position 是中心点坐标）
           const clampedPos = {
-            x: Math.max(question.bbox.x + width / 2, Math.min(pagePixelPos.x, question.bbox.x + question.bbox.width - width / 2)),
+            x: Math.max(question.bbox.x, Math.min(pagePixelPos.x, question.bbox.x + question.bbox.width)),
             y: Math.max(question.bbox.y + height / 2, Math.min(pagePixelPos.y, question.bbox.y + question.bbox.height - height / 2))
           };
           
@@ -113,7 +113,6 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           questionChanged = true;
           hasChange = true;
           
-          // 只更新尺寸，不改变位置
           return { ...ann, width, ...(height && { height }) };
         });
         
@@ -127,6 +126,37 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
       markQuestionModified(annotationId);
       setHasUnsavedChanges(true);
     }
+  }, [setAnswerSheetData, markQuestionModified]);
+
+  /**
+   * 处理批注字号变化
+   */
+  const handleAnnotationFontSizeChange = useCallback((annotationId, newFontSize) => {
+    setAnswerSheetData(prevData => {
+      if (!prevData) return prevData;
+      
+      let hasChange = false;
+      const updatedQuestions = prevData.questions.map((question) => {
+        if (!Array.isArray(question.annotations)) return question;
+        
+        let questionChanged = false;
+        const updatedAnnotations = question.annotations.map((ann) => {
+          if (ann.id !== annotationId) return ann;
+          if (ann.fontSize === newFontSize) return ann;
+          
+          questionChanged = true;
+          hasChange = true;
+          return { ...ann, fontSize: newFontSize };
+        });
+        
+        return questionChanged ? { ...question, annotations: updatedAnnotations } : question;
+      });
+
+      return hasChange ? { ...prevData, questions: updatedQuestions } : prevData;
+    });
+    
+    markQuestionModified(annotationId);
+    setHasUnsavedChanges(true);
   }, [setAnswerSheetData, markQuestionModified]);
 
   /**
@@ -191,12 +221,11 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
         annotations: question.annotations.map((ann) => {
           if (ann.id !== annotationId) return ann;
           
-          const width = ann.width || ANNOTATION_WIDTH_DEFAULT;
           const height = ann.height || ANNOTATION_HEIGHT_ESTIMATE;
           
-          // 主观题：重置到 bbox 左上角（rtp = {x: 0, y: 0}）
+          // 主观题：重置到 bbox 左上角
           const defaultPosition = {
-            x: question.bbox.x + width / 2,
+            x: question.bbox.x + 50,
             y: question.bbox.y + height / 2
           };
           
@@ -265,35 +294,35 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
           // 默认值
           let rtp = { x: 0, y: 0 };
           let scoreReason = '';
-          let width = ANNOTATION_WIDTH_DEFAULT;
           
           if (question.annotations?.length > 0) {
             const firstAnnotation = question.annotations[0];
             
             // 计算 rtp：position 是中心点坐标，转换为左上角相对于 bbox 的偏移
             if (firstAnnotation.position) {
-              const annotationWidth = firstAnnotation.width || ANNOTATION_WIDTH_DEFAULT;
               const annotationHeight = firstAnnotation.height || ANNOTATION_HEIGHT_ESTIMATE;
               
-              const leftTopX = firstAnnotation.position.x - annotationWidth / 2;
-              const leftTopY = firstAnnotation.position.y - annotationHeight / 2;
-              
+              // 简化：直接使用中心点位置作为偏移
               rtp = {
-                x: leftTopX - question.bbox.x,
-                y: leftTopY - question.bbox.y
+                x: firstAnnotation.position.x - question.bbox.x,
+                y: firstAnnotation.position.y - question.bbox.y - annotationHeight / 2
               };
             }
             
-            // 批注内容和宽度
+            // 批注内容
             scoreReason = firstAnnotation.content || '';
-            width = firstAnnotation.width || ANNOTATION_WIDTH_DEFAULT;
           }
           
-          // trace_update: 位置信息（bbox, rtp, width）
+          // 获取宽度和字号
+          const width = question.annotations?.[0]?.width || ANNOTATION_WIDTH_DEFAULT;
+          const fontSize = question.annotations?.[0]?.fontSize || ANNOTATION_FONT_SIZE_DEFAULT;
+          
+          // trace_update: 位置信息（bbox, rtp, width, fontSize）
           const traceData = {
             bbox: question.bbox,
             rtp,
-            width
+            width,
+            fontSize
           };
 
           return uploadTrace({
@@ -341,6 +370,7 @@ const useAnnotations = (answerSheetData, setAnswerSheetData, selectedStudent) =>
     hasUnsavedChanges,
     handleAnnotationDrag,
     handleAnnotationSizeChange,
+    handleAnnotationFontSizeChange,
     handleEditAnnotation,
     handleSelectAnnotation,
     handleResetAnnotation,
