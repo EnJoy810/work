@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, MessageSquare, Trash2 } from 'lucide-react';
 import CommentList from './CommentList';
+import ImageGrid from './ImageGrid';
+import Poll from './Poll';
 
 const ForumPost = ({ post, currentUser, onDelete, onLike, onLoadComments, comments }) => {
   const [isLiked, setIsLiked] = useState(post.isLiked || false);
@@ -82,6 +84,20 @@ const ForumPost = ({ post, currentUser, onDelete, onLike, onLoadComments, commen
           <p className="text-brand-text text-sm leading-relaxed whitespace-pre-wrap">
             {post.content}
           </p>
+
+          {/* Poll System */}
+          {post.poll && post.poll.options && post.poll.options.length > 0 && (
+            <div className="my-4 max-w-lg">
+              <Poll poll={post.poll} />
+            </div>
+          )}
+
+          {/* Post Images */}
+          {post.images && post.images.length > 0 && (
+            <div className="mt-3">
+              <ImageGrid images={post.images} />
+            </div>
+          )}
         </div>
 
         {/* Action Bar */}

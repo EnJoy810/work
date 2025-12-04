@@ -128,10 +128,11 @@ const AnnotationCard = ({
   onResize,
   onFontSizeChange,
   canvasScale = 1,
-  readOnly = false
+  readOnly = false,
+  fontSize: propFontSize  // 外部传入的字号（用于总分等特殊场景）
 }) => {
-  // 使用批注自己的字号，默认为 ANNOTATION_FONT_SIZE_DEFAULT
-  const fontSize = annotation.fontSize ?? ANNOTATION_FONT_SIZE_DEFAULT;
+  // 优先使用外部传入的字号，其次使用批注自己的字号，最后使用默认值
+  const fontSize = propFontSize ?? annotation.fontSize ?? ANNOTATION_FONT_SIZE_DEFAULT;
   const centerX = position?.x ?? 0;
   const centerY = position?.y ?? 0;
 

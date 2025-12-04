@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, MessageSquare, Trash2 } from 'lucide-react';
 import CommentInput from './CommentInput';
+import ImageGrid from './ImageGrid';
 import { Modal } from 'antd';
 
 const CommentItem = ({ 
@@ -44,13 +45,13 @@ const CommentItem = ({
   
   const handleToggleReply = () => setShowReplyInput(!showReplyInput);
   
-  const handleSubmitReply = (text) => {
+  const handleSubmitReply = (text, images = []) => {
     const replyToUser = isSubComment ? {
       id: comment.owner_id,
       name: comment.owner_name
     } : undefined;
     
-    onReply(parentId || comment.id, text, replyToUser);
+    onReply(parentId || comment.id, text, images, replyToUser);
     setShowReplyInput(false);
   };
 
@@ -103,6 +104,13 @@ const CommentItem = ({
               </span>
             )}
             {comment.content}
+            
+            {/* Render Attached Images */}
+            {comment.images && comment.images.length > 0 && (
+              <div className="mt-2 w-full max-w-md">
+                <ImageGrid images={comment.images} />
+              </div>
+            )}
           </div>
 
           {/* Footer: Meta & Actions */}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Button, Card, Modal, Form, Input, Space, Typography, Empty, Pagination, Upload, message as antMessage } from "antd";
-import { PlusOutlined, DeleteOutlined, VideoCameraOutlined, InboxOutlined } from "@ant-design/icons";
+import { Modal, Form, Input, Space, Empty, Pagination, Upload, message as antMessage } from "antd";
+import { Plus, Trash2, Clock, Bell, Lightbulb, HelpCircle, MessageCircle } from "lucide-react";
+import { VideoCameraOutlined } from "@ant-design/icons";
 import { useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -10,7 +11,12 @@ import { APP_VERSION, BUILD_TIME } from "../../utils/appConfig";
 import { uploadVideo, validateVideoDuration } from "../../services/videoUpload";
 import "./Changelog.css";
 
-const { Title, Text } = Typography;
+// 微信图标
+const WechatIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M8.691 2.188C3.891 2.188 0 5.476 0 9.53c0 2.212 1.17 4.203 3.002 5.55a.59.59 0 0 1 .213.665l-.39 1.48c-.019.07-.048.141-.048.213 0 .163.13.295.29.295a.326.326 0 0 0 .167-.054l1.903-1.114a.864.864 0 0 1 .717-.098 10.16 10.16 0 0 0 2.837.403c.276 0 .543-.027.811-.05-.857-2.578.157-4.972 1.932-6.446 1.703-1.415 3.882-1.98 5.853-1.838-.576-3.583-4.196-6.348-8.596-6.348zM5.785 5.991c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178A1.17 1.17 0 0 1 4.623 7.17c0-.651.52-1.18 1.162-1.18zm5.813 0c.642 0 1.162.529 1.162 1.18a1.17 1.17 0 0 1-1.162 1.178 1.17 1.17 0 0 1-1.162-1.178c0-.651.52-1.18 1.162-1.18zm5.34 2.867c-1.797-.052-3.746.512-5.28 1.786-1.72 1.428-2.687 3.72-1.78 6.22.942 2.453 3.666 4.229 6.884 4.229.826 0 1.622-.12 2.361-.336a.722.722 0 0 1 .598.082l1.584.926a.272.272 0 0 0 .14.047c.134 0 .24-.111.24-.247 0-.06-.023-.12-.038-.177l-.327-1.233a.582.582 0 0 1-.023-.156.49.49 0 0 1 .201-.398C23.024 18.48 24 16.82 24 14.98c0-3.21-2.931-5.837-6.656-6.088V8.89c-.135-.01-.27-.027-.407-.03zm-2.53 3.274c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.97-.982zm4.844 0c.535 0 .969.44.969.982a.976.976 0 0 1-.969.983.976.976 0 0 1-.969-.983c0-.542.434-.982.969-.982z"/>
+  </svg>
+);
 
 // 自定义视频组件（直接返回 video 元素，避免 p > div 的 DOM 嵌套警告）
 const VideoComponent = ({ src, ...props }) => {
@@ -188,75 +194,183 @@ const Changelog = () => {
   };
 
   return (
-    <div className="changelog-page">
-      <Card className="changelog-card">
-        <div className="changelog-header">
-          <h2>更新日志</h2>
-          <div className="changelog-meta">
-            <span>共 {total} 条</span>
-            <span>版本 {APP_VERSION}</span>
-            <span>构建时间 {new Date(BUILD_TIME).toLocaleString()}</span>
+    <div className="min-h-screen bg-[#f0f2f5]">
+      {/* Navigation Bar */}
+      <nav className="bg-white shadow-sm sticky top-0 z-50 border-b border-gray-100">
+        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-6">
+            <h1 className="text-lg font-semibold text-gray-800">更新日志</h1>
+            <div className="text-sm text-gray-500">
+              共 <span className="font-semibold text-brand-primary">{total}</span> 条
+            </div>
           </div>
+          
+          {isAdmin && (
+            <button 
+              onClick={() => setOpen(true)}
+              className="flex items-center gap-2 bg-brand-primary hover:bg-brand-primary-hover text-white px-4 py-2 rounded shadow-sm transition-all font-medium text-sm"
+            >
+              <Plus size={16} />
+              新建日志
+            </button>
+          )}
+        </div>
+      </nav>
+
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-4 py-8 flex gap-6 items-start">
+        {/* Left Column: Log List */}
+        <div className="flex-1 min-w-0">
+          {items.length === 0 && !loading ? (
+            <div className="bg-white rounded-md shadow-sm border border-gray-100 p-12 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center"><Bell size={32} className="text-gray-300" /></div>
+              <p className="text-gray-400 text-lg">暂无更新日志</p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-4">
+                {items.map((item) => (
+                  <div key={item.id} className="bg-white rounded-md shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-3">
+                      <h2 className="text-lg font-bold text-gray-800">{item.title}</h2>
+                      {(isAdmin || item.owner_id === myUserId) && (
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="text-gray-400 hover:text-red-500 transition-colors p-1"
+                          title="删除"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-gray-400 mb-4">
+                      <Clock size={14} />
+                      <span>{new Date(item.created_at).toLocaleString()}</span>
+                    </div>
+                    <div className="changelog-item-content markdown-content text-gray-600">
+                      <ReactMarkdown 
+                        remarkPlugins={[remarkGfm]}
+                        rehypePlugins={[rehypeRaw]}
+                        components={{
+                          video: VideoComponent
+                        }}
+                      >
+                        {item.content}
+                      </ReactMarkdown>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {total > PAGE_SIZE && (
+                <div className="mt-8 flex justify-center">
+                  <Pagination
+                    current={currentPage}
+                    total={total}
+                    pageSize={PAGE_SIZE}
+                    onChange={handlePageChange}
+                    showSizeChanger={false}
+                    showTotal={(total) => `共 ${total} 条`}
+                  />
+                </div>
+              )}
+              
+              {items.length > 0 && (
+                <div className="text-center py-8 text-gray-400 text-sm">
+                  <p>已经到底啦 ~</p>
+                </div>
+              )}
+            </>
+          )}
         </div>
 
-        {isAdmin && (
-          <div className="changelog-actions">
-            <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen(true)}>
-              新建日志
-            </Button>
-          </div>
-        )}
-
-        {items.length === 0 && !loading ? (
-          <Empty description="暂无更新日志" />
-        ) : (
-          <>
-            {items.map((item) => (
-              <div key={item.id} className="changelog-item">
-                <div className="changelog-item-title">{item.title}</div>
-                <div className="changelog-item-meta">
-                  {new Date(item.created_at).toLocaleString()}
-                </div>
-                <div className="changelog-item-content markdown-content">
-                  <ReactMarkdown 
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeRaw]}
-                    components={{
-                      video: VideoComponent
-                    }}
-                  >
-                    {item.content}
-                  </ReactMarkdown>
-                </div>
-                {(isAdmin || item.owner_id === myUserId) && (
-                  <div className="changelog-item-actions">
-                    <Button
-                      type="link"
-                      danger
-                      size="small"
-                      icon={<DeleteOutlined />}
-                      onClick={() => handleDelete(item.id)}
-                    >
-                      删除
-                    </Button>
-                  </div>
-                )}
+        {/* Right Column: Sidebar */}
+        <aside className="hidden lg:block w-80 shrink-0 space-y-6 sticky top-20">
+          {/* Welcome Card */}
+          <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-lg bg-brand-primary/10 flex items-center justify-center">
+                <Bell size={24} className="text-brand-primary" />
               </div>
-            ))}
-
-            <div className="changelog-pagination">
-              <Pagination
-                current={currentPage}
-                total={total}
-                pageSize={PAGE_SIZE}
-                onChange={handlePageChange}
-                showSizeChanger={false}
-                showTotal={(total) => `共 ${total} 条`}
-              />
+              <div>
+                <h3 className="font-bold text-gray-800">系统公告</h3>
+                <p className="text-sm text-gray-500">了解最新功能和改进</p>
+              </div>
             </div>
-          </>
-        )}
-      </Card>
+            
+            <div className="space-y-3 pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">当前版本</span>
+                <span className="text-sm font-semibold text-brand-primary">{APP_VERSION}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">更新时间</span>
+                <span className="text-sm text-gray-700">{new Date(BUILD_TIME).toLocaleDateString()}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-500">公告数量</span>
+                <span className="text-sm text-gray-700">{total} 条</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Tips Card */}
+          <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
+            <h4 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+              <Lightbulb size={16} className="text-brand-primary" />
+              温馨提示
+            </h4>
+            <ul className="text-sm text-gray-500 space-y-2">
+              <li className="flex gap-2 items-start">
+                <span className="text-brand-primary mt-1">•</span>
+                <span>这里会发布系统新功能介绍和使用技巧。</span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="text-brand-primary mt-1">•</span>
+                <span>部分更新包含视频教程，点击即可播放。</span>
+              </li>
+              <li className="flex gap-2 items-start">
+                <span className="text-brand-primary mt-1">•</span>
+                <span>如有疑问或建议，欢迎在论坛反馈。</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Contact Card */}
+          <div className="bg-gradient-to-br from-brand-primary/5 to-brand-primary/10 rounded-md border border-brand-primary/20 p-6">
+            <h4 className="font-semibold text-gray-800 mb-2 flex items-center gap-2">
+              <HelpCircle size={16} className="text-brand-primary" />
+              需要帮助？
+            </h4>
+            <p className="text-sm text-gray-600 mb-3">
+              遇到问题可以通过以下方式联系我们：
+            </p>
+            <div className="text-sm text-gray-600 space-y-2">
+              {/* 微信公众号 - 悬停显示二维码 */}
+              <div className="relative group inline-flex items-center gap-2 cursor-pointer">
+                <WechatIcon />
+                <span className="text-gray-600 group-hover:text-brand-primary transition-colors">微信公众号</span>
+                {/* 二维码弹出层 */}
+                <div className="absolute bottom-full left-0 mb-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 z-50">
+                  <div className="bg-white rounded-lg shadow-xl p-3 border border-gray-100">
+                    <img src="/wechat-qrcode.jpg" alt="微信公众号二维码" className="w-24 h-24 object-contain rounded" />
+                    <p className="text-xs text-gray-500 text-center mt-2">扫码关注公众号</p>
+                  </div>
+                  <div className="absolute left-4 -bottom-2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-transparent border-t-white"></div>
+                </div>
+              </div>
+              <a href="/forum" className="flex items-center gap-2 hover:text-brand-primary transition-colors">
+                <MessageCircle size={16} />
+                <span>论坛：在线反馈</span>
+              </a>
+            </div>
+          </div>
+          
+          <div className="text-xs text-gray-400 text-center">
+            © 2025 清境智能在线阅卷系统
+          </div>
+        </aside>
+      </main>
 
       <Modal
         title="新建更新日志"

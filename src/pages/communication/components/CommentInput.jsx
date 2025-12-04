@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Image as ImageIcon, X } from 'lucide-react';
 
 const CommentInput = ({
   onSubmit,
@@ -10,8 +11,10 @@ const CommentInput = ({
   currentUser
 }) => {
   const [text, setText] = useState('');
+  const [images, setImages] = useState([]);
   const [isFocused, setIsFocused] = useState(false);
   const textareaRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     if (autoFocus && textareaRef.current) {
@@ -19,10 +22,24 @@ const CommentInput = ({
     }
   }, [autoFocus]);
 
+  const handleImageSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newImages = Array.from(e.target.files).map(file => URL.createObjectURL(file));
+      setImages(prev => [...prev, ...newImages].slice(0, 9)); // 最多9张
+      setIsFocused(true);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removeImage = (indexToRemove) => {
+    setImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
+  };
+
   const handleSubmit = () => {
-    if (!text.trim()) return;
-    onSubmit(text);
+    if (!text.trim() && images.length === 0) return;
+    onSubmit(text, images);
     setText('');
+    setImages([]);
     setIsFocused(false);
     if (onCancel) onCancel();
   };
@@ -57,26 +74,62 @@ const CommentInput = ({
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             onFocus={() => setIsFocused(true)}
-            onBlur={() => {
-              if (!text) setIsFocused(false);
-            }}
             placeholder={placeholder}
             className="w-full bg-transparent p-3 text-sm text-brand-text placeholder-gray-400 outline-none resize-none min-h-[60px] rounded-md"
-            rows={isFocused || text ? 3 : 1}
+            rows={isFocused || text || images.length > 0 ? 3 : 1}
           />
+
+          {/* Image Previews */}
+          {images.length > 0 && (
+            <div className="p-3 pt-0 flex flex-wrap gap-2">
+              {images.map((src, idx) => (
+                <div key={idx} className="relative w-20 h-20 group">
+                  <img 
+                    src={src} 
+                    alt="preview" 
+                    className="w-full h-full object-cover rounded-md border border-gray-200"
+                  />
+                  <button 
+                    onClick={() => removeImage(idx)}
+                    className="absolute -top-1.5 -right-1.5 bg-gray-800 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
         
         <AnimatePresence>
-          {(isFocused || text) && (
+          {(isFocused || text || images.length > 0) && (
             <motion.div 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
               className="flex justify-between items-center mt-2 overflow-hidden"
             >
-              <span className="text-xs text-gray-400">
-                Ctrl + Enter 快速发送
-              </span>
+              <div className="flex items-center gap-2">
+                <button 
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="p-2 text-gray-400 hover:text-brand-primary hover:bg-brand-primary/10 rounded-full transition-colors"
+                  title="添加图片"
+                >
+                  <ImageIcon size={18} />
+                </button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef}
+                  style={{ display: 'none' }}
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageSelect}
+                />
+                <span className="text-xs text-gray-400">
+                  Ctrl + Enter 快速发送
+                </span>
+              </div>
               <div className="flex gap-3">
                 {onCancel && (
                   <button 
@@ -90,10 +143,10 @@ const CommentInput = ({
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSubmit}
-                  disabled={!text.trim()}
+                  disabled={!text.trim() && images.length === 0}
                   className={`
                     px-6 py-1.5 rounded text-sm font-medium transition-colors shadow-sm
-                    ${text.trim() 
+                    ${(text.trim() || images.length > 0)
                       ? 'bg-brand-primary text-white hover:bg-brand-primary-hover' 
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed'}
                   `}

@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
-import { Modal, Form, Input, Pagination } from "antd";
-import { Plus, FileText } from "lucide-react";
+import React, { useCallback, useEffect, useState, useRef } from "react";
+import { Modal, Form, Input, Pagination, Button } from "antd";
+import { Plus, FileText, Image as ImageIcon, BarChart2, X } from "lucide-react";
 import { useSelector } from "react-redux";
 import {
   getPostsPage,
@@ -24,6 +24,12 @@ const Forum = () => {
   const [comments, setComments] = useState({});
   const [form] = Form.useForm();
   const myUserId = userInfo?.userId;
+  
+  // 发帖图片和投票状态
+  const [postImages, setPostImages] = useState([]);
+  const [showPoll, setShowPoll] = useState(false);
+  const [pollOptions, setPollOptions] = useState(['', '']);
+  const fileInputRef = useRef(null);
 
   const formatTs = useCallback((d) => {
     const dt = d instanceof Date ? d : new Date(d);
@@ -63,14 +69,78 @@ const Forum = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
+  // 图片选择处理
+  const handleImageSelect = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const newImages = Array.from(e.target.files).map(file => URL.createObjectURL(file));
+      setPostImages(prev => [...prev, ...newImages].slice(0, 9));
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
+
+  const removePostImage = (index) => {
+    setPostImages(prev => prev.filter((_, i) => i !== index));
+  };
+
+  // 投票选项处理
+  const handlePollOptionChange = (index, value) => {
+    setPollOptions(prev => {
+      const newOptions = [...prev];
+      newOptions[index] = value;
+      return newOptions;
+    });
+  };
+
+  const addPollOption = () => {
+    if (pollOptions.length < 6) {
+      setPollOptions(prev => [...prev, '']);
+    }
+  };
+
+  const removePollOption = (index) => {
+    if (pollOptions.length > 2) {
+      setPollOptions(prev => prev.filter((_, i) => i !== index));
+    }
+  };
+
+  const resetPostForm = () => {
+    form.resetFields();
+    setPostImages([]);
+    setShowPoll(false);
+    setPollOptions(['', '']);
+  };
+
   const handleCreate = async () => {
     const values = await form.validateFields();
     
+    // 构建投票数据
+    let poll = null;
+    if (showPoll) {
+      const validOptions = pollOptions.filter(opt => opt && opt.trim());
+      console.log('Poll options:', pollOptions, 'Valid options:', validOptions);
+      if (validOptions.length >= 2) {
+        poll = {
+          id: `poll-${Date.now()}`,
+          title: values.pollTitle || '',
+          options: validOptions.map((text, idx) => ({
+            id: `opt-${idx}`,
+            text: text.trim(),
+            votes: 0
+          })),
+          totalVotes: 0,
+          votedOptionId: null
+        };
+        console.log('Created poll:', poll);
+      }
+    }
+    
     // 乐观更新：先在本地插入新帖子
     const optimisticPost = {
-      id: Date.now(), // 临时 ID
+      id: Date.now(),
       title: values.title,
       content: values.content,
+      images: postImages.length > 0 ? postImages : undefined,
+      poll: poll,
       owner_id: myUserId,
       owner_name: userInfo?.username || '我',
       created_at: new Date().toISOString(),
@@ -78,17 +148,37 @@ const Forum = () => {
     };
     
     // 立即更新 UI
-    setItems(prev => [optimisticPost, ...prev]);
-    setTotal(prev => prev + 1);
     setPostOpen(false);
-    form.resetFields();
-    setCurrentPage(1);
+    resetPostForm();
+    
+    // 如果不在第一页，先切换到第一页
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    
+    // 乐观更新
+    setItems(prev => [optimisticPost, ...prev.slice(0, PAGE_SIZE - 1)]);
+    setTotal(prev => prev + 1);
     
     // 后台发送请求
     try {
-      await createPost({ title: values.title, content: values.content, owner_id: myUserId });
-      // 延迟刷新以获取真实数据（包括真实 ID）
-      setTimeout(() => loadPage(1, true), 1000);
+      const res = await createPost({ 
+        title: values.title, 
+        content: values.content, 
+        owner_id: myUserId,
+        images: postImages,
+        poll: poll
+      });
+      
+      // 如果后端返回了新帖子的 ID，更新本地数据的 ID
+      if (res?.data?.id) {
+        setItems(prev => prev.map(p => 
+          p.id === optimisticPost.id 
+            ? { ...p, id: res.data.id } 
+            : p
+        ));
+      }
+      // 不再自动刷新页面，保留乐观更新的数据（包括图片和投票）
     } catch (error) {
       // 如果失败，回滚乐观更新
       console.error('发布失败:', error);
@@ -258,20 +348,110 @@ const Forum = () => {
       <Modal
         title="发布帖子"
         open={postOpen}
-        onCancel={() => setPostOpen(false)}
+        onCancel={() => { setPostOpen(false); resetPostForm(); }}
         onOk={handleCreate}
         okText="发布"
         cancelText="取消"
         destroyOnClose
-        width={600}
+        width={640}
       >
         <Form form={form} layout="vertical">
           <Form.Item name="title" label="标题" rules={[{ required: true, message: "请输入标题" }]}>
             <Input maxLength={100} showCount placeholder="给你的帖子起个标题" />
           </Form.Item>
           <Form.Item name="content" label="内容" rules={[{ required: true, message: "请输入内容" }]}>
-            <Input.TextArea rows={8} maxLength={2000} showCount placeholder="分享你的想法..." />
+            <Input.TextArea rows={6} maxLength={2000} showCount placeholder="分享你的想法..." />
           </Form.Item>
+
+          {/* 图片预览 */}
+          {postImages.length > 0 && (
+            <div className="mb-4">
+              <div className="text-sm text-gray-600 mb-2">已添加图片 ({postImages.length}/9)</div>
+              <div className="flex flex-wrap gap-2">
+                {postImages.map((src, idx) => (
+                  <div key={idx} className="relative w-20 h-20 group">
+                    <img src={src} alt="preview" className="w-full h-full object-cover rounded border border-gray-200" />
+                    <button 
+                      type="button"
+                      onClick={() => removePostImage(idx)}
+                      className="absolute -top-1.5 -right-1.5 bg-gray-800 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 投票选项 */}
+          {showPoll && (
+            <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-medium text-gray-700">投票选项</span>
+                <button type="button" onClick={() => setShowPoll(false)} className="text-gray-400 hover:text-gray-600">
+                  <X size={16} />
+                </button>
+              </div>
+              <Form.Item name="pollTitle" className="mb-3">
+                <Input placeholder="投票标题（可选）" maxLength={50} />
+              </Form.Item>
+              <div className="space-y-2">
+                {pollOptions.map((opt, idx) => (
+                  <div key={idx} className="flex items-center gap-2">
+                    <Input 
+                      value={opt}
+                      onChange={(e) => handlePollOptionChange(idx, e.target.value)}
+                      placeholder={`选项 ${idx + 1}`}
+                      maxLength={30}
+                    />
+                    {pollOptions.length > 2 && (
+                      <button type="button" onClick={() => removePollOption(idx)} className="text-gray-400 hover:text-red-500">
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              {pollOptions.length < 6 && (
+                <Button type="dashed" size="small" onClick={addPollOption} className="mt-2 w-full">
+                  + 添加选项
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* 工具栏 */}
+          <div className="flex items-center gap-4 pt-2 border-t border-gray-100">
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                fileInputRef.current?.click();
+              }}
+              className="flex items-center gap-1 text-gray-500 hover:text-brand-primary transition-colors text-sm"
+            >
+              <ImageIcon size={18} />
+              <span>图片</span>
+            </button>
+            <input 
+              type="file" 
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              accept="image/*"
+              multiple
+              onChange={handleImageSelect}
+            />
+            <button 
+              type="button"
+              onClick={() => setShowPoll(!showPoll)}
+              className={`flex items-center gap-1 transition-colors text-sm ${showPoll ? 'text-brand-primary' : 'text-gray-500 hover:text-brand-primary'}`}
+            >
+              <BarChart2 size={18} />
+              <span>投票</span>
+            </button>
+          </div>
         </Form>
       </Modal>
     </div>

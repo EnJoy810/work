@@ -107,7 +107,9 @@ export const updateExam = (data) => {
  * @param {string} examId - 考试ID
  * @returns {Promise} 返回Promise对象
  */
-// 删除考试接口已在 grading.js 中提供并已对齐文档，此处不再重复导出
+export const deleteExam = (examId) => {
+  return request.delete("/grading/exam/delete", { exam_id: examId });
+};
 
 /**
  * 获取考试评分细则
@@ -145,6 +147,7 @@ export default {
   getAnswerSheetTemplates,
   getExamDetail,
   updateExam,
+  deleteExam,
   getExamGuideline,
   getExamPaperDetail,
 };

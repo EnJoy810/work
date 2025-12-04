@@ -31,12 +31,13 @@ const CommentList = ({ postId, initialComments, currentUser }) => {
     }
   }, [updateCommentTree]);
 
-  const handleAddComment = useCallback(async (text) => {
+  const handleAddComment = useCallback(async (text, images = []) => {
     try {
       const params = {
         content: text,
         owner_id: currentUser?.userId,
         post_id: postId,
+        images: images, // 图片数组
       };
       
       await createComment(params);
@@ -45,6 +46,7 @@ const CommentList = ({ postId, initialComments, currentUser }) => {
       const newComment = {
         id: Date.now(),
         content: text,
+        images: images,
         owner_id: currentUser?.userId,
         owner_name: currentUser?.username,
         created_at: new Date().toISOString(),
@@ -59,13 +61,14 @@ const CommentList = ({ postId, initialComments, currentUser }) => {
     }
   }, [currentUser, postId]);
 
-  const handleReply = useCallback(async (parentId, text, replyToUser) => {
+  const handleReply = useCallback(async (parentId, text, images = [], replyToUser) => {
     try {
       const params = {
         content: text,
         owner_id: currentUser?.userId,
         post_id: postId,
         parent_comment_id: parentId,
+        images: images,
       };
       
       if (replyToUser) {
@@ -78,6 +81,7 @@ const CommentList = ({ postId, initialComments, currentUser }) => {
       const newReply = {
         id: Date.now(),
         content: text,
+        images: images,
         owner_id: currentUser?.userId,
         owner_name: currentUser?.username,
         created_at: new Date().toISOString(),

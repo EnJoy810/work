@@ -10,9 +10,14 @@ import {
   Select,
   Form,
   Radio,
+  Table,
+  Modal,
+  Tooltip,
+  Tag,
+  Empty,
 } from "antd";
 import { useMessageService } from "../../components/common/message";
-import { getExamList, getAnswerSheetTemplates, createExamWithObjectKeys } from "../../api/exam";
+import { getExamList, getAnswerSheetTemplates, createExamWithObjectKeys, deleteExam } from "../../api/exam";
 import { uploadWithInit } from "../../services/ossUpload";
 import { createGradingFromExam } from "../../api/grading";
 import {
@@ -23,6 +28,10 @@ import {
   FileProtectOutlined,
   FileOutlined,
   SendOutlined,
+  DeleteOutlined,
+  CheckCircleOutlined,
+  SearchOutlined,
+  ReloadOutlined,
 } from "@ant-design/icons";
 import "./styles/home.css";
 
@@ -50,6 +59,8 @@ const CreateExam = () => {
   const [selectedExamId, setSelectedExamId] = useState(null);
   // 答题卷模板列表
   const [templateList, setTemplateList] = useState([]);
+  // 搜索关键词
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   // 从API获取考试列表
   useEffect(() => {
@@ -224,14 +235,15 @@ const CreateExam = () => {
   };
 
   // 处理选择已有考试
-  const handleSelectExistingExam = () => {
-    if (!selectedExamId) {
+  const handleSelectExistingExam = (examId) => {
+    const targetExamId = examId || selectedExamId;
+    if (!targetExamId) {
       showError("请选择已有考试");
       return;
     }
 
     const selectedExam = existingExams.find(
-      (exam) => exam.exam_id === selectedExamId
+      (exam) => exam.exam_id === targetExamId
     );
     if (selectedExam) {
       // 检查是否有班级ID
@@ -240,7 +252,7 @@ const CreateExam = () => {
         return;
       }
       // 调用接口根据exam_id和class_id创建考试信息
-      createGradingFromExam(selectedExamId, selectedClassId)
+      createGradingFromExam(targetExamId, selectedClassId)
         .then(() => {
           showSuccess(`已成功创建考试：${selectedExam.title}`);
           // 创建成功后返回首页
@@ -252,6 +264,109 @@ const CreateExam = () => {
         });
     }
   };
+
+  // 删除考试
+  const handleDeleteExam = (examId, examTitle) => {
+    Modal.confirm({
+      title: "确认删除考试",
+      content: `确定要删除考试「${examTitle}」吗？此操作不可恢复。`,
+      okText: "确认删除",
+      okType: "danger",
+      cancelText: "取消",
+      onOk: async () => {
+        try {
+          await deleteExam(examId);
+          showSuccess("删除成功");
+          // 刷新列表
+          refreshExamList();
+        } catch (error) {
+          console.error("删除考试失败:", error);
+          showError("删除失败，请重试");
+        }
+      },
+    });
+  };
+
+  // 刷新考试列表
+  const refreshExamList = async () => {
+    setIsLoading(true);
+    try {
+      const response = await getExamList();
+      setExistingExams(response.data || []);
+    } catch (error) {
+      console.error("获取考试列表失败:", error);
+      showError("获取考试列表失败");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // 过滤后的考试列表
+  const filteredExams = existingExams.filter(exam => 
+    !searchKeyword || exam.title?.toLowerCase().includes(searchKeyword.toLowerCase())
+  );
+
+  // 考试列表表格列配置
+  const examColumns = [
+    {
+      title: "考试名称",
+      dataIndex: "title",
+      key: "title",
+      ellipsis: true,
+      render: (text) => (
+        <span className="font-medium text-gray-800">{text}</span>
+      ),
+    },
+    {
+      title: "科目",
+      dataIndex: "subject",
+      key: "subject",
+      width: 100,
+      render: (subject) => {
+        const subjectMap = {
+          chinese: { text: "语文", color: "blue" },
+          math: { text: "数学", color: "green" },
+          english: { text: "英语", color: "orange" },
+        };
+        const info = subjectMap[subject] || { text: subject || "未知", color: "default" };
+        return <Tag color={info.color}>{info.text}</Tag>;
+      },
+    },
+    {
+      title: "创建时间",
+      dataIndex: "created_at",
+      key: "created_at",
+      width: 180,
+      render: (time) => time ? new Date(time).toLocaleString() : "-",
+    },
+    {
+      title: "操作",
+      key: "action",
+      width: 160,
+      render: (_, record) => (
+        <div style={{ display: "flex", gap: "8px" }}>
+          <Tooltip title="选择此考试">
+            <Button
+              type="primary"
+              size="small"
+              icon={<CheckCircleOutlined />}
+              onClick={() => handleSelectExistingExam(record.exam_id)}
+            >
+              选择
+            </Button>
+          </Tooltip>
+          <Tooltip title="删除考试">
+            <Button
+              danger
+              size="small"
+              icon={<DeleteOutlined />}
+              onClick={() => handleDeleteExam(record.exam_id, record.title)}
+            />
+          </Tooltip>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <div className="create-exam-container">
@@ -591,75 +706,79 @@ const CreateExam = () => {
       ) : (
         // 选择已有考试内容
         <Card style={{ border: "1px solid #0000001a", borderRadius: "20px" }}>
-          <Title
-            level={5}
-            style={{
-              marginBottom: "16px",
-              display: "flex",
-              alignItems: "center",
-            }}
-          >
-            <FileOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
-            已有考试列表
-          </Title>
-
-          {isLoading ? (
-            <div style={{ textAlign: "center", padding: "40px 0" }}>
-              <Typography.Text type="secondary">
-                正在加载考试列表...
-              </Typography.Text>
-            </div>
-          ) : (
-            <>
-              <Select
-                placeholder="请选择已有考试"
-                style={{ width: "100%", marginBottom: "24px" }}
-                value={selectedExamId}
-                onChange={setSelectedExamId}
-                showSearch
-                optionFilterProp="children"
-                filterOption={(input, option) =>
-                  (option?.label ?? "")
-                    .toLowerCase()
-                    .includes(input.toLowerCase())
-                }
-                options={
-                  existingExams.length > 0
-                    ? existingExams.map((exam) => ({
-                        value: exam.exam_id,
-                        label: exam.title,
-                      }))
-                    : []
-                }
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
+            <Title
+              level={5}
+              style={{
+                marginBottom: 0,
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              <FileOutlined style={{ marginRight: "8px", color: "#1890ff" }} />
+              已有考试列表
+              <Tag color="blue" style={{ marginLeft: "12px" }}>{existingExams.length} 个考试</Tag>
+            </Title>
+            
+            <div style={{ display: "flex", gap: "12px", alignItems: "center" }}>
+              <Input
+                placeholder="搜索考试名称..."
+                prefix={<SearchOutlined style={{ color: "#bfbfbf" }} />}
+                value={searchKeyword}
+                onChange={(e) => setSearchKeyword(e.target.value)}
+                style={{ width: "240px" }}
+                allowClear
               />
+              <Tooltip title="刷新列表">
+                <Button 
+                  icon={<ReloadOutlined />} 
+                  onClick={refreshExamList}
+                  loading={isLoading}
+                />
+              </Tooltip>
+            </div>
+          </div>
 
-              {existingExams.length === 0 && !isLoading && (
-                <Typography.Text
-                  type="secondary"
-                  style={{
-                    display: "block",
-                    textAlign: "center",
-                    marginBottom: "24px",
-                  }}
-                >
-                  暂无已有考试
-                </Typography.Text>
-              )}
-
-              <div style={{ display: "flex", justifyContent: "end" }}>
-                <Button
-                  type="primary"
-                  size="large"
-                  onClick={handleSelectExistingExam}
-                  disabled={!selectedExamId}
-                  style={{ width: "200px", height: "48px", fontSize: "16px" }}
-                  icon={<FileOutlined />}
-                >
-                  选择此考试创建
-                </Button>
-              </div>
-            </>
+          {filteredExams.length === 0 && !isLoading ? (
+            <Empty 
+              description={searchKeyword ? "没有找到匹配的考试" : "暂无已有考试"} 
+              style={{ padding: "40px 0" }}
+            />
+          ) : (
+            <Table
+              columns={examColumns}
+              dataSource={filteredExams}
+              rowKey="exam_id"
+              loading={isLoading}
+              pagination={{
+                pageSize: 10,
+                showSizeChanger: false,
+                showTotal: (total) => `共 ${total} 个考试`,
+              }}
+              size="middle"
+              rowClassName={(record) => 
+                record.exam_id === selectedExamId ? "ant-table-row-selected" : ""
+              }
+              onRow={(record) => ({
+                onClick: () => setSelectedExamId(record.exam_id),
+                style: { cursor: "pointer" },
+              })}
+            />
           )}
+
+          {/* 底部提示 */}
+          <div style={{ 
+            marginTop: "16px", 
+            padding: "12px 16px", 
+            background: "#f6ffed", 
+            borderRadius: "8px",
+            border: "1px solid #b7eb8f"
+          }}>
+            <Typography.Text style={{ color: "#52c41a" }}>
+              <CheckCircleOutlined style={{ marginRight: "8px" }} />
+              提示：点击表格行可选中考试，点击"选择"按钮将使用该考试为当前班级创建阅卷任务。
+            </Typography.Text>
+          </div>
         </Card>
       )}
     </div>
