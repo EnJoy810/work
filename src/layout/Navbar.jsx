@@ -239,6 +239,8 @@ const Navbar = () => {
             color: "#000",
             fontSize: 18,
             fontWeight: "bold",
+            position: "absolute",
+            left: 0,
           }}
         >
           <LogoIcon fontSize={18} />
@@ -289,7 +291,7 @@ const Navbar = () => {
             })}
           </div>
         )}
-        <div>
+        <div style={{ position: "absolute", right: 0 }}>
           {/* 右侧：用户信息 */}
           <div style={{ display: "flex", alignItems: "center" }}>
             {/* 班级选择器 - 只在已登录且有班级数据时显示 */}
