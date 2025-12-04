@@ -7,6 +7,7 @@ import {
   getPostCount,
   createPost,
   likePost,
+  unlikePost,
   deletePost,
   getCommentList,
 } from "../../api/communication";
@@ -202,11 +203,17 @@ const Forum = () => {
     setCurrentPage(page);
   };
 
-  const handleLike = async (postId) => {
+  const handleLike = async (postId, isLiked) => {
     try {
-      await likePost(postId);
+      if (isLiked) {
+        // 取消点赞
+        await unlikePost(postId, myUserId);
+      } else {
+        // 点赞
+        await likePost(postId);
+      }
     } catch (error) {
-      console.error('点赞失败:', error);
+      console.error(isLiked ? '取消点赞失败:' : '点赞失败:', error);
     }
   };
 

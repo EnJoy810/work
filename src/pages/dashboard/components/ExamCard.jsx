@@ -280,19 +280,25 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                     (exam.status === "READY" || exam.status === "PROCESSING" || exam.status === "COMPLETED") && {
                       key: 'scoreRules',
                       icon: <FileTextOutlined />,
-                      label: '查看评分细则',
+                      label: '评分细则',
                       onClick: showScoreRulesModal,
+                    },
+                    exam.status === "COMPLETED" && {
+                      key: 'dataAnalysis',
+                      icon: <BarChartOutlined />,
+                      label: '数据分析',
+                      onClick: () => navigate(`/data-analysis?grading_id=${exam.grading_id}`),
                     },
                     exam.status === "COMPLETED" && {
                       key: 'essay',
                       icon: <FileTextOutlined />,
-                      label: '查看作文批改',
+                      label: '作文批改',
                       onClick: () => navigate(`/essay-grading?grading_id=${exam.grading_id}`),
                     },
                     exam.status === "COMPLETED" && {
                       key: 'question',
                       icon: <BarChartOutlined />,
-                      label: '查看题目分析',
+                      label: '题目分析',
                       onClick: () => navigate(`/question-analysis?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`),
                     },
                     exam.status === "COMPLETED" && {
@@ -304,14 +310,14 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                     exam.status === "COMPLETED" && {
                       key: 'trace',
                       icon: <EditOutlined />,
-                      label: '手动留痕',
+                      label: '留痕',
                       onClick: () => navigate(`/trace?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`),
                     },
                     { type: 'divider' },
                     {
                       key: 'delete',
                       icon: <DeleteOutlined />,
-                      label: '删除该考试',
+                      label: '删除',
                       danger: true,
                       onClick: handleDeleteExam,
                     },
@@ -325,17 +331,17 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
           ) : (
             <>
               {/* 桌面端：显示所有按钮 */}
-              {/* 删除按钮 - 所有状态都显示在最左边 */}
+              {/* 删除按钮 */}
               <Button
                 type="default"
                 danger
                 icon={<DeleteOutlined />}
                 onClick={handleDeleteExam}
               >
-                删除该考试
+                删除
               </Button>
 
-              {/* 已完成状态显示查看评分细则、查看评分过程和数据分析 */}
+              {/* 评分细则 - READY/PROCESSING/COMPLETED 状态显示 */}
               {(exam.status === "READY" ||
                 exam.status === "PROCESSING" ||
                 exam.status === "COMPLETED") && (
@@ -344,7 +350,7 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                   icon={<FileTextOutlined />}
                   onClick={showScoreRulesModal}
                 >
-                  查看评分细则
+                  评分细则
                 </Button>
               )}
 
@@ -373,7 +379,7 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                     icon={<FileTextOutlined />}
                     onClick={() => navigate(`/essay-grading?grading_id=${exam.grading_id}`)}
                   >
-                    查看作文批改
+                    作文批改
                   </Button>
 
                   <Button
@@ -381,7 +387,7 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                     icon={<BarChartOutlined />}
                     onClick={() => navigate(`/question-analysis?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`)}
                   >
-                    查看题目分析
+                    题目分析
                   </Button>
 
                   <Button
@@ -397,7 +403,7 @@ const ExamCard = ({ exam, navigate, onDelete }) => {
                     icon={<EditOutlined />}
                     onClick={() => navigate(`/trace?grading_id=${exam.grading_id}&exam_id=${exam.exam_id}`)}
                   >
-                    手动留痕
+                    留痕
                   </Button>
                 </>
               )}

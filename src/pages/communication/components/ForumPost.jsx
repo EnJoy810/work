@@ -11,11 +11,13 @@ const ForumPost = ({ post, currentUser, onDelete, onLike, onLoadComments, commen
   const [showComments, setShowComments] = useState(false);
 
   const handleLike = async () => {
+    const wasLiked = isLiked;
     const newLiked = !isLiked;
     setIsLiked(newLiked);
     setLikeCount(prev => newLiked ? prev + 1 : prev - 1);
     if (onLike) {
-      await onLike(post.id);
+      // 传递当前点赞状态，让父组件决定调用点赞还是取消点赞接口
+      await onLike(post.id, wasLiked);
     }
   };
 

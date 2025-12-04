@@ -73,12 +73,13 @@ const Navbar = () => {
       label: "仪表盘",
       path: "/",
     },
-    {
-      key: "2",
-      icon: <FileTextOutlined />,
-      label: "考试管理",
-      path: "/exams",
-    },
+    // 暂时隐藏考试管理
+    // {
+    //   key: "2",
+    //   icon: <FileTextOutlined />,
+    //   label: "考试管理",
+    //   path: "/exams",
+    // },
     {
       key: "6",
       icon: <FileTextOutlined />,

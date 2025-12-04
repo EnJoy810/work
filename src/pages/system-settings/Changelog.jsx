@@ -7,7 +7,8 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
 import { getUpdateLogsPage, getUpdateLogCount, createUpdateLog, deleteUpdateLog, updateVideo } from "../../api/updateLog";
-import { APP_VERSION, BUILD_TIME } from "../../utils/appConfig";
+import { getSystemConfig, updateSystemConfig } from "../../api/systemConfig";
+import { APP_VERSION as DEFAULT_VERSION } from "../../utils/appConfig";
 import { uploadVideo, validateVideoDuration } from "../../services/videoUpload";
 import "./Changelog.css";
 
@@ -63,6 +64,14 @@ const Changelog = () => {
   const [form] = Form.useForm();
   const [videoUrl, setVideoUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  
+  // 系统配置（版本号、更新时间）
+  const [systemConfig, setSystemConfig] = useState({
+    version: DEFAULT_VERSION,
+    update_time: new Date().toISOString()
+  });
+  const [configModalOpen, setConfigModalOpen] = useState(false);
+  const [configForm] = Form.useForm();
 
   // 超级管理员账号为 root（唯一）或角色为 ADMIN
   const isAdmin = userInfo?.username === "root" || ["ADMIN", "ROOT", "SUPER_ADMIN"].includes(userInfo?.role);
@@ -108,6 +117,54 @@ const Changelog = () => {
     loadPage(currentPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
+
+  // 加载系统配置
+  useEffect(() => {
+    const loadSystemConfig = async () => {
+      try {
+        const res = await getSystemConfig();
+        if (res?.data) {
+          setSystemConfig({
+            version: res.data.version || DEFAULT_VERSION,
+            update_time: res.data.update_time || new Date().toISOString()
+          });
+        }
+      } catch {
+        // 如果接口不存在或出错，使用默认值
+        console.log('使用默认系统配置');
+      }
+    };
+    loadSystemConfig();
+  }, []);
+
+  // 打开配置编辑弹窗
+  const handleOpenConfigModal = () => {
+    configForm.setFieldsValue({
+      version: systemConfig.version,
+      update_time: systemConfig.update_time?.split('T')[0] // 只取日期部分
+    });
+    setConfigModalOpen(true);
+  };
+
+  // 保存系统配置
+  const handleSaveConfig = async () => {
+    try {
+      const values = await configForm.validateFields();
+      await updateSystemConfig({
+        version: values.version,
+        update_time: new Date(values.update_time).toISOString()
+      });
+      setSystemConfig({
+        version: values.version,
+        update_time: new Date(values.update_time).toISOString()
+      });
+      setConfigModalOpen(false);
+      antMessage.success('配置更新成功');
+    } catch (error) {
+      console.error('更新配置失败:', error);
+      antMessage.error('更新配置失败');
+    }
+  };
 
   const handleCreate = async () => {
     const values = await form.validateFields();
@@ -288,24 +345,36 @@ const Changelog = () => {
         <aside className="hidden lg:block w-80 shrink-0 space-y-6 sticky top-20">
           {/* Welcome Card */}
           <div className="bg-white rounded-md shadow-sm border border-gray-100 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 rounded-lg bg-brand-primary/10 flex items-center justify-center">
-                <Bell size={24} className="text-brand-primary" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-lg bg-brand-primary/10 flex items-center justify-center">
+                  <Bell size={24} className="text-brand-primary" />
+                </div>
+                <div>
+                  <h3 className="font-bold text-gray-800">系统公告</h3>
+                  <p className="text-sm text-gray-500">了解最新功能和改进</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-bold text-gray-800">系统公告</h3>
-                <p className="text-sm text-gray-500">了解最新功能和改进</p>
-              </div>
+              {/* 只有 root 用户可以编辑版本信息 */}
+              {userInfo?.username === "root" && (
+                <button
+                  onClick={handleOpenConfigModal}
+                  className="text-xs text-gray-400 hover:text-brand-primary transition-colors"
+                  title="编辑版本信息"
+                >
+                  编辑
+                </button>
+              )}
             </div>
             
             <div className="space-y-3 pt-4 border-t border-gray-100">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">当前版本</span>
-                <span className="text-sm font-semibold text-brand-primary">{APP_VERSION}</span>
+                <span className="text-sm font-semibold text-brand-primary">{systemConfig.version}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">更新时间</span>
-                <span className="text-sm text-gray-700">{new Date(BUILD_TIME).toLocaleDateString()}</span>
+                <span className="text-sm text-gray-700">{new Date(systemConfig.update_time).toLocaleDateString()}</span>
               </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-500">公告数量</span>
@@ -415,6 +484,34 @@ const Changelog = () => {
               showCount 
               placeholder="支持 Markdown 格式。视频会自动插入到内容中。"
             />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 系统配置编辑弹窗 - 仅 root 用户可见 */}
+      <Modal
+        title="编辑版本信息"
+        open={configModalOpen}
+        onCancel={() => setConfigModalOpen(false)}
+        onOk={handleSaveConfig}
+        okText="保存"
+        cancelText="取消"
+        destroyOnClose
+      >
+        <Form form={configForm} layout="vertical">
+          <Form.Item 
+            name="version" 
+            label="版本号" 
+            rules={[{ required: true, message: "请输入版本号" }]}
+          >
+            <Input placeholder="例如：v1.0.1" />
+          </Form.Item>
+          <Form.Item 
+            name="update_time" 
+            label="更新时间" 
+            rules={[{ required: true, message: "请选择更新时间" }]}
+          >
+            <Input type="date" />
           </Form.Item>
         </Form>
       </Modal>

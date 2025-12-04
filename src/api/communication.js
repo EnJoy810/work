@@ -32,19 +32,34 @@ export const getPostCount = () => {
   return request.get("/post/count");
 };
 
-export const createPost = ({ title, content, owner_id }) => {
+/**
+ * 创建帖子
+ * @param {Object} params
+ * @param {string} params.title - 帖子标题
+ * @param {string} params.content - 帖子内容
+ * @param {number} params.owner_id - 发帖者 ID
+ * @param {string} [params.photo_urls] - 图片URL，多个用逗号分隔
+ * @param {Array} [params.votes] - 投票配置数组
+ */
+export const createPost = ({ title, content, owner_id, photo_urls, votes }) => {
   const payload = {
-    id: 0,
     title,
     content,
     owner_id,
     owner_name: getOwnerName(),
     creator_type: getCreatorType(),
-    like_count: 0,
   };
-  // remove zero-value numeric fields per backend requirement
-  if (payload.id === 0) delete payload.id;
-  if (payload.like_count === 0) delete payload.like_count;
+  
+  // 可选字段：图片
+  if (photo_urls) {
+    payload.photo_urls = photo_urls;
+  }
+  
+  // 可选字段：投票
+  if (votes && votes.length > 0) {
+    payload.votes = votes;
+  }
+  
   return request.post("/post", payload);
 };
 
@@ -132,14 +147,108 @@ export const likeComment = (comment_id) => {
   );
 };
 
+/**
+ * 取消帖子点赞
+ * @param {number} post_id - 帖子 ID
+ * @param {number} user_id - 用户 ID
+ */
+export const unlikePost = (post_id, user_id) => {
+  return request.delete("/post/unlike", {}, {
+    data: { post_id, user_id },
+  });
+};
+
+/**
+ * 取消评论点赞
+ * @param {number} comment_id - 评论 ID
+ * @param {number} user_id - 用户 ID
+ */
+export const unlikeComment = (comment_id, user_id) => {
+  return request.delete("/post/comment/unlike", {}, {
+    data: { comment_id, user_id },
+  });
+};
+
+// 投票相关
+
+/**
+ * 投票
+ * @param {Object} params
+ * @param {number} params.vote_id - 投票 ID
+ * @param {number} params.user_id - 用户 ID
+ * @param {number} params.option - 选择的选项索引
+ */
+export const vote = ({ vote_id, user_id, option }) => {
+  return request.post("/post/vote", {
+    vote_id,
+    user_id,
+    option,
+  });
+};
+
+/**
+ * 获取投票结果
+ * @param {number} post_id - 帖子 ID
+ */
+export const getVoteResult = (post_id) => {
+  return request.get("/post/vote-result", { post_id });
+};
+
+// 管理员相关
+
+/**
+ * 审核帖子（仅管理员）
+ * @param {number} post_id - 帖子 ID
+ * @param {number} status - 审核状态
+ */
+export const reviewPost = (post_id, status) => {
+  return request.put("/post/root/review", {
+    post_id,
+    status,
+  });
+};
+
+/**
+ * 获取待审核帖子列表（仅管理员）
+ * @param {Object} params
+ * @param {number} params.pageSize - 分页大小
+ * @param {string} params.lastCreatedAt - 上一页最后一条的创建时间
+ */
+export const getReviewPostsPage = ({ pageSize, lastCreatedAt }) => {
+  return request.get("/post/root/review/page", {
+    page_size: pageSize,
+    last_created_at: lastCreatedAt,
+  });
+};
+
+/**
+ * 获取我的帖子列表
+ * @param {Object} params
+ * @param {number} params.pageSize - 分页大小
+ * @param {string} params.lastCreatedAt - 上一页最后一条的创建时间
+ */
+export const getMyPostsPage = ({ pageSize, lastCreatedAt }) => {
+  return request.get("/post/page/myself", {
+    page_size: pageSize,
+    last_created_at: lastCreatedAt,
+  });
+};
+
 export default {
   getPostsPage,
   getPostCount,
   createPost,
   deletePost,
   likePost,
+  unlikePost,
   getCommentList,
   createComment,
   deleteComment,
   likeComment,
+  unlikeComment,
+  vote,
+  getVoteResult,
+  reviewPost,
+  getReviewPostsPage,
+  getMyPostsPage,
 };

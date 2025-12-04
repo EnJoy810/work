@@ -88,7 +88,7 @@ const TracePage = () => {
   const [showLeftPanel, setShowLeftPanel] = useState(() => getInitialPanelState().left);
   const [showRightPanel, setShowRightPanel] = useState(() => getInitialPanelState().right);
   const [scale, setScale] = useState(1);
-  const [autoSaveOnSwitch, setAutoSaveOnSwitch] = useState(false);
+  const [autoSaveOnSwitch, setAutoSaveOnSwitch] = useState(true);
 
   const [showScoreReason, setShowScoreReason] = useState(false);
   // 保存显示评语偏好

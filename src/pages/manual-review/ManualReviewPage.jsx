@@ -26,9 +26,7 @@ const normalizeStudent = (record) => {
   // 优先从 paper_id 字段获取，确保不同 paper_id 的学生能被正确区分
   const paperIdRaw = record?.paper_id ?? record?.paperId;
   const paperId = paperIdRaw !== undefined && paperIdRaw !== null ? String(paperIdRaw).trim() : "";
-  // id ??????? paperId???????????????��????
-  // ??????????????????????? paperId ?????id ????
-  // 如果 paper_id 存在，直接使用它作为 id；如果不存在，才使用其他字段作为 fallback
+  // 如果 paper_id 存在，直接使用它作为 id；如果不存在，使用 student_no 作为 fallback
   const idFallbackStrict = String(record?.id ?? "").trim();
   const id = paperId || idFallbackStrict || String(record?.student_no ?? record?.studentNo ?? "").trim();
   const name = record?.student_name ?? record?.studentName ?? record?.name ?? "未知姓名";
@@ -316,11 +314,11 @@ const ManualReviewPage = () => {
       const newScoreMap = buildScoreMap(list);
       setScoreMap(newScoreMap);
       
-      // ??��??��?????????????????????��? questions ??
+      // 从评分列表中补充题目的满分信息
       if (list.length > 0) {
         setQuestions((prevQuestions) => {
           const updated = prevQuestions.map((q) => {
-            // ?????????????????????????��??��??��??
+            // 如果题目没有满分信息，尝试从评分列表中获取
             if (q.maxScore === null || q.maxScore === undefined) {
               const questionItem = list.find(
                 (item) => String(item?.questionId ?? item?.question_id ?? item?.id ?? "").trim() === q.id
@@ -375,30 +373,57 @@ const ManualReviewPage = () => {
       if (paperToStudent.size > 0) {
         setStudents((prev) => {
           const prevList = Array.isArray(prev) ? prev : [];
-          const getKey = (s) => String(s?.paperId ?? s?.id ?? "").trim();
-          const prevMap = new Map(prevList.map((s) => [getKey(s), s]));
-
-          // 合并/更新来自权威列表的信息，但不移除现有的缺考学生
-          paperToStudent.forEach((stu, key) => {
-            const existing = prevMap.get(key);
-            if (existing) {
-              prevMap.set(key, { ...existing, ...stu });
-            } else {
-              prevMap.set(key, stu);
+          
+          // 如果 prevList 为空，说明 loadStudents 还没完成，不要覆盖
+          // 只更新已有学生的信息，不要替换整个列表
+          if (prevList.length === 0) {
+            return prev;
+          }
+          
+          const getKey = (s) => String(s?.paperId || s?.id || s?.studentNo || "").trim();
+          
+          // 按 paperId 建立映射，用于更新有答题卡的学生
+          const paperIdMap = new Map();
+          prevList.forEach((s) => {
+            if (s?.paperId) {
+              paperIdMap.set(String(s.paperId).trim(), s);
             }
           });
 
-          // 保留顺序：先按原有顺序输出（已更新），再补充新增项
+          // 合并/更新来自权威列表的信息
+          paperToStudent.forEach((stu, key) => {
+            const existing = paperIdMap.get(key);
+            if (existing) {
+              paperIdMap.set(key, { ...existing, ...stu });
+            } else {
+              paperIdMap.set(key, stu);
+            }
+          });
+
+          // 构建结果：保留所有原有学生（包括缺考学生），更新有答题卡的学生
           const result = [];
           const seen = new Set();
+          
           prevList.forEach((s) => {
-            const key = getKey(s);
-            const updated = prevMap.get(key);
-            if (updated && !seen.has(key)) {
-              result.push(updated);
-              seen.add(key);
+            const paperId = s?.paperId ? String(s.paperId).trim() : "";
+            if (paperId && paperIdMap.has(paperId)) {
+              // 有答题卡的学生，使用更新后的数据
+              const updated = paperIdMap.get(paperId);
+              if (!seen.has(paperId)) {
+                result.push(updated);
+                seen.add(paperId);
+              }
+            } else {
+              // 缺考学生（没有 paperId），直接保留
+              const key = getKey(s);
+              if (!seen.has(key)) {
+                result.push(s);
+                seen.add(key);
+              }
             }
           });
+          
+          // 补充新增的学生（来自 paperToStudent 但不在原列表中）
           paperToStudent.forEach((stu, key) => {
             if (!seen.has(key)) {
               result.push(stu);
@@ -485,7 +510,7 @@ const ManualReviewPage = () => {
           const answerDetail = response?.data ?? null;
           setCurrentAnswerDetail(answerDetail);
           
-          // ??????????????��????????????? scoreMap ?��?????? scoreMap
+          // 如果答题详情中有分数，同步更新到 scoreMap
           if (answerDetail && currentQuestionId) {
             const scoreValue = answerDetail?.score ?? answerDetail?.manual_score ?? answerDetail?.manualScore;
             if (scoreValue !== undefined && scoreValue !== null && scoreValue !== "") {
