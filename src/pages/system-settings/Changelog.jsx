@@ -6,8 +6,7 @@ import { useSelector } from "react-redux";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import rehypeRaw from "rehype-raw";
-import { getUpdateLogsPage, getUpdateLogCount, createUpdateLog, deleteUpdateLog, updateVideo } from "../../api/updateLog";
-import { getSystemConfig, updateSystemConfig } from "../../api/systemConfig";
+import { getUpdateLogsPage, getUpdateLogCount, createUpdateLog, deleteUpdateLog, updateVideo, getUpdateLogMeta, updateUpdateLogMeta } from "../../api/updateLog";
 import { APP_VERSION as DEFAULT_VERSION } from "../../utils/appConfig";
 import { uploadVideo, validateVideoDuration } from "../../services/videoUpload";
 import "./Changelog.css";
@@ -118,15 +117,16 @@ const Changelog = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage]);
 
-  // 加载系统配置
+  // 加载更新日志元数据（版本号、更新时间）
   useEffect(() => {
-    const loadSystemConfig = async () => {
+    const loadMeta = async () => {
       try {
-        const res = await getSystemConfig();
+        const res = await getUpdateLogMeta();
         if (res?.data) {
           setSystemConfig({
+            id: res.data.id,
             version: res.data.version || DEFAULT_VERSION,
-            update_time: res.data.update_time || new Date().toISOString()
+            update_time: res.data.update_time || res.data.updateTime || new Date().toISOString()
           });
         }
       } catch {
@@ -134,30 +134,29 @@ const Changelog = () => {
         console.log('使用默认系统配置');
       }
     };
-    loadSystemConfig();
+    loadMeta();
   }, []);
 
   // 打开配置编辑弹窗
   const handleOpenConfigModal = () => {
     configForm.setFieldsValue({
       version: systemConfig.version,
-      update_time: systemConfig.update_time?.split('T')[0] // 只取日期部分
     });
     setConfigModalOpen(true);
   };
 
-  // 保存系统配置
+  // 保存更新日志元数据（只更新版本号，update_time 由后端自动处理）
   const handleSaveConfig = async () => {
     try {
       const values = await configForm.validateFields();
-      await updateSystemConfig({
+      await updateUpdateLogMeta({
+        id: systemConfig.id,
         version: values.version,
-        update_time: new Date(values.update_time).toISOString()
       });
-      setSystemConfig({
+      setSystemConfig(prev => ({
+        ...prev,
         version: values.version,
-        update_time: new Date(values.update_time).toISOString()
-      });
+      }));
       setConfigModalOpen(false);
       antMessage.success('配置更新成功');
     } catch (error) {
@@ -505,13 +504,6 @@ const Changelog = () => {
             rules={[{ required: true, message: "请输入版本号" }]}
           >
             <Input placeholder="例如：v1.0.1" />
-          </Form.Item>
-          <Form.Item 
-            name="update_time" 
-            label="更新时间" 
-            rules={[{ required: true, message: "请选择更新时间" }]}
-          >
-            <Input type="date" />
           </Form.Item>
         </Form>
       </Modal>
