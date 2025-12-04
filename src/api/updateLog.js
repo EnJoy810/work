@@ -108,3 +108,22 @@ export const getUpdateLogsPage = ({ pageSize, lastCreatedAt }) => {
 export const getUpdateLogCount = () => {
   return request.get('/update-log/count');
 };
+
+/**
+ * 获取更新日志元数据（版本号、更新时间）
+ * @returns {Promise} 返回 { id, version, update_time }
+ */
+export const getUpdateLogMeta = () => {
+  return request.get('/update-log/meta');
+};
+
+/**
+ * 更新日志元数据（仅管理员）
+ * @param {Object} data - 元数据
+ * @param {number} data.id - 元数据 ID（必传，用于定位记录）
+ * @param {string} data.version - 版本号
+ * @returns {Promise}
+ */
+export const updateUpdateLogMeta = ({ id, version }) => {
+  return request.post('/update-log/meta/root', { id, version });
+};
