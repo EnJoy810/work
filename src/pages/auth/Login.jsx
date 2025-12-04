@@ -7,6 +7,7 @@ import { setUserInfo } from "../../store/slices/userSlice";
 import {
   setClassList,
   setSelectedClassId,
+  clearClassInfo,
 } from "../../store/slices/classSlice";
 import { useMessageService } from "../../components/common/message";
 import LogoIcon from "../../components/common/LogoIcon";
@@ -58,6 +59,10 @@ const Login = () => {
 
       // 登录成功提示
       showSuccess("登录成功");
+
+      // 先清空旧的班级信息，避免使用缓存的旧数据
+      dispatch(clearClassInfo());
+      localStorage.removeItem('currentClassId');
 
       // 设置登录状态到Redux
       dispatch(

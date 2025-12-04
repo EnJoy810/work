@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState, useRef } from "react";
+import "../../styles/tailwind-utilities.css";
 import { Modal, Form, Input, Pagination, Button } from "antd";
 import { Plus, FileText, Image as ImageIcon, BarChart2, X } from "lucide-react";
 import { useSelector } from "react-redux";

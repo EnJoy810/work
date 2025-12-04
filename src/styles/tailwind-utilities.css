@@ -1,9 +1,8 @@
-/* Landing Page 专用 Tailwind CSS */
-@tailwind base;
+/* Tailwind 工具类 - 不含 base 样式，避免影响答题卡打印 */
 @tailwind components;
 @tailwind utilities;
 
-/* Landing Page Custom Animations */
+/* Custom Animations */
 @layer utilities {
   .animation-delay-2000 {
     animation-delay: 2s;

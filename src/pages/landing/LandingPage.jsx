@@ -1,3 +1,4 @@
+// import '../../styles/landing.css'; // 禁用以保证打印正常
 import Navbar from './components/Navbar';
 import HeroSection from './components/HeroSection';
 import ProductDemoSection from './components/ProductDemoSection';
@@ -9,7 +10,7 @@ import Footer from './components/Footer';
 
 function LandingPage() {
   return (
-    <div className="font-sans antialiased text-slate-900 bg-slate-50 min-h-screen selection:bg-emerald-500/30 relative">
+    <div className="landing-page font-sans antialiased text-slate-900 bg-slate-50 min-h-screen selection:bg-emerald-500/30 relative">
       {/* 全局极光背景 - 移动端缩小尺寸提升性能 */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[5%] left-[15%] w-[250px] h-[250px] md:w-[500px] md:h-[500px] bg-purple-200 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>

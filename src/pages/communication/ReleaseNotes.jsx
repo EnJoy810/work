@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import "../../styles/tailwind-utilities.css";
 import { Button, Card, Modal, Form, Input, Space, Typography, Empty, Pagination } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
 import "../system-settings/Changelog.css";

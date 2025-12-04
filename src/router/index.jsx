@@ -1,9 +1,9 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Layout from "../layout";
-import LandingLayout from "../layout/LandingLayout";
+// import LandingLayout from "../layout/LandingLayout"; // 暂时禁用 landing 页面
 import pages from "../pages";
 import { ProtectedRoute, LoginPage } from "./ProtectedRoutes.jsx";
-import { LandingPage, LoginPage as LandingLoginPage } from "../pages/landing";
+// import { LandingPage, LoginPage as LandingLoginPage } from "../pages/landing"; // 暂时禁用
 
 // 解构获取各个页面组件
 const { Home, CreateExam, UploadAnswerSheet, ScoreProcess, DataAnalysis, EssayGrading, QuestionAnalysis } = pages.dashboard;
@@ -23,21 +23,26 @@ const { TracePage } = pages.trace;
 
 // 创建路由配置
 const router = createBrowserRouter([
-  // 落地页路由（公开访问）
-  {
-    path: "/landing",
-    element: <LandingLayout />,
-    children: [
-      {
-        index: true,
-        element: <LandingPage />,
-      },
-    ],
-  },
-  // 登录页路由
+  // 落地页路由（暂时禁用，等待用普通 CSS 重写后再启用）
+  // {
+  //   path: "/landing",
+  //   element: <LandingLayout />,
+  //   children: [
+  //     {
+  //       index: true,
+  //       element: <LandingPage />,
+  //     },
+  //   ],
+  // },
+  // 登录页路由 - 使用原来的登录页
   {
     path: "/login",
-    element: <LandingLoginPage />,
+    element: <LoginPage />,
+  },
+  // landing 路由重定向到 login
+  {
+    path: "/landing",
+    element: <Navigate to="/login" replace />,
   },
   // 阅卷系统路由（需要登录）
   {

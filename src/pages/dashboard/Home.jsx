@@ -45,14 +45,25 @@ const Home = () => {
 
   useEffect(() => {
     // 确保有班级ID后再发送请求，避免使用旧的班级ID
-    // 如果用户有班级列表但没有selectedClassId，等待Redux状态更新
-    if (classList && classList.length > 0 && !selectedClassId) {
+    // 必须同时满足：有班级列表 且 有选中的班级ID
+    if (!classList || classList.length === 0) {
+      console.log("等待班级列表加载...");
+      return;
+    }
+    if (!selectedClassId) {
       console.log("等待班级ID初始化...");
       return;
     }
     
+    // 验证 selectedClassId 是否在当前班级列表中
+    const isValidClassId = classList.some(c => c.class_id === selectedClassId);
+    if (!isValidClassId) {
+      console.log("班级ID不在当前列表中，等待更新...");
+      return;
+    }
+    
     fetchExamList();
-  }, [selectedClassId]);
+  }, [selectedClassId, classList]);
 
   // 当shouldPoll为true时，每2分钟获取一次数据
   useEffect(() => {
